@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 
   <!-- 🔥 CLAVE PARA MÓVIL -->
- 
+ <!-- VERSION: FIX-PROPERTY-08/01/2025 4:31 pm-OK -->
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
@@ -83,14 +83,14 @@
   <a-entity
     id="arFloat"
     position="0 0 -2"
-    animation_float="property: position;
+    animation="property: position;
                dir: alternate;
                dur: 3000;
                easing: easeInOutSine;
                loop: true;
                to: 0 0.12 -2">
 
-    <a-entity id="arPanel" visible="false">
+    <a-entity id="arPanel" scale="0 0 0">
 
       <a-plane
         id="arPlane"
@@ -107,7 +107,7 @@
         width="1.4"
         color="#FFFFFF"
         align="center"
-        position="0 0 0.08"
+        position="0 0 0.15"
         wrap-count="28">
       </a-text>
 
@@ -147,7 +147,7 @@
     name: "Casa Playa Tamarindo",
     color: "#00c853",
     welcome: {
-      es: "Bienvenido a Casa Playa Tamarindo test2",
+      es: "Bienvenido a Casa Playa Tamarindo, en que te puedo ayudar",
       en: "Welcome to Casa Playa Tamarindo 🌴"
     }
   },
@@ -158,6 +158,16 @@
       es: "Bienvenido al Hotel Tamarindo Inn 🏨",
       en: "Welcome to Hotel Paraíso 🏨"
     }
+    
+  },
+   ferreteria_demo: {
+    name: "Ferreteria Demo",
+    color: "#2196f3",
+    welcome: {
+      es: "Bienvenido a ferreteria demo, en que te puedo ayudar",
+      en: "Welcome to Hotel Paraíso 🏨"
+    }
+    
   }
 };
 
@@ -168,7 +178,8 @@
 }
 
 const CURRENT_PROPERTY = getPropertyFromURL();
-
+console.log("CURRENT_PROPERTY:", CURRENT_PROPERTY);
+console.log("CONFIG:", PROPERTY_CONFIG[CURRENT_PROPERTY]);
 </script>
 
   <script>
@@ -196,6 +207,8 @@ const CURRENT_PROPERTY = getPropertyFromURL();
   if (!config) return;
 
   plane.setAttribute("color", config.color);
+  panel.setAttribute("scale", "1 1 1");
+  panel.setAttribute("visible", "true");
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   showARAnswer(config.welcome[langKey]);
@@ -223,11 +236,11 @@ const CURRENT_PROPERTY = getPropertyFromURL();
 }
 
 function showARAnswer(text, speakAudio = true) {
-  const float = document.getElementById("arFloat");
+ // const float = document.getElementById("arFloat");
   const panel = document.getElementById("arPanel");
   const arText = document.getElementById("arText");
 
-  if (!float || !panel || !arText) return;
+  if (!panel || !arText) return;
 
     // Texto (forzar render)
   arText.setAttribute("value", "");
@@ -236,33 +249,41 @@ function showARAnswer(text, speakAudio = true) {
   }, 50);
 
     // Mostrar
-  float.setAttribute("visible", "true");
-  panel.setAttribute("visible", "true");
+  //float.setAttribute("visible", "true");
+  panel.setAttribute("scale", "1 1 1");
+   panel.setAttribute("visible", "true");
 
-  panel.setAttribute("animation__in", {
-    property: "scale",
-    from: "0.85 0.85 0.85",
-    to: "1 1 1",
-    dur: 300,
-    easing: "easeOutBack"
-  });
+   if (speakAudio) speak(text);
+
+    if (hideTimer) clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    panel.setAttribute("scale", "0 0 0");
+  }, 8000);
+
+  //panel.setAttribute("animation__in", {
+  //  property: "scale",
+  //  from: "0.85 0.85 0.85",
+  //  to: "1 1 1",
+  //  dur: 300,
+  //  easing: "easeOutBack"
+ // });
 
     // Audio solo tras interacción
-  if (speakAudio) {
-    speak(text);
-  }
+  //if (speakAudio) {
+   // speak(text);
+  //}
 
-  arText.setAttribute("value", text);
-  panel.setAttribute("scale", "1 1 1");
+ // arText.setAttribute("value", text);
+  //panel.setAttribute("scale", "1 1 1");
 
   // 🔊 HABLAR (idioma unificado)
  // speak(text);
 
-  if (hideTimer) clearTimeout(hideTimer);
+  //if (hideTimer) clearTimeout(hideTimer);
 
-  hideTimer = setTimeout(() => {
-    panel.setAttribute("scale", "0 0 0");
-  }, 8000);
+  //hideTimer = setTimeout(() => {
+  //  panel.setAttribute("scale", "0 0 0");
+  //}, 8000);
 }
 
 
@@ -306,8 +327,10 @@ function showARAnswer(text, speakAudio = true) {
 </script>
 <script>
  
-  window.addEventListener("load", () => {
-  setTimeout(applyBranding, 1500);
+ const sceneTest = document.querySelector("a-scene");
+
+sceneTest.addEventListener("loaded", () => {
+  applyBranding();
 });
 
 

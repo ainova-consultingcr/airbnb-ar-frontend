@@ -1,0 +1,97 @@
+{
+  "id": "ferreteria_demo",
+  "type": "lodging",
+  "name": "Ferreteria Demo",
+  "location": {
+    "address": "Santa Cruz, Guanacaste, Costa Rica"
+  },
+  "languages": ["es", "en"],
+  "timezone": "America/Costa_Rica",
+
+"spaces": [
+  {
+    "id": "tools",
+    "name": "sierras",
+    "description": "en el pasillo 3 encotraras todo lo necesario para sierras",
+    "rules": [
+      "sierras electricas",
+      "sierras de banco"
+    ],
+    "availability": {
+      "from": "08:00",
+      "to": "21:00"
+    }
+  },
+  {
+    "id": "parking",
+    "name": "Estacionamiento",
+    "description": "Parqueo gratuito asignado",
+    "rules": ["Un vehículo por unidad"]
+  }
+],
+"services": [
+  {
+    "id": "wifi",
+    "name": "WiFi",
+    "details": {
+      "network": "CasaPlaya_WiFi",
+      "password": "playa2024"
+    }
+  },
+  {
+    "id": "cleaning",
+    "name": "Limpieza",
+    "how_to_request": "Contactar administración"
+  }
+],
+"rules": [
+  "No fumar en áreas cerradas",
+  "No fiestas",
+  "Mascotas pequeñas permitidas"
+]
+,
+"schedules": {
+  "check_in": "15:00",
+  "check_out": "11:00",
+  "office_hours": {
+    "from": "08:00",
+    "to": "17:00"
+  }
+}
+,
+"faqs": [
+  {
+    "question": "¿A qué hora es el check-in?",
+    "answer": "El check-in es a partir de las 3:00 PM."
+  },
+  {
+    "question": "¿Se permiten mascotas?",
+    "answer": "Sí, mascotas pequeñas."
+  }
+]
+,"recommendations": {
+  "restaurants": [
+    "Restaurante El Dorado",
+    "La Oveja Surf House"
+  ],
+  "tours": [
+    "Tour de manglares",
+    "Clases de surf"
+  ],
+  "transport": [
+    "Rent a Car Guanacaste"
+  ]
+},
+"branding": {
+  "primary_color": "#00c853",
+  "welcome": {
+    "es": "Bienvenido a Casa Playa Tamarindo test",
+    "en": "Welcome to Casa Playa Tamarindo 🌴"
+  },
+  "voice": {
+    "enabled": true,
+    "speed": 0.95
+  }
+}
+
+}
