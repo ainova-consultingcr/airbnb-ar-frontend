@@ -264,21 +264,21 @@ function showARAnswer(text, speakAudio = true) {
  // });
 
     // Audio solo tras interacción
-  if (speakAudio) {
-    speak(text);
-  }
+  //if (speakAudio) {
+   // speak(text);
+  //}
 
-  arText.setAttribute("value", text);
-  panel.setAttribute("scale", "1 1 1");
+ // arText.setAttribute("value", text);
+  //panel.setAttribute("scale", "1 1 1");
 
   // 🔊 HABLAR (idioma unificado)
  // speak(text);
 
-  if (hideTimer) clearTimeout(hideTimer);
+  //if (hideTimer) clearTimeout(hideTimer);
 
-  hideTimer = setTimeout(() => {
-    panel.setAttribute("scale", "0 0 0");
-  }, 8000);
+  //hideTimer = setTimeout(() => {
+  //  panel.setAttribute("scale", "0 0 0");
+  //}, 8000);
 }
 
 
