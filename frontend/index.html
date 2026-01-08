@@ -316,8 +316,10 @@ function showARAnswer(text, speakAudio = true) {
 </script>
 <script>
  
-  window.addEventListener("load", () => {
-  setTimeout(applyBranding, 1500);
+ const sceneTest = document.querySelector("a-scene");
+
+sceneTest.addEventListener("loaded", () => {
+  applyBranding();
 });
 
 
