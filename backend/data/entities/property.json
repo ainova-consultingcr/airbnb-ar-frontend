@@ -1,0 +1,24 @@
+{
+  "entity_id": "string",
+  "entity_type": "property | product | place | organization",
+  "name": "string",
+  "language_default": "es",
+  "branding": {
+    "primary_color": "#00c853",
+    "logo_url": "",
+    "voice_enabled": true
+  },
+  "welcome": {
+    "es": "string",
+    "en": "string"
+  },
+  "context": {},
+  "rules": [],
+  "metadata": {
+  "created_by": "admin",
+  "version": "1.0",
+  "campaign_id": "summer_2026",
+  "expires_at": "2026-12-31"
+}
+  
+}

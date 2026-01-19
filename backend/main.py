@@ -1,8 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+
 from rag import load_property_data, build_context
-#from prompts import AIRBNB_CONTEXT, SYSTEM_PROMPT
 from prompts import SYSTEM_PROMPT_TEMPLATE
+
 
 def detect_intent(question: str) -> str:
     q = question.lower()
@@ -18,13 +24,6 @@ def detect_intent(question: str) -> str:
 
     return "general"
 
-import openai, os
-from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Body
-from openai import OpenAI
-from fastapi import HTTPException
-from typing import Optional
 
 RECOMMENDATIONS = {
     "food": [
@@ -45,84 +44,71 @@ RECOMMENDATIONS = {
     ]
 }
 
-
 OPENAI_MODEL = "gpt-4o-mini"
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # solo desarrollo
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Modelo de entrada
+
 class AskRequest(BaseModel):
     property_id: Optional[str] = "demo_property"
     question: str
     language: Optional[str] = "es"
-    
-class Question(BaseModel):
-    property_id: str
-    question: str
+
 
 @app.post("/ask")
 def ask(req: AskRequest):
-   
-    data = load_property_data(req.property_id)
-    context = build_context(data)
-    
-    language = req.language or "es"
-    place_type = data.get("type", "generic")
-   
-    #seleccion de la api key
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    
-    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(language=language,
-        place_type=place_type)
-    
-    # 🔍 Detectar intención del huésped
-    intent = detect_intent(req.question)
-    suggestions = RECOMMENDATIONS.get(intent, [])
-
-# 🧠 Texto dinámico de recomendaciones
-    recommendation_text = ""
-    if suggestions:
-        recommendation_text = (
-        "\nYou may suggest up to 2 local options from the list below, "
-        "only if relevant and naturally:\n"
-        + "\n".join(suggestions)
-    )
-
     try:
-     response = client.chat.completions.create(
-        model= OPENAI_MODEL,
-        
-        messages=[
-            {"role": "system", "content": system_prompt},
-           # {"role": "system", "content": AIRBNB_CONTEXT},
-            {"role": "system", "content": context},
-            {"role": "system", "content": recommendation_text},
-            {"role": "user", "content": req.question}
-            #{"role": "user", "content": f"{context}\nPregunta: {req.question}"}
-        ],
-        temperature=0.3
-    )
+        # 1) Cargar entidad (1 sola vez)
+        entity = load_property_data(req.property_id)
+        place_type = entity.get("type", "generic")
+        # 2) Contexto desde entidad
+        context_text = build_context(entity)
 
-     return {"answer": response.choices[0].message.content}
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
+        # 3) Prompt universal
+        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            entity_name=entity.get("name", req.property_id),
+            entity_type=entity.get("entity_type", "entity"),
+            place_type=place_type,
+            language=req.language or "es",
+            context=context_text
         )
 
-#@app.get("/")
-#def root():
- #   return {"status": "backend funcionando"}
+        # 4) Recomendaciones dinámicas
+        intent = detect_intent(req.question)
+        suggestions = RECOMMENDATIONS.get(intent, [])
 
+        recommendation_text = ""
+        if suggestions:
+            recommendation_text = (
+                "\nYou may suggest up to 2 local options from the list below, "
+                "only if relevant and naturally:\n"
+                + "\n".join(suggestions)
+            )
+
+        # 5) Llamada OpenAI
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": recommendation_text},
+                {"role": "user", "content": req.question}
+            ],
+            temperature=0.3
+        )
+
+        return {"answer": response.choices[0].message.content}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

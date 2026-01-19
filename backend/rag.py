@@ -1,55 +1,57 @@
 import json
 import os
-def build_context(data: dict) -> str:
-    sections = []
+def build_context(entity: dict) -> str:
+    #sections = []
+    lines = []
 
-    sections.append(f"Place name: {data.get('name')}")
-    sections.append(f"Place type: {data.get('type')}")
-    sections.append(f"Location: {data.get('location', {}).get('address')}")
+    lines.append(f"Place name: {entity.get('name')}")
+    lines.append(f"Place type: {entity.get('entity_type')}")
+    lines.append(f"Location: {entity.get('location', {}).get('address')}")
 
-    if "spaces" in data:
-        sections.append("\nSpaces:")
-        for s in data["spaces"]:
-            sections.append(
+    if "spaces" in entity:
+        lines.append("\nSpaces:")
+        for s in entity["spaces"]:
+            lines.append(
                 f"- {s['name']}: {s.get('description', '')}. "
                 f"Rules: {', '.join(s.get('rules', []))}. "
                 f"Availability: {s.get('availability', {}).get('from', '')} - {s.get('availability', {}).get('to', '')}"
             )
 
-    if "services" in data:
-        sections.append("\nServices:")
-        for srv in data["services"]:
-            sections.append(f"- {srv['name']}: {srv.get('details', '') or srv.get('how_to_request', '')}")
+    if "services" in entity:
+        lines.append("\nServices:")
+        for srv in entity["services"]:
+            lines.append(f"- {srv['name']}: {srv.get('details', '') or srv.get('how_to_request', '')}")
 
-    if "rules" in data:
-        sections.append("\nGeneral rules:")
-        for rule in data["rules"]:
-            sections.append(f"- {rule}")
+    if "rules" in entity:
+        lines.append("\nGeneral rules:")
+        for rule in entity["rules"]:
+            lines.append(f"- {rule}")
 
-    if "schedules" in data:
-        sections.append("\nSchedules:")
-        for k, v in data["schedules"].items():
-            sections.append(f"- {k}: {v}")
+    if "schedules" in entity:
+        lines.append("\nSchedules:")
+        for k, v in entity["schedules"].items():
+            lines.append(f"- {k}: {v}")
 
-    if "faqs" in data:
-        sections.append("\nFAQs:")
-        for f in data["faqs"]:
-            sections.append(f"- Q: {f['question']} A: {f['answer']}")
+    if "faqs" in entity:
+        lines.append("\nFAQs:")
+        for f in entity["faqs"]:
+            lines.append(f"- Q: {f['question']} A: {f['answer']}")
 
-    if "recommendations" in data:
-        sections.append("\nExternal recommendations:")
-        for k, items in data["recommendations"].items():
-            sections.append(f"- {k}: {', '.join(items)}")
+    if "recommendations" in entity:
+        lines.append("\nExternal recommendations:")
+        for k, items in entity["recommendations"].items():
+            lines.append(f"- {k}: {', '.join(items)}")
 
-    return "\n".join(sections)
+    return "\n".join(lines)
 
 
 def load_property_data(property_id : str):
-    with open(f"data/{property_id}.json", "r", encoding="utf-8") as f:
-      return json.load(f)
+    #with open(f"data/entities/{property_id}.json", "r", encoding="utf-8") as f:
+    #  return json.load(f)
+    path = f"data/entities/{property_id}.json"
     if not os.path.exists(path):
        raise FileNotFoundError(
-           f"No existe el archivo de datos para la propiedad: {property_id}"
+            f"No existe el archivo de datos para la entidad: {property_id} -> {path}"
        )
 
     with open(path, "r", encoding="utf-8") as f:
