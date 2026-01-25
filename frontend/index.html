@@ -186,6 +186,7 @@ console.log("CONFIG:", PROPERTY_CONFIG[CURRENT_PROPERTY]);
   let hideTimer = null;
   let currentUtterance = null;
   let audioUnlocked = false;
+  
 
    function unlockAudio() {
     if (audioUnlocked) return;
@@ -216,24 +217,76 @@ console.log("CONFIG:", PROPERTY_CONFIG[CURRENT_PROPERTY]);
 
 
 
+function pickBestVoice(lang) {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
 
-  function speak(text) {
-  if (!text) return;
+  // Normalizar
+  const short = (lang || "es").toLowerCase().split("-")[0]; // "es-CR" -> "es"
 
-  if (currentUtterance) {
-    window.speechSynthesis.cancel();
+  // 1) Match exacto por lang completo
+  let v = voices.find(v => v.lang && v.lang.toLowerCase() === (lang || "").toLowerCase());
+  if (v) return v;
+
+  // 2) Match por idioma base (es, en)
+  const candidates = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(short));
+
+  if (candidates.length === 0) return null;
+
+  // 3) Preferencias de español (evita voces raras si existen)
+  if (short === "es") {
+    const preferred = ["es-CR", "es-MX", "es-ES", "es-US"];
+    for (const p of preferred) {
+      const match = candidates.find(v => v.lang.toLowerCase() === p.toLowerCase());
+      if (match) return match;
+    }
   }
 
+  // 4) Si no, usa la primera candidata
+  return candidates[0];
+}
+
+
+ function getPreferredSpanishVoice() {
+  const voices = speechSynthesis.getVoices();
+
+  // Prioridad 1: Google español
+  let voice = voices.find(v => v.lang === "es-ES" && v.name.toLowerCase().includes("google"));
+  if (voice) return voice;
+
+  // Prioridad 2: Google español US
+  voice = voices.find(v => v.lang === "es-US" && v.name.toLowerCase().includes("google"));
+  if (voice) return voice;
+
+  // Prioridad 3: Microsoft Spanish Spain
+  voice = voices.find(v => v.lang === "es-ES" && v.name.toLowerCase().includes("microsoft"));
+  if (voice) return voice;
+
+  // Prioridad 4: cualquier voz es-*
+  voice = voices.find(v => v.lang.startsWith("es"));
+  return voice || null;
+}
+
+function speak(text) {
+  if (!text) return;
+
+  speechSynthesis.cancel();
+
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = CURRENT_LANG || "es-ES";
+
+  // Fuerza idioma español real
+  utterance.lang = "es-ES";
+
+  const voice = getPreferredSpanishVoice();
+  if (voice) utterance.voice = voice;
+
   utterance.rate = 0.95;
   utterance.pitch = 1;
   utterance.volume = 1;
 
-  currentUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
-
+  speechSynthesis.speak(utterance);
 }
+
 
 function showARAnswer(text, speakAudio = true) {
  // const float = document.getElementById("arFloat");
