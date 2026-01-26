@@ -80,6 +80,7 @@ def ask(req: AskRequest):
             entity_name=entity.get("name", req.property_id),
             entity_type=entity.get("type", "generic"),
             language=req.language or "es",
+           
             context=context_text
         )
 

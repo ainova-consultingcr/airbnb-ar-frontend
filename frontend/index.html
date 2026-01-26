@@ -190,7 +190,7 @@ console.log("CONFIG:", PROPERTY_CONFIG[CURRENT_PROPERTY]);
 
    function unlockAudio() {
     if (audioUnlocked) return;
-
+    speechSynthesis.getVoices();
     const silent = new SpeechSynthesisUtterance("");
     silent.volume = 0;
     window.speechSynthesis.speak(silent);
@@ -267,17 +267,58 @@ function pickBestVoice(lang) {
   return voice || null;
 }
 
+function normalizeLang(lang) {
+  if (!lang) return "es-ES";
+  lang = lang.toLowerCase();
+
+  if (lang.startsWith("es")) return "es-ES";
+  if (lang.startsWith("en")) return "en-US";
+
+  // fallback
+  return "es-ES";
+}
+
+function pickBestVoice(targetLang) {
+  const voices = speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
+
+  const langPrefix = targetLang.split("-")[0]; // "es" o "en"
+
+  // PRIORIDAD: Google voice en ese idioma
+  let voice = voices.find(v =>
+    v.lang.toLowerCase().startsWith(langPrefix) &&
+    v.name.toLowerCase().includes("google")
+  );
+  if (voice) return voice;
+
+  // SEGUNDA: Microsoft voice en ese idioma
+  voice = voices.find(v =>
+    v.lang.toLowerCase().startsWith(langPrefix) &&
+    v.name.toLowerCase().includes("microsoft")
+  );
+  if (voice) return voice;
+
+  // TERCERA: cualquier voz del idioma
+  voice = voices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
+  if (voice) return voice;
+
+  // fallback total
+  return voices[0] || null;
+}
+
 function speak(text) {
   if (!text) return;
 
+  // Cancelar lo anterior
   speechSynthesis.cancel();
 
+  // Idioma según tu CURRENT_LANG detectado
+  const targetLang = normalizeLang(CURRENT_LANG);
+
   const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = targetLang;
 
-  // Fuerza idioma español real
-  utterance.lang = "es-ES";
-
-  const voice = getPreferredSpanishVoice();
+  const voice = pickBestVoice(targetLang);
   if (voice) utterance.voice = voice;
 
   utterance.rate = 0.95;
@@ -286,6 +327,7 @@ function speak(text) {
 
   speechSynthesis.speak(utterance);
 }
+
 
 
 function showARAnswer(text, speakAudio = true) {
@@ -378,7 +420,8 @@ async function askAI() {
         body: JSON.stringify({
           property_id: CURRENT_PROPERTY,
           question: question,
-          language: CURRENT_LANG
+          //language: CURRENT_LANG
+          language: CURRENT_LANG.startsWith("en") ? "en" : "es"
         })
       }
     );
@@ -418,7 +461,9 @@ async function askAI() {
     input.value = "";
 }
 
-
+speechSynthesis.onvoiceschanged = () => {
+  console.log("✅ Voces cargadas:", speechSynthesis.getVoices().length);
+};
    
    
   
