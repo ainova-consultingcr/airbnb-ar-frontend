@@ -120,7 +120,7 @@ def ask(req: AskRequest):
             answer = "No tengo esa información, por favor consulta con el encargado."
 
         return {"answer": answer,  
-                "suggestions": entity.get("suggestions", {})}
+                "suggestions": entity.get("suggestions", {}).get("suggestions", {})}
     
 
     except Exception as e:
