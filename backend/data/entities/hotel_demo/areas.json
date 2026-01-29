@@ -1,0 +1,21 @@
+{
+  "areas": [
+    {
+      "id": "pool",
+      "name": "Piscina",
+      "hours": "8:00 AM - 8:00 PM",
+      "rules": ["No vidrio", "Niños acompañados"]
+    },
+    {
+      "id": "restaurant",
+      "name": "Restaurante",
+      "hours": "7:00 AM - 9:00 PM",
+      "notes": "Cocina local e internacional."
+    },
+    {
+      "id": "parking",
+      "name": "Estacionamiento",
+      "details": "Gratuito para huéspedes."
+    }
+  ]
+}

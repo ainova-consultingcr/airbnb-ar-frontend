@@ -1,10 +1,20 @@
-[
-  {
-    "question": "¿A qué hora es el check-in?",
-    "answer": "El check-in es después de las 3:00 PM."
-  },
-  {
-    "question": "¿A qué hora es el check-out?",
-    "answer": "El check-out es antes de las 11:00 AM."
-  }
-]
+{
+  "faqs": [
+    {
+      "question": "¿A qué hora es el check-in?",
+      "answer": "El check-in es a partir de las 3:00 PM."
+    },
+    {
+      "question": "¿A qué hora es el check-out?",
+      "answer": "El check-out es a las 11:00 AM."
+    },
+    {
+      "question": "¿El hotel tiene WiFi?",
+      "answer": "Sí, el WiFi es gratuito en todo el hotel."
+    },
+    {
+      "question": "¿Incluye desayuno?",
+      "answer": "Sí, el desayuno está incluido."
+    }
+  ]
+}

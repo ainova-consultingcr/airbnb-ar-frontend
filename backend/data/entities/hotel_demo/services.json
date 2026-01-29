@@ -1,15 +1,27 @@
-[
-  {
-    "id": "wifi",
-    "name": "WiFi",
-    "details": {
-      "network": "TamarindoWifi",
-      "password": "12345678"
+{
+  "services": [
+    {
+      "id": "wifi",
+      "name": "WiFi",
+      "details": {
+        "network": "HotelTamarindo_WiFi",
+        "password": "tamarindo2025"
+      }
+    },
+    {
+      "id": "breakfast",
+      "name": "Desayuno",
+      "details": "Incluido de 7:00 AM a 9:30 AM en el restaurante."
+    },
+    {
+      "id": "housekeeping",
+      "name": "Limpieza",
+      "details": "Servicio diario de 9:00 AM a 2:00 PM."
+    },
+    {
+      "id": "reception",
+      "name": "Recepción",
+      "details": "Disponible de 7:00 AM a 10:00 PM."
     }
-  },
-  {
-    "id": "ac",
-    "name": "Aire acondicionado",
-    "how_to_use": "Usa el control remoto, botón ON y ajusta temperatura entre 22-24°C."
-  }
-]
+  ]
+}

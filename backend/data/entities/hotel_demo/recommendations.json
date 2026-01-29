@@ -1,14 +1,17 @@
 {
-  "food": [
-    "Restaurante La Oveja",
-    "Surf & Turf"
-  ],
-  "tours": [
-    "Tamarindo Adventures",
-    "Pacific Sun Tours"
-  ],
-  "transport": [
-    "Rent a Car Guanacaste",
-    "Eco Rent"
-  ]
+  "recommendations": {
+    "restaurants": [
+      "Restaurante Pangas",
+      "Dragonfly Bar & Grill"
+    ],
+    "tours": [
+      "Clases de surf en Tamarindo",
+      "Tour de manglares",
+      "Canopy y aventura"
+    ],
+    "transport": [
+      "Rent a Car Tamarindo",
+      "Servicio de shuttle al aeropuerto"
+    ]
+  }
 }

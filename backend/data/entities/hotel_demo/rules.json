@@ -1,5 +1,8 @@
-[
-  "No fiestas",
-  "No fumar dentro del alojamiento",
-  "Mascotas pequeñas permitidas"
-]
+{
+  "rules": [
+    "No fumar dentro de las habitaciones.",
+    "No se permiten fiestas.",
+    "Mascotas no permitidas.",
+    "Respete el horario de silencio después de las 10:00 PM."
+  ]
+}

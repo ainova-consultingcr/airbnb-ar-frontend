@@ -1,0 +1,15 @@
+{
+  "default_room": {
+    "name": "Habitación Estándar",
+    "capacity": 2,
+    "beds": "1 cama matrimonial",
+    "amenities": [
+      "Aire acondicionado",
+      "WiFi",
+      "TV por cable",
+      "Caja fuerte",
+      "Baño privado con agua caliente"
+    ],
+    "notes": "Todas las habitaciones son para no fumadores."
+  }
+}
