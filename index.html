@@ -144,7 +144,8 @@
         color="#e5e7eb"
         align="center"
         position="0 0 0.15"
-        wrap-count="30">
+        wrap-count="33"
+        scale="0.8 0.8 0.8">
       </a-text>
 
 <a-ring
@@ -232,7 +233,7 @@
 
   function getPropertyFromURL() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("property") || "hotel_demo";
+  return params.get("property") || "demo_property";
 }
 
 const CURRENT_PROPERTY = getPropertyFromURL();
@@ -311,26 +312,21 @@ function pickBestVoice(lang) {
   return candidates[0];
 }
 
+function hideSuggestions() {
+  const container = document.getElementById("suggestions");
+  if (container) {
+    container.style.display = "none";
+  }
+}
 
- //function getPreferredSpanishVoice() {
- // const voices = speechSynthesis.getVoices();
+function showSuggestions() {
+  const container = document.getElementById("suggestions");
+  if (container && BACKEND_SUGGESTIONS) {
+    container.style.display = "flex";
+  }
+}
 
-  // Prioridad 1: Google español
-//  let voice = voices.find(v => v.lang === "es-ES" && v.name.toLowerCase().includes("google"));
- // if (voice) return voice;
-
-  // Prioridad 2: Google español US
- // voice = voices.find(v => v.lang === "es-US" && v.name.toLowerCase().includes("google"));
- // if (voice) return voice;
-
-  // Prioridad 3: Microsoft Spanish Spain
-//  voice = voices.find(v => v.lang === "es-ES" && v.name.toLowerCase().includes("microsoft"));
-//  if (voice) return voice;
-
-  // Prioridad 4: cualquier voz es-*
-//  voice = voices.find(v => v.lang.startsWith("es"));
-//  return voice || null;
-//}
+ 
 
 function normalizeLang(lang) {
   if (!lang) return "es-ES";
@@ -379,7 +375,6 @@ function speak(text) {
 
   // Idioma según tu CURRENT_LANG detectado
   const targetLang = normalizeLang(CURRENT_LANG);
-
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = targetLang;
 
@@ -390,10 +385,25 @@ function speak(text) {
   utterance.pitch = 1;
   utterance.volume = 1;
 
+    // 🔥 CUANDO TERMINA EL AUDIO
+  utterance.onend = () => {
+    closePanel(1500); // 👈 buffer elegante de 1.5s
+  };
+
   speechSynthesis.speak(utterance);
 }
 
+function closePanel(delay = 0) {
+  if (hideTimer) clearTimeout(hideTimer);
 
+  hideTimer = setTimeout(() => {
+    const panel = document.getElementById("arPanel");
+    if (panel) {
+      panel.setAttribute("scale", "0 0 0");
+      showSuggestions();
+    }
+  }, delay);
+}
 
 function showARAnswer(text, speakAudio = true) {
  // const float = document.getElementById("arFloat");
@@ -405,45 +415,35 @@ function showARAnswer(text, speakAudio = true) {
     // Texto (forzar render)
   arText.setAttribute("value", "");
   setTimeout(() => {
-    arText.setAttribute("value", text);
+    //arText.setAttribute("value", text);
+    const MAX_LENGTH = 420; // ajustable
+
+    let finalText = text;
+
+   if (text.length > MAX_LENGTH) {
+  finalText = text.substring(0, MAX_LENGTH) + "...";
+  }
+
+arText.setAttribute("value", "");
+setTimeout(() => {
+  arText.setAttribute("value", finalText);
+}, 50);
+
   }, 50);
 
     // Mostrar
   //float.setAttribute("visible", "true");
   panel.setAttribute("scale", "1 1 1");
    panel.setAttribute("visible", "true");
+   hideSuggestions();
 
    if (speakAudio) speak(text);
 
     if (hideTimer) clearTimeout(hideTimer);
-  hideTimer = setTimeout(() => {
-    panel.setAttribute("scale", "0 0 0");
-  }, 8000);
-
-  //panel.setAttribute("animation__in", {
-  //  property: "scale",
-  //  from: "0.85 0.85 0.85",
-  //  to: "1 1 1",
-  //  dur: 300,
-  //  easing: "easeOutBack"
- // });
-
-    // Audio solo tras interacción
-  //if (speakAudio) {
-   // speak(text);
-  //}
-
- // arText.setAttribute("value", text);
-  //panel.setAttribute("scale", "1 1 1");
-
-  // 🔊 HABLAR (idioma unificado)
- // speak(text);
-
-  //if (hideTimer) clearTimeout(hideTimer);
-
-  //hideTimer = setTimeout(() => {
-  //  panel.setAttribute("scale", "0 0 0");
-  //}, 8000);
+  
+if (!speakAudio) {
+  closePanel(6000);
+}
 }
 
 
