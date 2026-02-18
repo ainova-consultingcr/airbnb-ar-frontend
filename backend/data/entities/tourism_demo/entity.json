@@ -1,0 +1,29 @@
+{
+  "id": "tourism_demo",
+  "name": "Asistente Turístico Costa Rica",
+  "type": "Tourism Assistant",
+  "location": {
+    "country": "Costa Rica",
+    "province": "Guanacaste"
+  },
+  "branding": {
+    "welcome": {
+      "es": "Hola 👋 Soy tu asistente turístico. ¿Qué te gustaría hacer hoy?",
+      "en": "Hi 👋 I'm your tourism assistant. What would you like to do today?"
+    }
+  },
+  "suggestions": {
+    "es": [
+      "¿Qué playas recomiendas?",
+      "¿Qué actividades hay cerca?",
+      "¿Dónde comer comida típica?",
+      "¿Hay tours disponibles hoy?"
+    ],
+    "en": [
+      "Which beaches do you recommend?",
+      "What activities are nearby?",
+      "Where can I eat local food?",
+      "Are there tours available today?"
+    ]
+  }
+}

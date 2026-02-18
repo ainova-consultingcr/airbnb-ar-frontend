@@ -1,3 +1,45 @@
+[
+  {
+    "question": "¿A qué hora es el check-in?",
+    "answer": "El check-in es después de las 3:00 PM."
+  },
+  {
+    "question": "¿A qué hora es el check-out?",
+    "answer": "El check-out es antes de las 11:00 AM."
+  },
+  {
+  "question": "¿Pueden emitir factura?",
+  "answer": "Sí, podemos emitir factura electrónica si la necesitas. Solo debes solicitarla en recepción."
+  },
+  {
+  "question": "¿Pueden ayudarme con transporte o tours?",
+  "answer": "Sí, podemos ayudarte a coordinar transporte privado, tours o alquiler de vehículos."
+  },
+  {
+  "question": "¿Cómo puedo contactar al anfitrión o recepción?",
+  "answer": "Puedes comunicarte vía WhatsApp al número indicado en tu reserva o acercarte a recepción."
+  },
+  {
+  "question": "¿Qué playas hay cerca?",
+  "answer": "Nos encontramos a pocos minutos de las principales playas de la zona. Podemos recomendarte la más adecuada según lo que estés buscando."
+  },
+{
+  "question": "¿Se permiten mascotas?",
+  "answer": "Las mascotas pequeñas están permitidas bajo previa autorización y pueden aplicar cargos adicionales."
+},
+{
+  "question": "¿Hay parqueo disponible?",
+  "answer": "Sí, contamos con parqueo gratuito para huéspedes durante su estadía."
+},
+{
+  "question": "¿Cada cuánto limpian la habitación?",
+  "answer": "El servicio de limpieza se realiza diariamente entre 9:00 a.m. y 2:00 p.m."
+},
+{
+  "question": "¿El desayuno está incluido?",
+  "answer": "El desayuno está incluido según el tipo de tarifa reservada. Se sirve de 7:00 a.m. a 10:00 a.m."
+}
+]
 {
   "faqs": [
     {

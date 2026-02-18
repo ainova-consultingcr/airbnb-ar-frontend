@@ -1,0 +1,28 @@
+{
+  "food": [
+    "Restaurantes locales con comida típica costarricense",
+    "Marisquerías cercanas a la costa",
+    "Cafeterías artesanales y panaderías locales"
+  ],
+  "activities": [
+    "Surf y clases para principiantes",
+    "Canopy y tours de aventura",
+    "Caminatas guiadas en parques naturales",
+    "Catamarán y paseos al atardecer"
+  ],
+  "nature": [
+    "Playas de la zona",
+    "Parques nacionales cercanos",
+    "Avistamiento de fauna y flora"
+  ],
+  "family": [
+    "Playas tranquilas para niños",
+    "Tours familiares guiados",
+    "Actividades culturales locales"
+  ],
+  "transport": [
+    "Alquiler de vehículos",
+    "Transporte privado turístico",
+    "Taxis y transporte público"
+  ]
+}

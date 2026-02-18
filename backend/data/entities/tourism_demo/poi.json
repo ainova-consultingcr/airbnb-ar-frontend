@@ -1,0 +1,42 @@
+[
+ {
+  "category": "food",
+  "items": [
+    {
+      "id": "pizza_don_luigi",
+      "name": "Pizzería Don Luigi",
+      "keywords": ["pizza", "italiana"],
+      "location": {
+        "lat": 10.299,
+        "lng": -85.838
+      },
+      "menu_url": "https://...",
+      "offers": "2x1 martes",
+      "sponsored": true,
+      "actions": {
+        "guide": true,
+        "reserve": true,
+        "show_menu": true
+      }
+    },
+    {
+      "id": "comida_china",
+      "name": "Restaurante Lin",
+      "keywords": ["comida china", "asiatica"],
+      "location": {
+        "lat": 10.299,
+        "lng": -85.838
+      },
+      "menu_url": "https://...",
+      "offers": "2x1 miercoles",
+      "sponsored": true,
+      "actions": {
+        "guide": true,
+        "reserve": true,
+        "show_menu": true
+      }
+    }
+  ]
+}
+
+]

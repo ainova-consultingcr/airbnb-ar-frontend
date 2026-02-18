@@ -64,9 +64,57 @@ class AskRequest(BaseModel):
     question: str
     language: Optional[str] = "es"
 
+NO_INFO_MESSAGES = {
+    "es": "No tengo esa información test, por favor consulta con el encargado.",
+    "en": "I don't have that information. Please contact the host."
+}
+
+
+import unicodedata
+
+def normalize_text(text: str) -> str:
+    text = text.lower()
+    text = unicodedata.normalize('NFD', text)
+    text = text.encode('ascii', 'ignore').decode('utf-8')
+    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
+    return text
+
+def find_faq(question: str, entity: dict):
+   # normalized_question = normalize_text(question)
+    #faqs = entity.get("faqs", [])
+
+    #for faq in faqs:
+    #    normalized_faq_q = normalize_text(faq.get("question", ""))
+
+    #    if normalized_faq_q in normalized_question:
+    #       return faq.get("answer")
+    normalized_question = normalize_text(question)
+
+    for faq in entity.get("faqs", []):
+        faq_question = normalize_text(faq.get("question", ""))
+
+        # coincidencia simple por inclusión
+        if faq_question in normalized_question or normalized_question in faq_question:
+            return faq.get("answer")
+
+        # coincidencia por palabras clave
+        keywords = [w for w in faq_question.split() if len(w) > 3]
+
+        matches = sum(1 for word in keywords if word in normalized_question)
+
+        if matches >= 2:
+            return faq.get("answer")
+
+    return None
 
 @app.post("/ask")
+
+
+
 def ask(req: AskRequest):
+    lang = (req.language or "es").lower()
+    lang_key = "en" if lang.startswith("en") else "es"
+    #print("DEBUG FAQs:", entity.get("faqs"))
     try:
         # 1) Cargar entidad
         entity = load_property_data(req.property_id)
@@ -95,6 +143,19 @@ def ask(req: AskRequest):
                 "only if relevant and naturally:\n"
                 + "\n".join(suggestions)
             )
+        
+    # 1️⃣ Buscar FAQ directo
+        faq_answer = find_faq(req.question, entity)
+
+        if faq_answer:
+            return {
+         "answer": faq_answer,
+         "action": "none",
+         "poi": None,
+         "suggestions": entity.get("suggestions", {}).get("suggestions", {})
+         #"suggestions": entity.get("suggestions", {})
+        }
+
 
         # 5) Llamada OpenAI
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -116,11 +177,28 @@ def ask(req: AskRequest):
         if response.choices and response.choices[0].message:
             answer = response.choices[0].message.content
 
-        if not answer:
-            answer = "No tengo esa información, por favor consulta con el encargado."
+        #if not answer:
+        #    answer = "No tengo esa información, por favor consulta con el encargado."
+        LOW_QUALITY_PATTERNS = [
+        "no tengo esa información",
+        "no dispongo de esa información",
+        "no cuento con esa información",
+        "i don't have that information",
+        "i do not have that information"
+        ]
+        answer_text = answer.lower()
+
+        is_generic = any(p in answer_text for p in LOW_QUALITY_PATTERNS)
+        if not answer or is_generic:
+            answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
+        #if not answer:
+        #     answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
 
         return {"answer": answer,  
-                "suggestions": entity.get("suggestions", {}).get("suggestions", {})}
+                #"suggestions": entity.get("suggestions", {})
+               "suggestions": entity.get("suggestions", {}).get("suggestions", {})
+                }
+        
     
 
     except Exception as e:

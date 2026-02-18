@@ -1,5 +1,19 @@
 {
   "id": "hotel_demo",
+  "name": "hotelTamarindo",
+  "type": "hotel",
+  "location": {
+    "country": "Costa Rica",
+    "province": "Guanacaste",
+    "city": "Santa Cruz",
+    "address": "Frente a carretera principal"
+  },
+  "branding": {
+    "primary_color": "#00c853",
+    "welcome": {
+      "es": "Bienvenido a hotel Tamarindo 🌴 ¿En qué te puedo ayudar?",
+      "en": "Welcome to hotel Tamarindo 🌴 How can I help you?"
+    }
   "type": "hotel",
   "name": "Hotel Tamarindo Demo",
   "category": "boutique_hotel",
@@ -12,6 +26,21 @@
   "languages": ["es", "en"],
   "timezone": "America/Costa_Rica",
   "contact": {
+    "whatsapp": "+50600000000",
+    "host_name": "Recepcion"
+  },
+   "suggestions": {
+      "es": [
+        "¿Cuál es la clave del WiFi?",
+        "¿A qué hora es el desayuno?",
+        "¿A qué hora es el check-out?"
+      ],
+      "en": [
+        "What is the WiFi password?",
+        "What time is breakfast?",
+        "What time is check-out?"
+      ]
+    }
     "front_desk": "+506 2222 3333",
     "whatsapp": "+506 8888 9999",
     "email": "info@hoteltamarindo.demo"
