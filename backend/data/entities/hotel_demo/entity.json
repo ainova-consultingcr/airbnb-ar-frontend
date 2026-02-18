@@ -1,7 +1,7 @@
 {
   "id": "hotel_demo",
-  "name": "Hotel de playa",
-  "type": "airbnb",
+  "name": "hotelTamarindo",
+  "type": "hotel",
   "location": {
     "country": "Costa Rica",
     "province": "Guanacaste",
@@ -12,11 +12,23 @@
     "primary_color": "#00c853",
     "welcome": {
       "es": "Bienvenido a hotel Tamarindo 🌴 ¿En qué te puedo ayudar?",
-      "en": "Welcome to Casa Playa Tamarindo 🌴 How can I help you?"
+      "en": "Welcome to hotel Tamarindo 🌴 How can I help you?"
     }
   },
   "contact": {
     "whatsapp": "+50600000000",
-    "host_name": "Alberto"
-  }
+    "host_name": "Recepcion"
+  },
+   "suggestions": {
+      "es": [
+        "¿Cuál es la clave del WiFi?",
+        "¿A qué hora es el desayuno?",
+        "¿A qué hora es el check-out?"
+      ],
+      "en": [
+        "What is the WiFi password?",
+        "What time is breakfast?",
+        "What time is check-out?"
+      ]
+    }
 }
