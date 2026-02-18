@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 
   <!-- 🔥 CLAVE PARA MÓVIL -->
- 
+ <!-- VERSION: FIX-PROPERTY-08/01/2025 4:31 pm-OK -->
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
@@ -122,7 +122,8 @@
       id="questionInput"
       placeholder="Ej: ¿A qué hora es el check-in?"
     />
-    <button onclick="askAI()">Enviar</button>
+  
+    <button id="sendBtn" onclick="askAI()">Enviar</button>
   </div>
   <script>
   function getLanguageFromURL() {
@@ -152,20 +153,19 @@
     }
   },
   hotel_demo: {
-    name: "Hotel Tamarindo Inn",
+    name: "Hotel Tamarindo",
     color: "#2196f3",
     welcome: {
-      es: "Bienvenido al Hotel Tamarindo Inn 🏨",
-      en: "Welcome to Hotel Paraíso 🏨"
+      es: "Bienvenido al Hotel Tamarindo 🏨",
+      en: "Welcome to Hotel Tamarindo 🏨"
     }
-    
   },
    ferreteria_demo: {
     name: "Ferreteria Demo",
     color: "#2196f3",
     welcome: {
-      es: "Bienvenido a ferreteria demo, en que te puedo ayudar",
-      en: "Welcome to Hotel Paraíso 🏨"
+      es: "Bienvenido a ferreteria demo, buscas un producto, quieres saber de ofertas,pregunatame en que te puedo ayudar ",
+      en: "Welcome to Hardware shop 🏨"
     }
     
   }
@@ -186,17 +186,18 @@ console.log("CONFIG:", PROPERTY_CONFIG[CURRENT_PROPERTY]);
   let hideTimer = null;
   let currentUtterance = null;
   let audioUnlocked = false;
+  
 
    function unlockAudio() {
     if (audioUnlocked) return;
-
+    speechSynthesis.getVoices();
     const silent = new SpeechSynthesisUtterance("");
     silent.volume = 0;
     window.speechSynthesis.speak(silent);
 
   audioUnlocked = true;
 }
-  function applyBranding() {
+  function applyBranding(playAudio = false) {
   const panel = document.getElementById("arPanel");
   const plane = document.getElementById("arPlane");
   const text = document.getElementById("arText");
@@ -211,29 +212,123 @@ console.log("CONFIG:", PROPERTY_CONFIG[CURRENT_PROPERTY]);
   panel.setAttribute("visible", "true");
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
-  showARAnswer(config.welcome[langKey]);
+  showARAnswer(config.welcome[langKey], playAudio);
 }
 
 
 
+function pickBestVoice(lang) {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
 
-  function speak(text) {
-  if (!text) return;
+  // Normalizar
+  const short = (lang || "es").toLowerCase().split("-")[0]; // "es-CR" -> "es"
 
-  if (currentUtterance) {
-    window.speechSynthesis.cancel();
+  // 1) Match exacto por lang completo
+  let v = voices.find(v => v.lang && v.lang.toLowerCase() === (lang || "").toLowerCase());
+  if (v) return v;
+
+  // 2) Match por idioma base (es, en)
+  const candidates = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(short));
+
+  if (candidates.length === 0) return null;
+
+  // 3) Preferencias de español (evita voces raras si existen)
+  if (short === "es") {
+    const preferred = ["es-CR", "es-MX", "es-ES", "es-US"];
+    for (const p of preferred) {
+      const match = candidates.find(v => v.lang.toLowerCase() === p.toLowerCase());
+      if (match) return match;
+    }
   }
 
+  // 4) Si no, usa la primera candidata
+  return candidates[0];
+}
+
+
+ function getPreferredSpanishVoice() {
+  const voices = speechSynthesis.getVoices();
+
+  // Prioridad 1: Google español
+  let voice = voices.find(v => v.lang === "es-ES" && v.name.toLowerCase().includes("google"));
+  if (voice) return voice;
+
+  // Prioridad 2: Google español US
+  voice = voices.find(v => v.lang === "es-US" && v.name.toLowerCase().includes("google"));
+  if (voice) return voice;
+
+  // Prioridad 3: Microsoft Spanish Spain
+  voice = voices.find(v => v.lang === "es-ES" && v.name.toLowerCase().includes("microsoft"));
+  if (voice) return voice;
+
+  // Prioridad 4: cualquier voz es-*
+  voice = voices.find(v => v.lang.startsWith("es"));
+  return voice || null;
+}
+
+function normalizeLang(lang) {
+  if (!lang) return "es-ES";
+  lang = lang.toLowerCase();
+
+  if (lang.startsWith("es")) return "es-ES";
+  if (lang.startsWith("en")) return "en-US";
+
+  // fallback
+  return "es-ES";
+}
+
+function pickBestVoice(targetLang) {
+  const voices = speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
+
+  const langPrefix = targetLang.split("-")[0]; // "es" o "en"
+
+  // PRIORIDAD: Google voice en ese idioma
+  let voice = voices.find(v =>
+    v.lang.toLowerCase().startsWith(langPrefix) &&
+    v.name.toLowerCase().includes("google")
+  );
+  if (voice) return voice;
+
+  // SEGUNDA: Microsoft voice en ese idioma
+  voice = voices.find(v =>
+    v.lang.toLowerCase().startsWith(langPrefix) &&
+    v.name.toLowerCase().includes("microsoft")
+  );
+  if (voice) return voice;
+
+  // TERCERA: cualquier voz del idioma
+  voice = voices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
+  if (voice) return voice;
+
+  // fallback total
+  return voices[0] || null;
+}
+
+function speak(text) {
+  if (!text) return;
+
+  // Cancelar lo anterior
+  speechSynthesis.cancel();
+
+  // Idioma según tu CURRENT_LANG detectado
+  const targetLang = normalizeLang(CURRENT_LANG);
+
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = CURRENT_LANG || "es-ES";
+  utterance.lang = targetLang;
+
+  const voice = pickBestVoice(targetLang);
+  if (voice) utterance.voice = voice;
+
   utterance.rate = 0.95;
   utterance.pitch = 1;
   utterance.volume = 1;
 
-  currentUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
-
+  speechSynthesis.speak(utterance);
 }
+
+
 
 function showARAnswer(text, speakAudio = true) {
  // const float = document.getElementById("arFloat");
@@ -287,10 +382,35 @@ function showARAnswer(text, speakAudio = true) {
 }
 
 
-  async function askAI() {
-    unlockAudio();
-    const input = document.getElementById("questionInput");
-    if (!input.value) return;
+ function setLoading(isLoading) {
+  const btn = document.getElementById("sendBtn");
+  const input = document.getElementById("questionInput");
+
+  if (btn) {
+    btn.disabled = isLoading;
+    btn.textContent = isLoading ? "..." : "Enviar";
+  }
+
+  if (input) {
+    input.disabled = isLoading;
+  }
+}
+
+async function askAI() {
+  
+
+  unlockAudio();
+
+  const input = document.getElementById("questionInput");
+  if (!input || !input.value.trim()) return;
+
+  const question = input.value.trim();
+
+  try {
+    setLoading(true);
+
+    // UX: feedback inmediato
+    showARAnswer("⏳ Pensando...", false);
 
     const res = await fetch(
       "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
@@ -299,17 +419,54 @@ function showARAnswer(text, speakAudio = true) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           property_id: CURRENT_PROPERTY,
-          question: input.value,
-          language: CURRENT_LANG
+          question: question,
+          //language: CURRENT_LANG
+          language: CURRENT_LANG.startsWith("en") ? "en" : "es"
         })
       }
     );
 
+    // Si backend respondió error
+    if (!res.ok) {
+      let detail = "";
+      try {
+        const err = await res.json();
+        detail = err?.detail ? ` (${err.detail})` : "";
+      } catch (e) {}
+
+      showARAnswer("⚠️ Error del servidor. Intenta de nuevo." + detail, false);
+      return;
+    }
+
     const data = await res.json();
-    showARAnswer(data.answer);
+
+    const answer = data?.answer;
+    if (!answer) {
+      showARAnswer("⚠️ Respuesta vacía. Intenta otra vez.", false);
+      return;
+    }
+
+    showARAnswer(answer, true);
     input.value = "";
-   
+
+  } catch (err) {
+    console.error("Fetch error:", err);
+    showARAnswer("⚠️ Error de red. Revisa tu conexión o ngrok.", false);
+  } finally {
+    setLoading(false);
   }
+
+ const data = await res.json();
+    showARAnswer(data.answer  || "Error: no llegó respuesta del backend.");
+    input.value = "";
+}
+
+speechSynthesis.onvoiceschanged = () => {
+  console.log("✅ Voces cargadas:", speechSynthesis.getVoices().length);
+};
+   
+   
+  
   </script>
   <script>
     const input = document.getElementById("questionInput");
@@ -330,7 +487,7 @@ function showARAnswer(text, speakAudio = true) {
  const sceneTest = document.querySelector("a-scene");
 
 sceneTest.addEventListener("loaded", () => {
-  applyBranding();
+  applyBranding(false);
 });
 
 
