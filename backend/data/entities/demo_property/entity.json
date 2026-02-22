@@ -11,8 +11,9 @@
   "branding": {
     "primary_color": "#00c853",
     "welcome": {
-      "es": "Bienvenido a Casa Playa Tamarindo 🌴 ¿En qué te puedo ayudar?",
-      "en": "Welcome to Casa Playa Tamarindo 🌴 How can I help you?"
+      "es": "👋 Bienvenido a Casa Playa Tamarindo\n\n✨ Soy tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-in\n• Restaurantes\n• Actividades",
+      "en": "👋 Welcome to Hotel Tamarindo\n\n✨ I'm your Digital  Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
+
     }
   },
   "contact": {

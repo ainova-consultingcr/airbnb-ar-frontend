@@ -124,8 +124,8 @@
         id="arPlane"
         width="1.85"
         height="1.05"
-        color="#0f172a"
-        opacity="0.72"
+        color="#0b1220"
+        opacity="0.62"
         material="shader: flat; transparent: true"
         >
       </a-plane>
@@ -133,7 +133,7 @@
         width="1.9"
         height="1.1"
         color="#ffffff"
-        opacity="0.08"
+        opacity="0.12"
         position="0 0 -0.01"
         material="shader: flat; transparent: true"
         ></a-plane>
@@ -215,8 +215,8 @@
     name: "Casa Playa Tamarindo",
     color: "#00c853",
     welcome: {
-      es: "Bienvenido a Casa Playa Tamarindo, en que te puedo ayudar",
-      en: "Welcome to Casa Playa Tamarindo 🌴"
+      "es": "👋 Bienvenido a Casa Playa Tamarindo\n\n✨ Soy tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-in\n• Restaurantes\n• Actividades",
+      "en": "👋 Welcome to Hotel Tamarindo\n\n✨ I'm your Digital  Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
     }
   },
    ferreteria_demo: {
@@ -436,6 +436,13 @@ setTimeout(() => {
   //float.setAttribute("visible", "true");
   panel.setAttribute("scale", "1 1 1");
    panel.setAttribute("visible", "true");
+   panel.setAttribute("animation__pop", {
+    property: "scale",
+    from: "0.9 0.9 0.9",
+    to: "1 1 1",
+    dur: 260,
+    easing: "easeOutBack"
+  });
    hideSuggestions();
 
    if (speakAudio) speak(text);
@@ -489,6 +496,14 @@ function showLoader() {
   if (panel) {
     panel.setAttribute("scale", "1 1 1");
     panel.setAttribute("visible", "true");
+    panel.setAttribute("animation__pop", {
+    property: "scale",
+    from: "0.9 0.9 0.9",
+    to: "1 1 1",
+    dur: 260,
+    easing: "easeOutBack"
+  });
+
   }
 
   if (arText) {
@@ -728,6 +743,19 @@ sceneTest.addEventListener("loaded", async () => {
   }
 });
 </script>
+<!--
+<div id="companyBrand">
+  <span>Powered by AINovaConsultingcr</span>
+  <a href="https://facebook.com/TU_FACEBOOK" target="_blank">Facebook</a>
+  <a href="https://instagram.com/TU_INSTAGRAM" target="_blank">Instagram</a>
+</div>
+-->
 <div id="suggestions"></div>
+
+<div id="companyBrand">
+  <span>Powered by AI Nova Consultingcr</span>
+  <a href="https://facebook.com/TU_FACEBOOK" target="_blank">Facebook</a>
+  <a href="https://instagram.com/TU_INSTAGRAM" target="_blank">Instagram</a>
+</div>
 </body>
 </html>
