@@ -44,7 +44,7 @@ RECOMMENDATIONS = {
     ]
 }
 
-OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_MODEL = "gpt-4.1-mini"
 
 load_dotenv()
 
