@@ -44,7 +44,7 @@ RECOMMENDATIONS = {
     ]
 }
 
-OPENAI_MODEL = "gpt-5-mini"
+OPENAI_MODEL = "gpt-4.1-mini"
 
 load_dotenv()
 
@@ -168,7 +168,7 @@ def ask(req: AskRequest):
                 # {"role": "system", "content": recommendation_text},
                 {"role": "user", "content": req.question}
             ],
-            temperature=0.3
+           # temperature=0.3
         )
 
         # ✅ Respuesta segura (evita null/None)
