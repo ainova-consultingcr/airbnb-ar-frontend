@@ -137,15 +137,27 @@
         position="0 0 -0.01"
         material="shader: flat; transparent: true"
         ></a-plane>
+        <a-text
+        id="arTitle"
+        value=""
+        width="1.4"
+        color="#ffffff"
+        align="center"
+        position="0 0.38 0.15"
+        scale="0.85 0.85 0.85"
+        anchor="center">
+      </a-text>
       <a-text
         id="arText"
         value=""
-        width="1.45"
+        width="1.35"
         color="#e5e7eb"
         align="center"
-        position="0 0 0.15"
-        wrap-count="33"
-        scale="0.8 0.8 0.8">
+        position="0 -0.10 0.15"
+        wrap-count="30"
+        anchor="center"
+        line-height="48"
+        scale="0.72 0.72 0.72">
       </a-text>
 
 <a-ring
@@ -280,6 +292,15 @@ console.log("CONFIG:", PROPERTY_CONFIG[CURRENT_PROPERTY]);
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   showARAnswer(config.welcome[langKey], playAudio);
 }
+function applyTitleBranding() {
+
+  const title = document.getElementById("arTitle");
+  const config = PROPERTY_CONFIG[CURRENT_PROPERTY];
+
+  if (!title || !config) return;
+
+  title.setAttribute("value", config.name);
+}
 
 
 
@@ -399,7 +420,8 @@ function closePanel(delay = 0) {
   hideTimer = setTimeout(() => {
     const panel = document.getElementById("arPanel");
     if (panel) {
-      panel.setAttribute("scale", "0 0 0");
+      //panel.setAttribute("scale", "0 0 0");
+      panel.setAttribute("opacity", "0.35");
       showSuggestions();
     }
   
@@ -417,7 +439,7 @@ function showARAnswer(text, speakAudio = true) {
   arText.setAttribute("value", "");
   setTimeout(() => {
     //arText.setAttribute("value", text);
-    const MAX_LENGTH = 420; // ajustable
+    const MAX_LENGTH = 260; // ajustable
 
     let finalText = text;
 
@@ -427,7 +449,8 @@ function showARAnswer(text, speakAudio = true) {
 
 arText.setAttribute("value", "");
 setTimeout(() => {
-  arText.setAttribute("value", finalText);
+  //Text.setAttribute("value", finalText);
+  typeWriterEffect(arText, finalText);
 }, 50);
 
   }, 50);
@@ -435,6 +458,7 @@ setTimeout(() => {
     // Mostrar
   //float.setAttribute("visible", "true");
   panel.setAttribute("scale", "1 1 1");
+  panel.setAttribute("opacity", "1");
    panel.setAttribute("visible", "true");
    panel.setAttribute("animation__pop", {
     property: "scale",
@@ -487,6 +511,33 @@ if (!speakAudio) {
   }*/
 }
 
+function typeWriterEffect(element, text, speed = 12) {
+  let i = 0;
+  element.setAttribute("value", "");
+
+  const interval = setInterval(() => {
+    i++;
+
+    element.setAttribute("value", text.substring(0, i));
+
+    if (i >= text.length) {
+      clearInterval(interval);
+    }
+  }, speed);
+}
+function applyInputBranding() {
+
+  const input = document.getElementById("questionInput");
+  const config = PROPERTY_CONFIG[CURRENT_PROPERTY];
+
+  if (!input || !config) return;
+
+  const isEN = CURRENT_LANG.startsWith("en");
+
+  input.placeholder = isEN
+    ? `Ask something at ${config.name}...`
+    : `Pregunta algo en ${config.name}...`;
+}
 
 function showLoader() {
   const panel = document.getElementById("arPanel");
@@ -605,7 +656,7 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+      "https://airbnb-ar-assistant.onrender.com/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -708,6 +759,8 @@ const sceneTest = document.querySelector("a-scene");
 
 sceneTest.addEventListener("loaded", async () => {
   applyBranding(false);
+  applyInputBranding();
+  applyTitleBranding();
 
   setTimeout(() => {
   renderSuggestionsFromBackend();
@@ -716,7 +769,7 @@ sceneTest.addEventListener("loaded", async () => {
   // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
   try {
     const res = await fetch(
-      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+      "https://airbnb-ar-assistant.onrender.com/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
