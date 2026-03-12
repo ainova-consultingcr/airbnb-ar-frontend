@@ -203,6 +203,8 @@
   
   <script>
 
+    
+
     const UI_THEME = {
   panel: "#0f172a",        // slate-900
   button: "#334155",       // slate-700
@@ -935,8 +937,8 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-     // "https://airbnb-ar-assistant.onrender.com/ask",
-      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+      "https://airbnb-ar-assistant.onrender.com/ask",
+      //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1049,8 +1051,8 @@ sceneTest.addEventListener("loaded", async () => {
   // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
   try {
     const res = await fetch(
-      //"https://airbnb-ar-assistant.onrender.com/ask",
-      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+      "https://airbnb-ar-assistant.onrender.com/ask",
+      //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
