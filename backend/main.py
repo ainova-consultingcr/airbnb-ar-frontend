@@ -5,11 +5,39 @@ from typing import Optional
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-
+import json
 from rag import load_property_data, build_context
 from prompts import SYSTEM_PROMPT_TEMPLATE
+import urllib.request
 
+GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzm1z2UQV0j8ySZr4N7LoeQuqAdHyRKNOJgpnIjGj4D3n1Krph198v0O30mACG-Wu3qpA/exec"
 
+def log_question(property_id, language, question, answer, unknown):
+
+    try:
+
+        payload = json.dumps({
+            "property": property_id,
+            "language": language,
+            "question": question,
+            "answer": answer,
+            "unknown": unknown
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            GOOGLE_SHEET_WEBHOOK,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        #urllib.request.urlopen(req)
+        response = urllib.request.urlopen(req)
+        print("LOG RESPONSE:", response.status)
+
+    except Exception as e:
+        #print("Error logging question:", e)
+        print("LOG ERROR:", str(e))
 def detect_intent(question: str) -> str:
     q = question.lower()
 
@@ -193,7 +221,9 @@ def ask(req: AskRequest):
             answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
         #if not answer:
         #     answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
-
+    
+        log_question(req.property_id, req.language, req.question, answer,is_generic)
+        print("LOGGING QUESTION:", req.question)
         return {"answer": answer,  
                 #"suggestions": entity.get("suggestions", {})
                "suggestions": entity.get("suggestions", {}).get("suggestions", {})

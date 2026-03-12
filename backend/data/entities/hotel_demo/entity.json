@@ -1,6 +1,6 @@
 {
   "id": "hotel_demo",
-  "name": "Hotel Tamarindo",
+  "name": "Hotel TuHotel",
   "type": "hotel",
   "location": {
     "country": "Costa Rica",
@@ -11,23 +11,24 @@
   "branding": {
     "primary_color": "#00c853",
     "welcome": {
-      "es": "Bienvenido a Hotel Playa Tamarindo 🌴 ¿En qué te puedo ayudar?",
-      "en": "Welcome to Hotel Playa Tamarindo 🌴 How can I help you?"
+     "es": " Bienvenido a Hotel TuHotel\n\n Soy tu AVI Asistente Virtual Inteligente para TuHotel.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-in\n• Restaurantes\n• Actividades \n\n Estoy aqui para ayudarte en lo que necesites",
+     "en": " Welcome to Hotel Tamarindo\n\n I'm AVI your Virtual Intelligent Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities\n\n I'm here to help you"
+
     }
   },
   "contact": {
-    "whatsapp": "+50600000000",
+    "whatsapp": "+50686380783",
     "host_name": "Alberto"
   },
    "suggestions": {
       "es": [
         "¿Cuál es la clave del WiFi?",
-        "¿A qué hora es el check-in?",
+        "¿A qué hora es el desayuno?",
         "¿A qué hora es el check-out?"
       ],
       "en": [
         "What is the WiFi password?",
-        "What time is check-in?",
+        "What time the breakfast is?",
         "What time is check-out?"
       ]
     }

@@ -8,7 +8,7 @@
     "id": "wifi",
     "name": "WiFi",
     "how_to_use": "Conéctese a la red WiFi del hotel desde su dispositivo.",
-    "details": "La clave del WiFi se encuentra en la habitación o puede solicitarla en recepción."
+    "details": "La clave del WiFi es hotel123."
   },
   {
     "id": "housekeeping",
@@ -31,6 +31,12 @@
     "id": "transport",
     "name": "Transporte y tours",
     "details": "El hotel puede ayudarle a coordinar transporte o tours con proveedores locales."
+  }
+  ,
+  {
+    "id": "surf",
+    "name": "clases de surf en playa Tamarido",
+    "details": "El hotel puede ayudarle a coordinar Clases de surf en Playa Tamarido."
   }
 ]
 

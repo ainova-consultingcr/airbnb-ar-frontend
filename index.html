@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
 
   <!-- 🔥 CLAVE PARA MÓVIL -->
  <!-- VERSION: FIX-PROPERTY-08/01/2025 4:31 pm-OK -->
@@ -12,6 +12,7 @@
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-troika-text/dist/aframe-troika-text.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   
 
@@ -122,8 +123,8 @@
 
       <a-plane
         id="arPlane"
-        width="1.85"
-        height="1.05"
+        width="2.2"
+        height="1.2"
         color="#0b1220"
         opacity="0.62"
         material="shader: flat; transparent: true"
@@ -147,19 +148,32 @@
         scale="0.85 0.85 0.85"
         anchor="center">
       </a-text>
-      <a-text
+      <!--<a-text
         id="arText"
         value=""
         width="1.35"
         color="#e5e7eb"
         align="center"
         position="0 -0.10 0.15"
-        wrap-count="30"
+        wrap-count="40"
         anchor="center"
-        line-height="48"
-        scale="0.72 0.72 0.72">
-      </a-text>
-
+        line-height="60"
+        scale="1 1 1"
+        font="https://cdn.aframe.io/fonts/Roboto-msdf.json">
+      </a-text>-->
+      <a-entity
+    id="arText"
+    troika-text="
+    value: ;
+    align: center;
+    color: #e5e7eb;
+    maxWidth: 1.35;
+    fontSize: 0.08;
+    overflowWrap: break-word;
+    lineHeight: 1.4;
+  "
+  position="0 -0.10 0.15">
+</a-entity>
 <a-ring
   id="arLoader"
   radius-inner="0.05"
@@ -216,11 +230,12 @@
   let BACKEND_SUGGESTIONS = null;
   const PROPERTY_CONFIG = {
     hotel_demo: {
-    name: "Hotel Tamarindo",
+    name: "Nombre de tu Hotel",
     color: "#2196f3",
     welcome: {
-      es: "Bienvenido al Hotel Tamarindo 🏨",
-      en: "Welcome to Hotel Tamarindo 🏨"
+     "es": " Bienvenido a Hotel TuHotel\n\n Soy AVI, tu Asistente Virtual Inteligente para TuHotel.\n\nPuedes preguntarme sobre:\n• WiFi\n• Restaurantes\n• Actividades \n\n Estoy aqui para ayudarte en lo que necesites",
+     "en": " Welcome to Hotel Tamarindo\n\n I'm AVI your Virtual Intelligent Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities\n\n I'm here to help you"
+
     }
   },
   demo_property: {
@@ -245,7 +260,7 @@
 
   function getPropertyFromURL() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("property") || "demo_property";
+  return params.get("property") || "hotel_demo";
 }
 
 const CURRENT_PROPERTY = getPropertyFromURL();
@@ -302,9 +317,46 @@ function applyTitleBranding() {
   title.setAttribute("value", config.name);
 }
 
+function pickBestVoice(targetLang) {
 
+  const voices = speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
 
-function pickBestVoice(lang) {
+  const langPrefix = targetLang.split("-")[0]; // es / en
+
+  // palabras comunes en voces femeninas
+  const femaleHints = [
+    "female",
+    "woman",
+    "zira",
+    "sabina",
+    "helena",
+    "sofia",
+    "paulina",
+    "lucia",
+    "maria"
+  ];
+
+  // 1️⃣ buscar voz femenina del idioma
+  let voice = voices.find(v =>
+    v.lang.toLowerCase().startsWith(langPrefix) &&
+    femaleHints.some(h => v.name.toLowerCase().includes(h))
+  );
+
+  if (voice) return voice;
+
+  // 2️⃣ fallback: cualquier voz del idioma
+  voice = voices.find(v =>
+    v.lang.toLowerCase().startsWith(langPrefix)
+  );
+
+  if (voice) return voice;
+
+  // 3️⃣ fallback total
+  return voices[0] || null;
+}
+
+function pickBestVoiceoriginal(lang) {
   const voices = window.speechSynthesis.getVoices();
   if (!voices || voices.length === 0) return null;
 
@@ -360,7 +412,7 @@ function normalizeLang(lang) {
   return "es-ES";
 }
 
-function pickBestVoice(targetLang) {
+function pickBestVoice2(targetLang) {
   const voices = speechSynthesis.getVoices();
   if (!voices || voices.length === 0) return null;
 
@@ -428,7 +480,104 @@ function closePanel(delay = 0) {
   }, delay);
 }
 
+function decorateAnswer(text) {
+
+  const icons = {
+    wifi: "📶",
+    restaurante: "🍽️",
+    ///restaurant: "🍽️",
+    piscina: "🏊",
+    pool: "🏊",
+    checkin: "🕒",
+    checkout: "🕒",
+    playa: "🏖️",
+    //beach: "🏖️"
+  };
+
+  Object.keys(icons).forEach(key => {
+    const regex = new RegExp(key, "gi");
+    text = text.replace(regex, icons[key] + " " + key);
+  });
+
+  return text;
+}
 function showARAnswer(text, speakAudio = true) {
+
+    // asegurar que es string
+  text = String(text || "");
+  // normalizar unicode (corrige tildes combinadas)
+  text = text.normalize("NFC");
+  // reconstruir caracteres correctamente
+  text = Array.from(text).join("");
+
+  const panel = document.getElementById("arPanel");
+  const arText = document.getElementById("arText");
+
+  if (!panel || !arText) return;
+
+  const MAX_LENGTH = 260;
+
+  let finalText = String(text || "");
+  //finalText = decorateAnswer(finalText);
+  //finalText = decodeURIComponent(escape(finalText));
+  // evitar cortar palabras a la mitad
+  if (finalText.length > MAX_LENGTH) {
+
+    finalText = finalText.slice(0, MAX_LENGTH);
+
+    const lastSpace = finalText.lastIndexOf(" ");
+
+    if (lastSpace > 0) {
+      finalText = finalText.slice(0, lastSpace);
+    }
+
+    finalText += "...";
+  }
+
+  // limpiar texto antes de escribir
+ // arText.setAttribute("value", "");
+  arText.setAttribute("troika-text", "value", "");
+  // pequeño delay para asegurar render
+  setTimeout(() => {
+    console.log("TEXTO ORIGINAL:", text);
+    console.log("FINAL TEXT:", finalText);
+    //arText.setAttribute("value", finalText);
+    //arText.setAttribute("troika-text", finalText);
+    arText.setAttribute("troika-text", {
+      value: finalText
+    });
+    //typeWriterEffect(arText, finalText, 18);
+  }, 80);
+
+  // mostrar panel
+  panel.setAttribute("scale", "1 1 1");
+  panel.setAttribute("opacity", "1");
+  panel.setAttribute("visible", "true");
+
+  panel.setAttribute("animation__pop", {
+    property: "scale",
+    from: "0.9 0.9 0.9",
+    to: "1 1 1",
+    dur: 260,
+    easing: "easeOutBack"
+  });
+
+  hideSuggestions();
+
+  // audio
+  if (speakAudio) {
+    speak(text);
+  }
+
+  if (hideTimer) clearTimeout(hideTimer);
+
+  if (!speakAudio) {
+    closePanel(6000);
+  }
+
+}
+
+function showARAnswerOriginal(text, speakAudio = true) {
  
  const panel = document.getElementById("arPanel");
   const arText = document.getElementById("arText");
@@ -436,22 +585,38 @@ function showARAnswer(text, speakAudio = true) {
   if (!panel || !arText) return;
 
     // Texto (forzar render)
-  arText.setAttribute("value", "");
+  //arText.setAttribute("value", "");
+  arText.setAttribute("troika-text", "value", texto);
   setTimeout(() => {
     //arText.setAttribute("value", text);
     const MAX_LENGTH = 260; // ajustable
 
     let finalText = text;
 
-   if (text.length > MAX_LENGTH) {
-  finalText = text.substring(0, MAX_LENGTH) + "...";
-  }
+   //if (text.length > MAX_LENGTH) {
+  //finalText = text.substring(0, MAX_LENGTH) + "...";
+  //}
+  if (text && text.length > MAX_LENGTH) {
+  finalText = text.slice(0, MAX_LENGTH) + "...";
+}
 
-arText.setAttribute("value", "");
-setTimeout(() => {
+//arText.setAttribute("value", "");
+//setTimeout(() => {
   //Text.setAttribute("value", finalText);
-  typeWriterEffect(arText, finalText);
-}, 50);
+ // typeWriterEffect(arText, finalText);
+//}, 50);
+
+// limpiar texto antes de escribir
+//arText.setAttribute("value", "");
+arText.setAttribute("troika-text", "");
+
+
+// pequeño delay para asegurar render
+setTimeout(() => {
+  console.log("TEXTO ORIGINAL:", text);
+ console.log("FINAL TEXT:", finalText);
+  typeWriterEffect(arText, String(finalText));
+}, 18);
 
   }, 50);
 
@@ -511,7 +676,7 @@ if (!speakAudio) {
   }*/
 }
 
-function typeWriterEffect(element, text, speed = 12) {
+function typeWriterEffectoriginal(element, text, speed = 12) {
   let i = 0;
   element.setAttribute("value", "");
 
@@ -524,6 +689,107 @@ function typeWriterEffect(element, text, speed = 12) {
       clearInterval(interval);
     }
   }, speed);
+}
+function typeWriterEffect4(element, text, speed = 60) {
+
+  const words = text.split(" ");
+  let i = 0;
+  let currentText = "";
+
+  function typing() {
+
+    if (i < words.length) {
+
+      currentText += (i === 0 ? "" : " ") + words[i];
+
+      element.setAttribute("value", currentText);
+
+      i++;
+
+      setTimeout(typing, speed);
+    }
+
+  }
+
+  typing();
+}
+function typeWriterEffect(element, text, speed = 40) {
+
+  const words = text.split(" ");
+  let i = 0;
+  let current = "";
+
+  function typing() {
+
+    if (i < words.length) {
+
+      current += (i === 0 ? "" : " ") + words[i];
+
+      element.setAttribute("troika-text", {
+        value: current
+      });
+
+      i++;
+
+      setTimeout(typing, speed);
+    }
+
+  }
+
+  typing();
+
+}
+function typeWriterEffect3(element, text, speed = 60) {
+
+  const words = text.split(" ");
+  let i = 0;
+
+  function typing() {
+
+    if (i < words.length) {
+
+      const current = element.getAttribute("value") || "";
+
+      element.setAttribute(
+        "value",
+        current + (i === 0 ? "" : " ") + words[i]
+      );
+
+      i++;
+
+      setTimeout(typing, speed);
+    }
+
+  }
+
+  typing();
+}
+function typeWriterEffect2(element, text, speed = 20) {
+
+  //const characters = [...text]; // 🔥 maneja correctamente tildes y ñ
+  const characters = Array.from(text);
+  let i = 0;
+
+  function typing() {
+
+    if (i < characters.length) {
+
+      const current = element.getAttribute("value") || "";
+
+      element.setAttribute(
+        "value",
+        current + characters[i]
+      );
+
+      i++;
+
+      setTimeout(typing, speed);
+    }
+
+  }
+
+  typing();
+
 }
 function applyInputBranding() {
 
@@ -558,7 +824,9 @@ function showLoader() {
   }
 
   if (arText) {
-    arText.setAttribute("value", "");
+    //arText.setAttribute("value", "");
+    arText.setAttribute("troika-text", "");
+    
   }
 
   if (loader) {
@@ -637,10 +905,21 @@ function renderSuggestionsFromBackend() {
     container.appendChild(btn);
   });
 }
+function showThinking() {
 
+  const arText = document.getElementById("arText");
+
+  if (!arText) return;
+
+  arText.setAttribute("troika-text", {
+    value: "🤖 AVI está buscando la información..."
+    //value: "🤖 AVI is checking the information..."
+  });
+
+}
 async function askAI() {
   
-
+  showThinking();
   unlockAudio();
 
   const input = document.getElementById("questionInput");
@@ -656,7 +935,8 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-      "https://airbnb-ar-assistant.onrender.com/ask",
+     // "https://airbnb-ar-assistant.onrender.com/ask",
+      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -769,7 +1049,8 @@ sceneTest.addEventListener("loaded", async () => {
   // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
   try {
     const res = await fetch(
-      "https://airbnb-ar-assistant.onrender.com/ask",
+      //"https://airbnb-ar-assistant.onrender.com/ask",
+      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
