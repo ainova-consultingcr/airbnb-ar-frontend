@@ -59,7 +59,7 @@ function showARAnswer(text, speakAudio = true) {
    ========================= */
 async function askAI() {
   const res = await fetch(
-     "https://airbnb-ar-assistant.onrender.com/ask",
+    "https://airbnb-ar-assistant.onrender.com/ask",
     //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
     {
       method: "POST",
