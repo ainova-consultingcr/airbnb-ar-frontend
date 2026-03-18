@@ -168,7 +168,7 @@
     align: center;
     color: #e5e7eb;
     maxWidth: 1.35;
-    fontSize: 0.08;
+    fontSize: 0.06;
     overflowWrap: break-word;
     lineHeight: 1.4;
   "
@@ -937,8 +937,8 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-      //"https://airbnb-ar-assistant.onrender.com/ask",
-      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+      "https://airbnb-ar-assistant.onrender.com/ask",
+     // "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1042,7 +1042,7 @@ const sceneTest = document.querySelector("a-scene");
 sceneTest.addEventListener("loaded", async () => {
   applyBranding(false);
   applyInputBranding();
-  applyTitleBranding();
+  //applyTitleBranding();
 
   setTimeout(() => {
   renderSuggestionsFromBackend();
@@ -1051,8 +1051,8 @@ sceneTest.addEventListener("loaded", async () => {
   // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
   try {
     const res = await fetch(
-     // "https://airbnb-ar-assistant.onrender.com/ask",
-      "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+     "https://airbnb-ar-assistant.onrender.com/ask",
+      //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1085,7 +1085,7 @@ sceneTest.addEventListener("loaded", async () => {
   <a href="https://facebook.com/TU_FACEBOOK" target="_blank">Facebook</a>
   <a href="https://instagram.com/TU_INSTAGRAM" target="_blank">Instagram</a>
 </div>
--->
+
 <div id="suggestions"></div>
 
 <div id="companyBrand">
@@ -1093,5 +1093,6 @@ sceneTest.addEventListener("loaded", async () => {
   <a href="https://facebook.com/TU_FACEBOOK" target="_blank">Facebook</a>
   <a href="https://instagram.com/TU_INSTAGRAM" target="_blank">Instagram</a>
 </div>
+-->
 </body>
 </html>
