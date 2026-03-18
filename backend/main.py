@@ -93,7 +93,7 @@ class AskRequest(BaseModel):
     language: Optional[str] = "es"
 
 NO_INFO_MESSAGES = {
-    "es": "No tengo esa información test, por favor consulta con el encargado.",
+    "es": "No tengo esa información, por favor consulta con el encargado.",
     "en": "I don't have that information. Please contact the host."
 }
 
