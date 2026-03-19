@@ -167,10 +167,12 @@
     value: ;
     align: center;
     color: #e5e7eb;
-    maxWidth: 1.45;
-    fontSize: 0.065;
+    maxWidth: 1.28;
+    fontSize: 0.07;
     overflowWrap: break-word;
-    lineHeight: 1.15;
+    lineHeight: 1.23;
+     letterSpacing: 0.05;
+    whiteSpace: normal;
   "
   position="0 -0.03 0.15">
 </a-entity>
@@ -938,7 +940,7 @@ async function askAI() {
 
     const res = await fetch(
       "https://airbnb-ar-assistant.onrender.com/ask",
-    // "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+   // "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1052,7 +1054,7 @@ sceneTest.addEventListener("loaded", async () => {
   try {
     const res = await fetch(
      "https://airbnb-ar-assistant.onrender.com/ask",
-     // "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+      //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
