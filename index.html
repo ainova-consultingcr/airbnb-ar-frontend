@@ -798,6 +798,7 @@ function typeWriterEffect2(element, text, speed = 20) {
 function applyInputBranding() {
 
   const input = document.getElementById("questionInput");
+  const textButton = document.getElementById("sendBtn");
   const config = PROPERTY_CONFIG[CURRENT_PROPERTY];
 
   if (!input || !config) return;
@@ -807,6 +808,10 @@ function applyInputBranding() {
   input.placeholder = isEN
     ? `Ask something at ${config.name}...`
     : `Pregunta algo en ${config.name}...`;
+   
+   if (textButton) {
+    textButton.textContent = isEN ? "Send" : "Enviar";
+  }
 }
 
 function showLoader() {
@@ -910,16 +915,17 @@ function renderSuggestionsFromBackend() {
   });
 }
 function showThinking() {
-
   const arText = document.getElementById("arText");
 
   if (!arText) return;
 
-  arText.setAttribute("troika-text", {
-    value: "🤖 AVI está buscando la información..."
-    //value: "🤖 AVI is checking the information..."
-  });
+  const isEN = CURRENT_LANG.startsWith("en");
 
+  arText.setAttribute("troika-text", {
+    value: isEN
+      ? "🤖 AVI is checking the information..."
+      : "🤖 AVI está buscando la información..."
+  });
 }
 async function askAI() {
   
@@ -939,8 +945,8 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-      "https://airbnb-ar-assistant.onrender.com/ask",
-   // "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+     "https://airbnb-ar-assistant.onrender.com/ask",
+    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1054,7 +1060,7 @@ sceneTest.addEventListener("loaded", async () => {
   try {
     const res = await fetch(
      "https://airbnb-ar-assistant.onrender.com/ask",
-      //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
