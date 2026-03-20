@@ -234,11 +234,11 @@
   let BACKEND_SUGGESTIONS = null;
   const PROPERTY_CONFIG = {
     hotel_demo: {
-    name: "Nombre de tu Hotel",
+    name: "TuHotel",
     color: "#2196f3",
     welcome: {
      "es": " Bienvenido a Hotel TuHotel\n\n Soy AVI, tu Asistente Virtual Inteligente para TuHotel.\n\nPuedes preguntarme sobre:\n• WiFi\n• Restaurantes\n• Actividades \n\n Estoy aqui para ayudarte en lo que necesites",
-     "en": " Welcome to Hotel Tamarindo\n\n I'm AVI your Virtual Intelligent Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities\n\n I'm here to help you"
+     "en": " Welcome to Hotel TuHotel\n\n I'm AVI your Virtual Intelligent Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities\n\n I'm here to help you"
 
     }
   },
@@ -854,9 +854,11 @@ function hideLoader() {
   const btn = document.getElementById("sendBtn");
   const input = document.getElementById("questionInput");
 
+  const isEN = CURRENT_LANG.startsWith("en");
+
   if (btn) {
     btn.disabled = isLoading;
-    btn.textContent = isLoading ? "..." : "Enviar";
+    btn.textContent = isLoading ? "..." : (isEN ? "Send" : "Enviar");
   }
 
   if (input) {
