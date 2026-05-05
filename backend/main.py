@@ -9,8 +9,64 @@ import json
 from rag import load_property_data, build_context
 from prompts import SYSTEM_PROMPT_TEMPLATE
 import urllib.request
+from fastapi.responses import JSONResponse
 
 GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzm1z2UQV0j8ySZr4N7LoeQuqAdHyRKNOJgpnIjGj4D3n1Krph198v0O30mACG-Wu3qpA/exec"
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5500",
+         "http://localhost:5500"],  # solo desarrollo
+    #allow_credentials=False,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+@app.options("/{full_path:path}")
+def options_handler(full_path: str):
+    return JSONResponse(content={})
+
+@app.get("/property")
+def get_property(property_id: str = "hotel_demo"):
+    try:
+        file_path = f"data/entities/{property_id}/entity.json"
+
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Property not found")
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return {
+            "id": data["id"],
+            "name": data["name"],
+            "color": data["branding"]["primary_color"],
+            "welcome": data["branding"]["welcome"],
+            "suggestions": data.get("suggestions", {}),
+            "messages": data.get("messages", {}),
+            "theme": data.get("theme", {}),
+            "ui": data.get("ui", {}),
+            "contact": data.get("contact", {})
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def decorate_answer(text: str):
+    icons = {
+        "wifi": "📶",
+        "restaurante": "🍽️",
+        "pool": "🏊",
+        "checkin": "🕒",
+    }
+
+    for key, icon in icons.items():
+        text = text.replace(key, f"{icon} {key}")
+
+    return text
 
 def log_question(property_id, language, question, answer, unknown):
 
@@ -76,15 +132,9 @@ OPENAI_MODEL = "gpt-4.1-mini"
 
 load_dotenv()
 
-app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # solo desarrollo
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+
 
 
 class AskRequest(BaseModel):
@@ -146,8 +196,6 @@ def ask(req: AskRequest):
     try:
         # 1) Cargar entidad
         entity = load_property_data(req.property_id)
-        print("DEBUG entity type:", type(entity))
-        print("DEBUG entity value:", entity)
         # 2) Contexto desde entidad
         context_text = build_context(entity)
 
@@ -204,9 +252,7 @@ def ask(req: AskRequest):
 
         if response.choices and response.choices[0].message:
             answer = response.choices[0].message.content
-
-        #if not answer:
-        #    answer = "No tengo esa información, por favor consulta con el encargado."
+          
         LOW_QUALITY_PATTERNS = [
         "no tengo esa información",
         "no dispongo de esa información",
@@ -219,13 +265,11 @@ def ask(req: AskRequest):
         is_generic = any(p in answer_text for p in LOW_QUALITY_PATTERNS)
         if not answer or is_generic:
             answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
-        #if not answer:
-        #     answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
-    
+           
         log_question(req.property_id, req.language, req.question, answer,is_generic)
         print("LOGGING QUESTION:", req.question)
         return {"answer": answer,  
-                #"suggestions": entity.get("suggestions", {})
+               
                "suggestions": entity.get("suggestions", {}).get("suggestions", {})
                 }
         

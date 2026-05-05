@@ -11,15 +11,49 @@
   "branding": {
     "primary_color": "#00c853",
     "welcome": {
-      "es": "👋 Bienvenido a Casa Playa Tamarindo\n\n✨ Soy tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-in\n• Restaurantes\n• Actividades",
-      "en": "👋 Welcome to Hotel Tamarindo\n\n✨ I'm your Digital  Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
-
+      "es": "👋 Bienvenido a Casa Playa Tamarindo\n\n✨ Soy AVI tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-out\n• Restaurantes\n• Actividades",
+      "en": "👋 Welcome to Hotel Tamarindo\n\n✨ I'm AVI your Digital  Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
     }
   },
   "contact": {
-    "whatsapp": "+50600000000",
+    "whatsapp": "+50686380783",
     "host_name": "Alberto"
   },
+   "Thinking": {
+    "en": "🤖 AVI is checking the information...",
+    "es": "🤖 AVI está buscando la información..."
+  },
+  "messages": {
+  "thinking": {
+    "es": "🤖 AVI está buscando la información...",
+    "en": "🤖 AVI is checking the information..."
+  }
+},
+"theme": {
+  "panel": "#0f172a",
+  "button": "#1D49A1",
+  "buttonText": "#193008",
+  "spinner": "#1D49A1"
+},
+"ui": {
+  "send_button": {
+    "es": "Enviar",
+    "en": "Send"
+  },
+  "input_placeholder": {
+    "es": "Pregunta algo en {name}...",
+    "en": "Ask something at {name}..."
+  },
+ "errors": {
+  "network": {
+    "es": "Error de red. Revisa tu conexión.",
+    "en": "Network error. Check your connection."
+  },
+  "server": {
+    "es": "Error del servidor. Intenta de nuevo.",
+    "en": "Server error. Try again."
+  }
+},
    "suggestions": {
       "es": [
         "¿Cuál es la clave del WiFi?",
@@ -32,4 +66,5 @@
         "What time is check-out?"
       ]
     }
+  }
 }

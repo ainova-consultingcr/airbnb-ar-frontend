@@ -1,8 +1,7 @@
 {
-  "id": "hotel_demo",
-  "name": "TuHotel",
-  "type": "hotel",
-  "status": "active",
+  "id": "demo_property",
+  "name": "Casa Playa Tamarindo",
+  "type": "airbnb",
   "location": {
     "country": "Costa Rica",
     "province": "Guanacaste",
@@ -12,15 +11,15 @@
   "branding": {
     "primary_color": "#00c853",
     "welcome": {
-     "es": " Bienvenido a Hotel TuHotel\n\n Soy AVI tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-out\n• Restaurantes\n• Actividades",
-     "en": " Welcome to Hotel Tamarindo\n\n I'm AVI your Virtual Intelligent Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
+      "es": "👋 Bienvenido a Casa Playa Tamarindo\n\n✨ Soy AVI tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-out\n• Restaurantes\n• Actividades",
+      "en": "👋 Welcome to Hotel Tamarindo\n\n✨ I'm AVI your Digital  Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
     }
   },
-    "contact": {
+  "contact": {
     "whatsapp": "+50686380783",
     "host_name": "Alberto"
   },
-  "Thinking": {
+   "Thinking": {
     "en": "🤖 AVI is checking the information...",
     "es": "🤖 AVI está buscando la información..."
   },
@@ -32,9 +31,9 @@
 },
 "theme": {
   "panel": "#0f172a",
-  "button": "#86C45C",
-  "buttonText": "#193008",
-  "spinner": "#86C45C"
+  "button": "#334155",
+  "buttonText": "#e5e7eb",
+  "spinner": "#94a3b8"
 },
 "ui": {
   "send_button": {
@@ -58,14 +57,14 @@
    "suggestions": {
       "es": [
         "¿Cuál es la clave del WiFi?",
-        "¿A qué hora es el desayuno?",
+        "¿A qué hora es el check-in?",
         "¿A qué hora es el check-out?"
       ],
       "en": [
         "What is the WiFi password?",
-        "What time the breakfast is?",
+        "What time is check-in?",
         "What time is check-out?"
       ]
     }
-}
+  }
 }
