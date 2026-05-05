@@ -216,7 +216,9 @@
   async function loadPropertyConfig() {
   try {
     //const res = await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/property?property_id=" + CURRENT_PROPERTY)
-    const res = await fetch("http://localhost:8000/property?property_id=" + CURRENT_PROPERTY)
+    //const res = await fetch("http://localhost:8000/property?property_id=" + CURRENT_PROPERTY)
+     const res = await fetch("https://ainova-consultingcr.github.io/airbnb-ar-frontend/property?property_id=" + CURRENT_PROPERTY)
+    
     //const res = await fetch(`http://localhost:8000/data?property=${entity}`)
     const data = await res.json();
 
