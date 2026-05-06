@@ -225,7 +225,9 @@
 
     // mapear a formato actual
     PROPERTY_CONFIG = data;
-   
+    console.log("PROPERTY_CONFIG:", PROPERTY_CONFIG); // 🔥 aquí
+    console.log("WELCOME:", PROPERTY_CONFIG?.welcome); // 🔥 aquí
+
   } catch (err) {
     console.error("Error cargando config:", err);
   }
