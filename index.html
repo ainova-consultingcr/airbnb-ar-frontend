@@ -33,7 +33,29 @@
       z-index: 1;
       
     }
+#suggestions {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 92vw;
+  padding: 6px 10px;
+}
 
+.suggestion-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+}
     /* 🔥 UI ENCIMA DEL AR */
     #ui {
       position: fixed;
@@ -46,6 +68,7 @@
       background: rgba(0,0,0,0.7);
       padding: 10px;
       border-radius: 12px;
+      pointer-events: auto;
     }
 
     #ui input {
@@ -111,7 +134,7 @@
 
   <a-entity
     id="arFloat"
-    position="0 0 -2"
+    position="0 0.2 -2"
     animation="property: position;
                dir: alternate;
                dur: 3000;
@@ -180,6 +203,8 @@
   </a-entity>
 </a-camera>
 </a-scene>
+
+ <div id="suggestions"></div>
   <!-- 🔥 UI HTML -->
   <div id="ui">
     <input
@@ -191,6 +216,17 @@
   </div>
   
   <script>
+function clearCTAs() {
+
+  const singleBtn = document.getElementById("ctaBtn");
+  if (singleBtn) singleBtn.remove();
+
+  const container = document.getElementById("ctaContainer");
+  if (container) container.remove();
+
+  const form = document.getElementById("reservationForm");
+  if (form) form.remove();
+}
 
   function getLanguageFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -218,7 +254,8 @@
     //const res = await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/property?property_id=" + CURRENT_PROPERTY)
     //const res = await fetch("http://localhost:8000/property?property_id=" + CURRENT_PROPERTY)
     const res = await fetch(
-      "https://airbnb-ar-assistant.onrender.com/property?property_id=" + CURRENT_PROPERTY
+      //"https://airbnb-ar-assistant.onrender.com/property?property_id=" + CURRENT_PROPERTY
+        "http://localhost:8000/property?property_id=" + CURRENT_PROPERTY
     );
     //const res = await fetch(`http://localhost:8000/data?property=${entity}`)
     const data = await res.json();
@@ -353,7 +390,9 @@ function hideSuggestions() {
 
 function showSuggestions() {
   const container = document.getElementById("suggestions");
+
   if (container && BACKEND_SUGGESTIONS) {
+    renderSuggestionsFromBackend(); // 🔥 clave
     container.style.display = "flex";
   }
 }
@@ -392,7 +431,7 @@ function speak(text) {
 
     // 🔥 CUANDO TERMINA EL AUDIO
   utterance.onend = () => {
-    closePanel(1500); // 👈 buffer elegante de 1.5s
+    closePanel(3000); // 👈 buffer elegante de 3s
   };
 
   speechSynthesis.speak(utterance);
@@ -405,15 +444,23 @@ function closePanel(delay = 0) {
     const panel = document.getElementById("arPanel");
     if (panel) {
       //panel.setAttribute("scale", "0 0 0");
-      panel.setAttribute("opacity", "0.35");
+      panel.setAttribute("opacity", "0.4");
+      //console.log("Mostrando suggestions:", BACKEND_SUGGESTIONS);
+      console.log("Suggestions RAW:", JSON.stringify(BACKEND_SUGGESTIONS, null, 2));
       showSuggestions();
+    }
+     const btn = document.getElementById("ctaBtn");
+    if (btn) {
+      btn.style.display = "none";
+      btn.dataset.active = "false";
     }
   
   }, delay);
 }
 
 function showARAnswer(text, speakAudio = true) {
-
+const btn = document.getElementById("ctaBtn");
+if (btn) btn.style.display = "none";
     // asegurar que es string
   text = String(text || "");
   // normalizar unicode (corrige tildes combinadas)
@@ -480,6 +527,7 @@ function showARAnswer(text, speakAudio = true) {
   if (hideTimer) clearTimeout(hideTimer);
 
   if (!speakAudio) {
+    clearCTAs();
     closePanel(6000);
   }
 
@@ -611,6 +659,8 @@ function renderSuggestions() {
 
 function renderSuggestionsFromBackend() {
   const container = document.getElementById("suggestions");
+   console.log("CONTAINER:", container);
+  console.log("BACKEND_SUGGESTIONS:", BACKEND_SUGGESTIONS);
   if (!container || !BACKEND_SUGGESTIONS) return;
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
@@ -622,7 +672,7 @@ function renderSuggestionsFromBackend() {
     const btn = document.createElement("button");
     btn.className = "suggestion-btn";
     btn.textContent = q;
-
+    //btn.background = button
     btn.onclick = () => {
       const input = document.getElementById("questionInput");
       if (input) input.value = q;
@@ -646,15 +696,254 @@ function showThinking() {
     value: text
   });
 }
+function showCTA(cta) {
+  let btn = document.getElementById("ctaBtn");
 
+  // 🔥 SI YA EXISTE → resetearlo
+  if (btn) {
+    btn.remove(); // 💥 clave
+  }
+
+  // 🔥 crear nuevo SIEMPRE
+  btn = document.createElement("button");
+  btn.id = "ctaBtn";
+
+  btn.style.position = "fixed";
+  btn.style.bottom = "140px";
+  btn.style.left = "50%";
+  btn.style.transform = "translateX(-50%)";
+  btn.style.zIndex = "999999";
+  btn.style.padding = "14px";
+  btn.style.borderRadius = "12px";
+  btn.style.border = "none";
+  btn.style.background = "#00c853";
+  btn.style.color = "#fff";
+  btn.style.fontWeight = "bold";
+  btn.style.width = "85%";
+  btn.style.maxWidth = "320px";
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+
+  btn.textContent = cta.text[langKey];
+
+  btn.onclick = () => {
+    btn.style.display = "none";
+    setTimeout(() => {
+      window.open(cta.url, "_blank");
+    }, 100);
+  };
+
+  document.body.appendChild(btn);
+}
+function showCTAanterior(cta) {
+  let btn = document.getElementById("ctaBtn");
+
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.id = "ctaBtn";
+
+    // 🔥 FORZAR VISIBILIDAD
+    btn.style.position = "fixed";
+    btn.style.bottom = "140px";
+    btn.style.left = "50%";
+    btn.style.transform = "translateX(-50%)";
+    btn.style.zIndex = "999999"; // 🔥 súper alto
+    btn.style.padding = "12px 18px";
+    btn.style.borderRadius = "14px";
+    btn.style.border = "none";
+    btn.style.background = "linear-gradient(135deg, #00c853, #00e676)";
+    btn.style.color = "#fff";
+    btn.style.fontWeight = "bold";
+    btn.style.fontSize = "15px";
+    btn.style.width = "85%";
+    btn.style.maxWidth = "320px";
+    btn.style.boxShadow = "0 6px 18px rgba(0,0,0,0.4)";
+    btn.style.zIndex = "999999";
+    btn.style.position = "fixed";
+    btn.style.pointerEvents = "auto";
+
+    document.body.appendChild(btn);
+  }
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+
+  btn.textContent = cta.text[langKey];
+
+
+   btn.onclick = () => {
+  // 👇 ocultar INMEDIATO
+  btn.style.display = "none";
+
+  // opcional: reset estado
+  btn.dataset.active = "false";
+
+  // 👇 abrir después (pequeño delay)
+  setTimeout(() => {
+    
+    window.open(cta.url, "_blank");
+  }, 100);
+};
+}
+function showRestaurantList() {
+  let list = PROPERTY_CONFIG.restaurants || [];
+
+  list.forEach(r => {
+    console.log("Restaurante:", r.name);
+  });
+
+  // luego podés convertir esto en botones
+}
+function handleCTAAction(type) {
+  
+  if (type === "internal_restaurant") {
+    window.open("https://wa.me/50686380783?text=Quiero reservar en el restaurante del hotel");
+  }
+
+  if (type === "external_restaurants") {
+    showReservationForm(data);
+    //showRestaurantList();
+  }
+}
+function showReservationForm(item) {
+  let form = document.getElementById("reservationForm");
+  if (form) form.remove();
+
+  form = document.createElement("div");
+  form.id = "reservationForm";
+
+  form.innerHTML = `
+    <h3>${item.name}</h3>
+    <input id="resName" placeholder="Nombre" />
+    <input id="resDate" type="date" />
+    <input id="resTime" type="time" />
+    <input id="resPeople" type="number" placeholder="Personas" />
+
+    ${item.menu ? `<a href="${item.menu}" target="_blank">Ver menú</a>` : ""}
+
+    <button id="sendRes">Reservar</button>
+  `;
+
+  document.body.appendChild(form);
+
+  document.getElementById("sendRes").onclick = () => {
+    sendReservation(item);
+  };
+}
+function sendReservation(item) {
+  const name = document.getElementById("resName").value;
+  const date = document.getElementById("resDate").value;
+  const time = document.getElementById("resTime").value;
+  const people = document.getElementById("resPeople").value;
+
+  const msg = `Hola, quiero reservar en ${item.name}
+Nombre: ${name}
+Fecha: ${date}
+Hora: ${time}
+Personas: ${people}`;
+
+  window.open(`https://wa.me/${item.whatsapp}?text=${encodeURIComponent(msg)}`);
+}
+function clearCTAs() {
+  document.getElementById("ctaBtn")?.remove();
+  document.getElementById("ctaContainer")?.remove();
+}
+function showMultipleCTA(options) {
+
+  let container = document.getElementById("ctaContainer");
+
+  if (container) container.remove();
+
+  container = document.createElement("div");
+  container.id = "ctaContainer";
+
+  container.style.position = "fixed";
+  container.style.bottom = "140px";
+  container.style.left = "50%";
+  container.style.transform = "translateX(-50%)";
+  container.style.zIndex = "999999";
+  container.style.display = "flex";
+  container.style.flexDirection = "column";
+  container.style.gap = "10px";
+  container.style.width = "85%";
+  container.style.maxWidth = "320px";
+
+  // 🔥 IMPORTANTE
+  container.style.pointerEvents = "auto";
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+
+  options.forEach(opt => {
+
+    const btn = document.createElement("button");
+
+    btn.textContent = opt.text[langKey];
+
+    btn.style.padding = "12px";
+    btn.style.borderRadius = "10px";
+    btn.style.border = "none";
+    btn.style.background = "#00c853";
+    btn.style.color = "#fff";
+    btn.style.position = "relative";
+
+    // 🔥 IMPORTANTE
+    btn.style.pointerEvents = "auto";
+
+    btn.onclick = () => {
+      console.log("CLICK:", opt);
+        clearCTAs(); // 🔥 importante
+      handleCTA(opt.type, opt.data);
+    };
+
+    container.appendChild(btn);
+  });
+
+  document.body.appendChild(container);
+}
+function showMultipleCTA1(options) {
+  let container = document.getElementById("ctaContainer");
+
+  if (container) container.remove();
+
+  container = document.createElement("div");
+  container.id = "ctaContainer";
+  container.style.position = "fixed";
+  container.style.bottom = "140px";
+  container.style.left = "50%";
+  container.style.transform = "translateX(-50%)";
+  container.style.zIndex = "999999";
+  container.style.display = "flex";
+  container.style.flexDirection = "column";
+  container.style.gap = "10px";
+  container.style.width = "85%";
+  container.style.maxWidth = "320px";
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.textContent = opt.text[langKey];
+
+    btn.style.padding = "12px";
+    btn.style.borderRadius = "10px";
+    btn.style.border = "none";
+    btn.style.background = "#00c853";
+    btn.style.color = "#fff";
+
+    btn.onclick = () => handleCTAAction(opt.type);
+
+    container.appendChild(btn);
+  });
+
+  document.body.appendChild(container);
+}
 async function askAI() {
   
   showThinking();
   unlockAudio();
-
+   clearCTAs();
   const input = document.getElementById("questionInput");
   if (!input || !input.value.trim()) return;
-
+ 
   const question = input.value.trim();
 
   try {
@@ -665,8 +954,8 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-     "https://airbnb-ar-assistant.onrender.com/ask",
-    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+     //"https://airbnb-ar-assistant.onrender.com/ask",
+    "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -697,24 +986,37 @@ async function askAI() {
   false
 );
     }
-
+    //const text = await res.text();
+    //console.log("RAW RESPONSE:", text);
     const data = await res.json();
+    console.log("DATA COMPLETA:", data);
+  
+
     if (data.suggestions) {
 
   BACKEND_SUGGESTIONS = data.suggestions;
   renderSuggestionsFromBackend();
 }
-
+  
+if (data.cta_options) {
+  setTimeout(() => {
+    showMultipleCTA(data.cta_options);
+  }, 300);
+}
    const answer = data?.answer;
 
 hideLoader();
-
+showARAnswer(answer, true);
 if (!answer) {
   showARAnswer("⚠️ Respuesta vacía. Intenta otra vez.", false);
   return;
 }
+if (data.cta) {
+  setTimeout(() => {
+    showCTA(data.cta);
+  }, 600); // pequeño delay para evitar que el render lo tape
+}
 
-showARAnswer(answer, true);
 input.value = "";
 
 
@@ -775,8 +1077,8 @@ sceneTest.addEventListener("loaded", async () => {
   // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
   try {
     const res = await fetch(
-     "https://airbnb-ar-assistant.onrender.com/ask",
-    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+    // "https://airbnb-ar-assistant.onrender.com/ask",
+    "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -794,14 +1096,32 @@ sceneTest.addEventListener("loaded", async () => {
 
     if (data.suggestions) {
       BACKEND_SUGGESTIONS = data.suggestions;
-      //renderSuggestionsFromBackend();
-      renderSuggestions();
+      renderSuggestionsFromBackend();
+      //renderSuggestions();
     }
 
   } catch (err) {
     console.warn("No se pudieron cargar suggestions iniciales");
   }
 });
+function handleCTA(type, data) {
+
+   console.log("HANDLE CTA:", type, data);
+  if (type === "transport") {
+    openWhatsApp(data.whatsapp, "Quiero transporte");
+  }
+
+  if (type === "restaurant") {
+      window.open(`https://wa.me/${data.whatsapp}?text=${encodeURIComponent("quiero reservar")}`);
+    showReservationForm(data);
+  }
+
+  if (type === "tour") {
+    window.open(`https://wa.me/${data.whatsapp}?text=${encodeURIComponent("quiero reservar")}`);
+    showReservationForm(data);
+  }
+}
+
 </script>
 
 </body>

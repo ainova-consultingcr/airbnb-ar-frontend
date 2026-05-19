@@ -50,6 +50,7 @@ def get_property(property_id: str = "hotel_demo"):
             "messages": data.get("messages", {}),
             "theme": data.get("theme", {}),
             "ui": data.get("ui", {}),
+            #"services": data.get("services", {}),
             "contact": data.get("contact", {})
         }
 
@@ -191,17 +192,18 @@ def find_faq(question: str, entity: dict):
 
 
 def ask(req: AskRequest):
-    lang = (req.language or "es").lower()
-    lang_key = "en" if lang.startswith("en") else "es"
+ lang = (req.language or "es").lower()
+ lang_key = "en" if lang.startswith("en") else "es"
+    #print("ENTITY:", json.dumps(entity, indent=2))
     #print("DEBUG FAQs:", entity.get("faqs"))
-    try:
-        # 1) Cargar entidad
-        entity = load_property_data(req.property_id)
+ try:
+    # 1) Cargar entidad
+    entity = load_property_data(req.property_id)
         # 2) Contexto desde entidad
-        context_text = build_context(entity)
+    context_text = build_context(entity)
 
         # 3) Prompt universal
-        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
             entity_name=entity.get("name", req.property_id),
             entity_type=entity.get("type", "generic"),
             language=req.language or "es",
@@ -210,11 +212,65 @@ def ask(req: AskRequest):
         )
 
         # 4) Recomendaciones dinámicas (opcional)
-        intent = detect_intent(req.question)
-        suggestions = RECOMMENDATIONS.get(intent, [])
+    intent = detect_intent(req.question)
+        
+    if intent == "food":
+        services = entity.get("ui", {}).get("services", {})
+        restaurants = services.get("restaurants", [])
 
-        recommendation_text = ""
-        if suggestions:
+         #services = entity.get("services") or {}
+         #restaurants = services.get("restaurants") or []
+         #restaurants = entity.get("services", {}).get("restaurants", [])
+        if not restaurants:
+            return {
+              "answer": "No hay restaurantes disponibles en este momento.",
+              "suggestions": entity.get("ui", {}).get("suggestions", {})
+            }
+
+        return {
+            "answer": "🍽️ Puedes reservar en estos restaurantes:",
+            "cta_options": [
+            {
+            "type": "restaurant",
+            "text": {"es": r.get("name", "Restaurante"), "en": r.get("name", "Restaurant")},
+            "data": r
+            }
+            for r in restaurants
+            
+           ]
+        }
+    if intent == "tours":
+           services = entity.get("ui", {}).get("services", {})
+           tours = services.get("tours", [])
+
+           if not tours:
+            return {
+            "answer": "No hay tours disponibles en este momento.",
+            "suggestions": entity.get("ui", {}).get("suggestions", {})
+            }
+
+           return {
+             "answer": "🌊 Estas actividades están disponibles:",
+             "cta_options": [
+             {
+                "type": "tour",
+                "text": {"es": t.get("name", "Tour"), "en": t.get("name", "Tour")},
+                "data": t
+             }
+              for t in tours
+              ]
+             }
+        
+        
+        #suggestions = RECOMMENDATIONS.get(intent, [])
+    file_path = f"data/entities/{req.property_id}/entity.json"
+
+    with open(file_path, "r", encoding="utf-8") as f:
+         raw_data = json.load(f)
+
+    suggestions = raw_data.get("ui", {}).get("suggestions", {})
+    recommendation_text = ""
+    if suggestions:
             recommendation_text = (
                 "\nYou may suggest up to 2 local options from the list below, "
                 "only if relevant and naturally:\n"
@@ -222,22 +278,62 @@ def ask(req: AskRequest):
             )
         
     # 1️⃣ Buscar FAQ directo
-        faq_answer = find_faq(req.question, entity)
+    faq_answer = find_faq(req.question, entity)
 
-        if faq_answer:
+    if faq_answer:
             return {
          "answer": faq_answer,
          "action": "none",
          "poi": None,
-         "suggestions": entity.get("suggestions", {}).get("suggestions", {})
-         #"suggestions": entity.get("suggestions", {})
+        
+         "suggestions": entity.get("ui", {}).get("suggestions", {})
+        
+        }
+        # 🚀 DETECCIÓN DE TRANSPORTE (NUEVO)
+    question_lower = req.question.lower()
+
+    if any(word in question_lower for word in ["transporte", "aeropuerto", "airport", "ride", "taxi"]):
+
+         transport_message = {
+        "es": """ Podemos ayudarte con transporte privado al aeropuerto.
+
+         Conductores confiables  
+         Servicio directo desde el hotel  
+
+         Precio desde: $80 (hasta 4 personas)
+        ¿Deseas reservar tu transporte ahora?""",
+
+        "en": """🚐 We can help you with private airport transportation.
+
+         On time and reliable  
+         Trusted drivers  
+         Direct pickup from the hotel  
+
+         Price from: $80 (up to 4 people)
+
+        We recommend booking in advance.
+
+         Would you like to book your ride now?"""
+        }
+         return {
+         "answer": transport_message.get(lang_key),
+        "cta": {
+            "text": {
+                "es": "Reservar ahora",
+                "en": "Book now"
+            },
+            "url": "https://wa.me/50686380783?text=Hola,%20quiero%20reservar%20transporte"
+        },
+   
+      
+       
         }
 
-
         # 5) Llamada OpenAI
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        response = client.chat.completions.create(
+    response = client.chat.completions.create(
             model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -249,32 +345,32 @@ def ask(req: AskRequest):
         )
 
         # ✅ Respuesta segura (evita null/None)
-        answer = None
+    answer = None
 
-        if response.choices and response.choices[0].message:
+    if response.choices and response.choices[0].message:
             answer = response.choices[0].message.content
           
-        LOW_QUALITY_PATTERNS = [
+    LOW_QUALITY_PATTERNS = [
         "no tengo esa información",
         "no dispongo de esa información",
         "no cuento con esa información",
         "i don't have that information",
         "i do not have that information"
         ]
-        answer_text = answer.lower()
+    answer_text = answer.lower()
 
-        is_generic = any(p in answer_text for p in LOW_QUALITY_PATTERNS)
-        if not answer or is_generic:
+    is_generic = any(p in answer_text for p in LOW_QUALITY_PATTERNS)
+    if not answer or is_generic:
             answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
            
-        log_question(req.property_id, req.language, req.question, answer,is_generic)
-        print("LOGGING QUESTION:", req.question)
-        return {"answer": answer,  
+    log_question(req.property_id, req.language, req.question, answer,is_generic)
+    print("LOGGING QUESTION:", req.question)
+    return {"answer": answer,  
                
-               "suggestions": entity.get("suggestions", {}).get("suggestions", {})
-                }
+              # "suggestions": entity.get("suggestions", {}).get("suggestions", {})
+              "suggestions": suggestions
+        }
         
     
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+ except Exception as e:
+    raise HTTPException(status_code=500, detail=str(e))

@@ -66,6 +66,40 @@
         "What time the breakfast is?",
         "What time is check-out?"
       ]
-    }
+    },
+  "services": {
+    "transport": {
+      "price": 80,
+      "whatsapp": "50686380783"
+    },
+    "restaurants": [
+      {
+        "name": "La Oveja",
+        "whatsapp": "50686380783",
+        "menu": "url",
+        "type": "alianza"
+      },
+      {
+        "name": "La barca",
+        "whatsapp": "50686380783",
+        "menu": "url",
+        "type": "alianza"
+      },
+      {
+        "name": "Pizzeria Italia",
+        "whatsapp": "50686380783",
+        "menu": "url",
+        "type": "alianza"
+      }
+    ],
+    "tours": [
+      {
+        "name": "Canopy",
+        "price": 65,
+        "duration": "3h",
+        "whatsapp": "506380783"
+      }
+    ]
+  }
 }
 }
