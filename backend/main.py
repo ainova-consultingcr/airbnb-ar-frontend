@@ -174,7 +174,37 @@ RECOMMENDATIONS = {
 OPENAI_MODEL = "gpt-4.1-mini"
 
 load_dotenv()
+MESSAGES = {
+    "restaurants_available": {
+        "es": " Puedes reservar en estos restaurantes:",
+        "en": " You can book at these restaurants:"
+    },
 
+    "other_restaurants": {
+        "es": " Estos son otros restaurantes cercanos:",
+        "en": " These are other nearby restaurants:"
+    },
+
+    "own_restaurant": {
+        "es": "Te recomendamos primero nuestro restaurante {name}. ¿Deseas reservar o prefieres ver otras opciones cercanas?",
+        "en": "We recommend our restaurant {name} first. Would you like to book a table or see other nearby options?"
+    },
+
+    "tours_available": {
+        "es": "Estas actividades están disponibles:",
+        "en": "These activities are available:"
+    },
+
+    "no_restaurants": {
+        "es": "No hay restaurantes disponibles en este momento.",
+        "en": "There are no restaurants available at the moment."
+    },
+
+    "no_tours": {
+        "es": "No hay tours disponobles en este momento.",
+        "en": "No tours are available at the moment."
+    } 
+}
 
 
 
@@ -287,7 +317,8 @@ def ask(req: AskRequest):
         })
 
      return {
-        "answer": "Estos son otros restaurantes cercanos:",
+        #"answer": "Estos son otros restaurantes cercanos:"
+        "answer": MESSAGES["other_restaurants"][lang_key],
         "cta_options": options
      }    
     if intent == "food":
@@ -301,19 +332,23 @@ def ask(req: AskRequest):
      #if own_restaurant.get("has_own_restaurant"):
      if own_restaurant:
        return {
-            "answer": f"Te recomendamos primero nuestro restaurante {own_restaurant['name']}. ¿Deseas reservar o prefieres ver otras opciones cercanas?",
+           # "answer": f"Te recomendamos primero nuestro restaurante {own_restaurant['name']}. ¿Deseas reservar o prefieres ver otras opciones cercanas?",
+            "answer": MESSAGES["own_restaurant"][lang_key].format(
+             name=own_restaurant["name"]),
             "cta_options": [
                 {
                     "type": "own_restaurant",
                     "text": {
-                        "es": "Reservar restaurante"
+                        "es": "Reservar restaurante",
+                        "en": "Book restaurant"
                     },
                     "data": own_restaurant
                 },
                 {
                     "type": "external_restaurants",
                     "text": {
-                        "es": "Ver otros restaurantes"
+                        "es": "Ver otros restaurantes",
+                        "en": "See other restaurants"
                     }
                 }
             ]
@@ -378,7 +413,8 @@ def ask(req: AskRequest):
         })
 
      return {
-        "answer": "Estas actividades están disponibles:",
+        #"answer": "Estas actividades están disponibles:"
+        "answer": MESSAGES["tours_available"][lang_key],
         "cta_options": options
     }
         
