@@ -216,6 +216,30 @@
   </div>
   
   <script>
+    async function trackLeadEvent(eventType, category, itemName, leadId, metadata = {}) {
+
+  try {
+
+    //await fetch("https://airbnb-ar-assistant.onrender.com/track-lead", {
+      await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/track-lead", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        property_id: CURRENT_PROPERTY,
+        event_type: eventType,
+        category: category,
+        item_name: itemName,
+        lead_id: leadId,
+        metadata: metadata
+      })
+    });
+
+  } catch (err) {
+    console.error("TRACK ERROR:", err);
+  }
+}
 function clearCTAs() {
 
   const singleBtn = document.getElementById("ctaBtn");
@@ -254,8 +278,8 @@ function clearCTAs() {
     //const res = await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/property?property_id=" + CURRENT_PROPERTY)
     //const res = await fetch("http://localhost:8000/property?property_id=" + CURRENT_PROPERTY)
     const res = await fetch(
-      "https://airbnb-ar-assistant.onrender.com/property?property_id=" + CURRENT_PROPERTY
-        //"http://localhost:8000/property?property_id=" + CURRENT_PROPERTY
+      //"https://airbnb-ar-assistant.onrender.com/property?property_id=" + CURRENT_PROPERTY
+      "http://localhost:8000/property?property_id=" + CURRENT_PROPERTY
     );
     //const res = await fetch(`http://localhost:8000/data?property=${entity}`)
     const data = await res.json();
@@ -795,13 +819,13 @@ function showRestaurantList() {
 }
 function handleCTAAction(type) {
   
-  if (type === "internal_restaurant") {
+  if (type === "own_restaurant") {
     window.open("https://wa.me/50686380783?text=Quiero reservar en el restaurante del hotel");
   }
 
   if (type === "external_restaurants") {
-    showReservationForm(data);
-    //showRestaurantList();
+   // showReservationForm(data);
+    showRestaurantList();
   }
 }
 function showReservationForm(item) {
@@ -836,11 +860,24 @@ function sendReservation(item) {
   const people = document.getElementById("resPeople").value;
 
   const msg = `Hola, quiero reservar en ${item.name}
-Nombre: ${name}
-Fecha: ${date}
-Hora: ${time}
-Personas: ${people}`;
+  Código AVI: ${item.lead_id}
 
+    Nombre: ${name}
+    Fecha: ${date}
+    Hora: ${time}
+    Personas: ${people}`;
+
+  trackLeadEvent(
+   "reservation_sent",
+   item.type || "service",
+   item.name,
+   item.lead_id,
+    {
+      date,
+      time,
+      people
+    }
+  );
   window.open(`https://wa.me/${item.whatsapp}?text=${encodeURIComponent(msg)}`);
 }
 function clearCTAs() {
@@ -877,20 +914,37 @@ function showMultipleCTA(options) {
     const btn = document.createElement("button");
 
     btn.textContent = opt.text[langKey];
+    const theme = PROPERTY_CONFIG?.theme || {};
 
     btn.style.padding = "12px";
     btn.style.borderRadius = "10px";
     btn.style.border = "none";
-    btn.style.background = "#00c853";
-    btn.style.color = "#fff";
+    btn.style.background = theme.button || "#00c853";
+    btn.style.color = theme.buttonText || "#ffffff";
+    //btn.style.background = "#00c853";
+    //btn.style.color = "#fff";
     btn.style.position = "relative";
 
     // 🔥 IMPORTANTE
     btn.style.pointerEvents = "auto";
 
-    btn.onclick = () => {
+    btn.onclick = async() => {
       console.log("CLICK:", opt);
         clearCTAs(); // 🔥 importante
+
+       /* await trackLeadEvent(
+         "cta_click",
+          opt.type,
+          opt.data.name,
+          opt.data.lead_id
+         );*/
+
+        /*trackLeadEvent(
+          "cta_click",
+          opt.type,
+          opt.data.name,
+          opt.data.lead_id
+          );*/
       handleCTA(opt.type, opt.data);
     };
 
@@ -940,7 +994,7 @@ async function askAI() {
   
   showThinking();
   unlockAudio();
-   clearCTAs();
+  clearCTAs();
   const input = document.getElementById("questionInput");
   if (!input || !input.value.trim()) return;
  
@@ -954,8 +1008,8 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-     "https://airbnb-ar-assistant.onrender.com/ask",
-    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+     //"https://airbnb-ar-assistant.onrender.com/ask",
+    "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1068,7 +1122,7 @@ sceneTest.addEventListener("loaded", async () => {
   await loadPropertyConfig();
    applyBranding(false);
   applyInputBranding();
-  //applyTitleBranding();
+  
 
   setTimeout(() => {
   renderSuggestionsFromBackend();
@@ -1077,8 +1131,8 @@ sceneTest.addEventListener("loaded", async () => {
   // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
   try {
     const res = await fetch(
-    "https://airbnb-ar-assistant.onrender.com/ask",
-    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+    //"https://airbnb-ar-assistant.onrender.com/ask",
+    "https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1104,6 +1158,8 @@ sceneTest.addEventListener("loaded", async () => {
     console.warn("No se pudieron cargar suggestions iniciales");
   }
 });
+
+
 function handleCTA(type, data) {
 
    console.log("HANDLE CTA:", type, data);
@@ -1111,14 +1167,33 @@ function handleCTA(type, data) {
     openWhatsApp(data.whatsapp, "Quiero transporte");
   }
 
-  if (type === "restaurant") {
-      window.open(`https://wa.me/${data.whatsapp}?text=${encodeURIComponent("quiero reservar")}`);
-    showReservationForm(data);
+  if (type === "external_restaurants") {
+    document.getElementById("questionInput").value =
+        "otros restaurantes";
+
+    askAI();
   }
+
+  if (type === "own_restaurant") {
+
+      window.open(
+      `https://wa.me/${data.whatsapp}?text=${encodeURIComponent(
+        "Hola, quiero reservar una mesa en el restaurante."
+      )}`
+    );
+
+}
+if (type === "restaurant") {
+
+  window.open(`https://wa.me/${data.whatsapp}?text=${encodeURIComponent("quiero reservar")}`);
+
+
+    return;
+}
 
   if (type === "tour") {
     window.open(`https://wa.me/${data.whatsapp}?text=${encodeURIComponent("quiero reservar")}`);
-    showReservationForm(data);
+   // showReservationForm(data);
   }
 }
 

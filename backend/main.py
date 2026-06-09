@@ -10,10 +10,51 @@ from rag import load_property_data, build_context
 from prompts import SYSTEM_PROMPT_TEMPLATE
 import urllib.request
 from fastapi.responses import JSONResponse
+from datetime import datetime
+import uuid
 
 GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzm1z2UQV0j8ySZr4N7LoeQuqAdHyRKNOJgpnIjGj4D3n1Krph198v0O30mACG-Wu3qpA/exec"
 
 app = FastAPI()
+
+class LeadEventRequest(BaseModel):
+    property_id: str
+    category: str
+    item_name: Optional[str] = None
+    lead_id: Optional[str] = None
+    event_type: str
+    metadata: Optional[dict] = {}
+    
+def generate_lead_id(prefix="AVI"):
+    return f"{prefix}-{str(uuid.uuid4())[:8].upper()}"
+
+def log_event(property_id, event_type, category, item_name=None, lead_id=None, metadata=None):
+
+    try:
+        print("entro a log event")
+        payload = json.dumps({
+            "type": "event",
+            "property": property_id,
+            "event_type": event_type,
+            "category": category,
+            "item_name": item_name,
+            "lead_id": lead_id,
+            "metadata": metadata or {},
+            "timestamp": datetime.utcnow().isoformat()
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            GOOGLE_SHEET_WEBHOOK,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        response = urllib.request.urlopen(req)
+        print("EVENT LOG RESPONSE:", response.status)
+
+    except Exception as e:
+        print("EVENT LOG ERROR:", str(e))
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,7 +101,7 @@ def get_property(property_id: str = "hotel_demo"):
 def decorate_answer(text: str):
     icons = {
         "wifi": "📶",
-        "restaurante": "🍽️",
+        "restaurante": "",
         "pool": "🏊",
         "checkin": "🕒",
     }
@@ -141,6 +182,11 @@ load_dotenv()
 
 class AskRequest(BaseModel):
     property_id: Optional[str] = "demo_property"
+    #category: str
+    #item_name: Optional[str] = None
+    #lead_id: Optional[str] = None
+    #event_type: str
+    #metadata: Optional[dict] = {}
     question: str
     language: Optional[str] = "es"
 
@@ -188,9 +234,6 @@ def find_faq(question: str, entity: dict):
     return None
 
 @app.post("/ask")
-
-
-
 def ask(req: AskRequest):
  lang = (req.language or "es").lower()
  lang_key = "en" if lang.startswith("en") else "es"
@@ -199,6 +242,9 @@ def ask(req: AskRequest):
  try:
     # 1) Cargar entidad
     entity = load_property_data(req.property_id)
+    services = entity.get("ui", {}).get("services", {})
+    restaurants = services.get("restaurants", [])
+
         # 2) Contexto desde entidad
     context_text = build_context(entity)
 
@@ -213,53 +259,128 @@ def ask(req: AskRequest):
 
         # 4) Recomendaciones dinámicas (opcional)
     intent = detect_intent(req.question)
-        
-    if intent == "food":
-        services = entity.get("ui", {}).get("services", {})
-        restaurants = services.get("restaurants", [])
+    
+    #services = entity.get("ui", {}).get("services", {})
+    #restaurants = services.get("restaurants", [])
+    if req.question.lower() == "otros restaurantes":
+     external_restaurants = [
+        r for r in restaurants
+        if not r.get("has_own_restaurant")
+     ]
 
-         #services = entity.get("services") or {}
-         #restaurants = services.get("restaurants") or []
-         #restaurants = entity.get("services", {}).get("restaurants", [])
-        if not restaurants:
-            return {
-              "answer": "No hay restaurantes disponibles en este momento.",
-              "suggestions": entity.get("ui", {}).get("suggestions", {})
-            }
+     options = []
 
-        return {
-            "answer": "🍽️ Puedes reservar en estos restaurantes:",
-            "cta_options": [
-            {
+     for r in external_restaurants:
+
+        lead_id = generate_lead_id("AVI-REST")
+
+        options.append({
             "type": "restaurant",
-            "text": {"es": r.get("name", "Restaurante"), "en": r.get("name", "Restaurant")},
-            "data": r
+            "text": {
+                "es": r.get("name"),
+                "en": r.get("name")
+            },
+            "data": {
+                **r,
+                "lead_id": lead_id
             }
-            for r in restaurants
-            
-           ]
-        }
-    if intent == "tours":
-           services = entity.get("ui", {}).get("services", {})
-           tours = services.get("tours", [])
+        })
 
-           if not tours:
-            return {
+     return {
+        "answer": "Estos son otros restaurantes cercanos:",
+        "cta_options": options
+     }    
+    if intent == "food":
+     #own_restaurant = entity.get("restaurant", {})
+    # services = entity.get("ui", {}).get("services", {})
+     #restaurants = services.get("restaurants", [])
+     own_restaurant = next(
+    (r for r in restaurants if r.get("has_own_restaurant")),
+    None
+    )
+     #if own_restaurant.get("has_own_restaurant"):
+     if own_restaurant:
+       return {
+            "answer": f"Te recomendamos primero nuestro restaurante {own_restaurant['name']}. ¿Deseas reservar o prefieres ver otras opciones cercanas?",
+            "cta_options": [
+                {
+                    "type": "own_restaurant",
+                    "text": {
+                        "es": "Reservar restaurante"
+                    },
+                    "data": own_restaurant
+                },
+                {
+                    "type": "external_restaurants",
+                    "text": {
+                        "es": "Ver otros restaurantes"
+                    }
+                }
+            ]
+        }
+
+        
+     if not restaurants:
+        return {
+            "answer": "No hay restaurantes disponibles en este momento.",
+            "suggestions": entity.get("ui", {}).get("suggestions", {})
+        }
+
+     options = []
+
+     for r in restaurants:
+
+        lead_id = generate_lead_id("AVI-REST")
+
+        options.append({
+            "type": "restaurant",
+            "text": {
+                "es": r.get("name", "Restaurante"),
+                "en": r.get("name", "Restaurant")
+            },
+            "data": {
+                **r,
+                "lead_id": lead_id
+            }
+        })
+
+     return {
+        "answer": " Puedes reservar en estos restaurantes:",
+        "cta_options": options
+    }
+    if intent == "tours":
+
+     services = entity.get("ui", {}).get("services", {})
+     tours = services.get("tours", [])
+
+     if not tours:
+        return {
             "answer": "No hay tours disponibles en este momento.",
             "suggestions": entity.get("ui", {}).get("suggestions", {})
-            }
+        }
 
-           return {
-             "answer": "🌊 Estas actividades están disponibles:",
-             "cta_options": [
-             {
-                "type": "tour",
-                "text": {"es": t.get("name", "Tour"), "en": t.get("name", "Tour")},
-                "data": t
-             }
-              for t in tours
-              ]
-             }
+     options = []
+
+     for t in tours:
+
+        lead_id = generate_lead_id("AVI-TOUR")
+
+        options.append({
+            "type": "tour",
+            "text": {
+                "es": t.get("name", "Tour"),
+                "en": t.get("name", "Tour")
+            },
+            "data": {
+                **t,
+                "lead_id": lead_id
+            }
+        })
+
+     return {
+        "answer": "Estas actividades están disponibles:",
+        "cta_options": options
+    }
         
         
         #suggestions = RECOMMENDATIONS.get(intent, [])
@@ -374,3 +495,20 @@ def ask(req: AskRequest):
     
  except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/track-lead")
+def track_lead(req: LeadEventRequest):
+    print("TRACK LEAD RECEIVED")
+    print(req)
+    log_event(
+        property_id=req.property_id,
+        event_type=req.event_type,
+        category=req.category,
+        item_name=req.item_name,
+        lead_id=req.lead_id,
+        metadata=req.metadata
+    )
+
+    return {
+        "success": True
+    }
