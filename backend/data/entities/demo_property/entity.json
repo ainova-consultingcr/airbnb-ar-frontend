@@ -2,6 +2,7 @@
   "id": "demo_property",
   "name": "Casa Playa Tamarindo",
   "type": "airbnb",
+  "status": "active",
   "location": {
     "country": "Costa Rica",
     "province": "Guanacaste",
@@ -12,7 +13,7 @@
     "primary_color": "#00c853",
     "welcome": {
       "es": "👋 Bienvenido a Casa Playa Tamarindo\n\n✨ Soy AVI tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-out\n• Restaurantes\n• Actividades",
-      "en": "👋 Welcome to Cas playa Tamarindo\n\n✨ I'm AVI your Digital  Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
+      "en": "👋 Welcome to Casa playa Tamarindo\n\n✨ I'm AVI your Digital Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-out\n• Restaurants\n• Activities"
     }
   },
   "contact": {

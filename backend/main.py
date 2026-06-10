@@ -380,7 +380,11 @@ def ask(req: AskRequest):
         })
 
      return {
-        "answer": " Puedes reservar en estos restaurantes:",
+         "answer": (
+         "You can book at these restaurants:"
+            if lang_key == "en"
+            else "Puedes reservar en estos restaurantes:"
+         ),
         "cta_options": options
     }
     if intent == "tours":

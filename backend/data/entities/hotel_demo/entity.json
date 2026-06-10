@@ -12,8 +12,8 @@
   "branding": {
     "primary_color": "#00c853",
     "welcome": {
-     "es": " Bienvenido a Hotel TuHotel\n\n Soy AVI tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-out\n• Restaurantes\n• Actividades",
-     "en": " Welcome to Hotel yourhotel\n\n I'm AVI your Virtual Intelligent Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-in\n• Restaurants\n• Activities"
+     "es": "👋 Bienvenido a Hotel TuHotel\n\n Soy AVI tu Asistente Digital.\n\nPuedes preguntarme sobre:\n• WiFi\n• Check-out\n• Restaurantes\n• Actividades",
+     "en": "👋 Welcome to Hotel yourhotel\n\n I'm AVI your Digital Assistant.\n\nYou can ask me about:\n• WiFi\n• Check-out\n• Restaurants\n• Activities"
     }
   },
     "contact": {

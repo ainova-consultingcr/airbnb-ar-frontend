@@ -221,7 +221,7 @@
   try {
 
     await fetch("https://airbnb-ar-assistant.onrender.com/track-lead", {
-     // await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/track-lead", {
+      //await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/track-lead", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -279,7 +279,7 @@ function clearCTAs() {
     //const res = await fetch("http://localhost:8000/property?property_id=" + CURRENT_PROPERTY)
     const res = await fetch(
       "https://airbnb-ar-assistant.onrender.com/property?property_id=" + CURRENT_PROPERTY
-     // "http://localhost:8000/property?property_id=" + CURRENT_PROPERTY
+     //"http://localhost:8000/property?property_id=" + CURRENT_PROPERTY
     );
     //const res = await fetch(`http://localhost:8000/data?property=${entity}`)
     const data = await res.json();
