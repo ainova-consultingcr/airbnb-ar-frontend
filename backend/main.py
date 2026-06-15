@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 import os
@@ -10,7 +10,7 @@ from rag import load_property_data, build_context
 from prompts import SYSTEM_PROMPT_TEMPLATE
 import urllib.request
 from fastapi.responses import JSONResponse
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzm1z2UQV0j8ySZr4N7LoeQuqAdHyRKNOJgpnIjGj4D3n1Krph198v0O30mACG-Wu3qpA/exec"
@@ -23,7 +23,7 @@ class LeadEventRequest(BaseModel):
     item_name: Optional[str] = None
     lead_id: Optional[str] = None
     event_type: str
-    metadata: Optional[dict] = {}
+    metadata: dict = Field(default_factory=dict)
     
 def generate_lead_id(prefix="AVI"):
     return f"{prefix}-{str(uuid.uuid4())[:8].upper()}"
@@ -40,7 +40,7 @@ def log_event(property_id, event_type, category, item_name=None, lead_id=None, m
             "item_name": item_name,
             "lead_id": lead_id,
             "metadata": metadata or {},
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }).encode("utf-8")
 
         req = urllib.request.Request(
@@ -50,7 +50,7 @@ def log_event(property_id, event_type, category, item_name=None, lead_id=None, m
             method="POST"
         )
 
-        response = urllib.request.urlopen(req)
+        response = urllib.request.urlopen(req, timeout=3)
         print("EVENT LOG RESPONSE:", response.status)
 
     except Exception as e:
@@ -74,13 +74,7 @@ def options_handler(full_path: str):
 @app.get("/property")
 def get_property(property_id: str = "hotel_demo"):
     try:
-        file_path = f"data/entities/{property_id}/entity.json"
-
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Property not found")
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = load_property_data(property_id)
 
         return {
             "id": data["id"],
@@ -95,7 +89,9 @@ def get_property(property_id: str = "hotel_demo"):
             "contact": data.get("contact", {})
         }
 
-    except Exception as e:
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Property not found")
+    except (OSError, json.JSONDecodeError, KeyError) as e:
         raise HTTPException(status_code=500, detail=str(e))
     
 def decorate_answer(text: str):
@@ -131,7 +127,7 @@ def log_question(property_id, language, question, answer, unknown):
         )
 
         #urllib.request.urlopen(req)
-        response = urllib.request.urlopen(req)
+        response = urllib.request.urlopen(req, timeout=3)
         print("LOG RESPONSE:", response.status)
 
     except Exception as e:
@@ -424,12 +420,7 @@ def ask(req: AskRequest):
         
         
         #suggestions = RECOMMENDATIONS.get(intent, [])
-    file_path = f"data/entities/{req.property_id}/entity.json"
-
-    with open(file_path, "r", encoding="utf-8") as f:
-         raw_data = json.load(f)
-
-    suggestions = raw_data.get("ui", {}).get("suggestions", {})
+    suggestions = entity.get("ui", {}).get("suggestions", {})
     recommendation_text = ""
     if suggestions:
             recommendation_text = (
@@ -455,39 +446,36 @@ def ask(req: AskRequest):
 
     if any(word in question_lower for word in ["transporte", "aeropuerto", "airport", "ride", "taxi"]):
 
-         transport_message = {
-        "es": """ Podemos ayudarte con transporte privado al aeropuerto.
+         transport = entity.get("ui", {}).get("services", {}).get("transport")
+         if not transport:
+             return {
+                 "answer": NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"]),
+                 "suggestions": entity.get("ui", {}).get("suggestions", {})
+             }
 
-         Conductores confiables  
-         Servicio directo desde el hotel  
+         price = transport.get("price")
+         price_text = f"${price}" if price is not None else None
+         if lang_key == "en":
+             transport_message = "We can help you book private transportation."
+             if price_text:
+                 transport_message += f" Price from: {price_text}."
+             transport_message += " Would you like to book now?"
+         else:
+             transport_message = "Podemos ayudarte a reservar transporte privado."
+             if price_text:
+                 transport_message += f" Precio desde: {price_text}."
+             transport_message += " ¿Deseas reservar ahora?"
 
-         Precio desde: $80 (hasta 4 personas)
-        ¿Deseas reservar tu transporte ahora?""",
-
-        "en": """🚐 We can help you with private airport transportation.
-
-         On time and reliable  
-         Trusted drivers  
-         Direct pickup from the hotel  
-
-         Price from: $80 (up to 4 people)
-
-        We recommend booking in advance.
-
-         Would you like to book your ride now?"""
-        }
          return {
-         "answer": transport_message.get(lang_key),
-        "cta": {
-            "text": {
-                "es": "Reservar ahora",
-                "en": "Book now"
-            },
-            "url": "https://wa.me/50686380783?text=Hola,%20quiero%20reservar%20transporte"
-        },
-   
-      
-       
+         "answer": transport_message,
+         "cta_options": [{
+             "type": "transport",
+             "text": {
+                 "es": "Reservar ahora",
+                 "en": "Book now"
+             },
+             "data": transport
+         }]
         }
 
         # 5) Llamada OpenAI
@@ -518,7 +506,7 @@ def ask(req: AskRequest):
         "i don't have that information",
         "i do not have that information"
         ]
-    answer_text = answer.lower()
+    answer_text = (answer or "").lower()
 
     is_generic = any(p in answer_text for p in LOW_QUALITY_PATTERNS)
     if not answer or is_generic:
@@ -533,6 +521,10 @@ def ask(req: AskRequest):
         }
         
     
+ except FileNotFoundError:
+    raise HTTPException(status_code=404, detail="Property not found")
+ except HTTPException:
+    raise
  except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
 

@@ -1,8 +1,22 @@
 import json
 import os
+import re
 
 BASE_DIR = os.path.dirname(__file__)
 ENTITIES_DIR = os.path.join(BASE_DIR, "data", "entities")
+
+ENTITY_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def get_entity_dir(entity_id: str) -> str:
+    if not entity_id or not ENTITY_ID_PATTERN.fullmatch(entity_id):
+        raise FileNotFoundError(f"Entidad no existe: {entity_id}")
+
+    entity_path = os.path.join(ENTITIES_DIR, entity_id)
+    if not os.path.isdir(entity_path):
+        raise FileNotFoundError(f"Entidad no existe: {entity_id}")
+
+    return entity_path
 
 def build_context(entity: dict) -> str:
     #sections = []
@@ -138,21 +152,17 @@ def _load_json(path, default):
         return json.load(f)
     
 def load_property_data(entity_id : str) -> dict:
-     entity_path = os.path.join(ENTITIES_DIR, entity_id)
+     entity_path = get_entity_dir(entity_id)
     #with open(f"data/entities/{property_id}.json", "r", encoding="utf-8") as f:
     #  return json.load(f)
     # entity_path = os.path.join(ENTITIES_DIR, entity_id)    
     #path = f"data/entities/{property_id}.json"
-    
-     if not os.path.isdir(entity_path):
-        raise FileNotFoundError(f"Entidad no existe: {entity_id}")
     
    # if not os.path.exists(path):
     #   raise FileNotFoundError(
      #       f"No existe el archivo de datos para la entidad: {property_id} -> {path}"
      #  )
      entity = _load_json(os.path.join(entity_path, "entity.json"), {})
-     suggestions = _load_json(os.path.join(entity_path, "entity.json"), {})
      spaces = _load_json(os.path.join(entity_path, "spaces.json"), [])
      services = _load_json(os.path.join(entity_path, "services.json"), [])
      rules = _load_json(os.path.join(entity_path, "rules.json"), [])
@@ -166,7 +176,6 @@ def load_property_data(entity_id : str) -> dict:
      entity["faqs"] = faqs
      entity["schedules"] = schedules
      entity["recommendations"] = recommendations
-     entity["suggestions"] = suggestions
     #with open(path, "r", encoding="utf-8") as f:
        #return json.load(f)
      return entity

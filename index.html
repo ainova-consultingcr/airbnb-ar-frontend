@@ -8,7 +8,8 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
-  <title>Airbnb AR Assistant</title>
+  <meta name="theme-color" content="#071018">
+  <title>AVI | Asistente del huésped</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -117,6 +118,386 @@
   transform: scale(0.97);
 }
   </style>
+  <style>
+    :root {
+      --avi-accent: #86c45c;
+      --avi-accent-text: #15240d;
+      --avi-panel: rgba(15, 23, 42, 0.84);
+      --avi-border: rgba(255, 255, 255, 0.14);
+      --avi-muted: rgba(255, 255, 255, 0.68);
+      --safe-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      color: #fff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      background: #05080f;
+    }
+
+    body::after {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      content: "";
+      background:
+        linear-gradient(180deg, rgba(3, 7, 18, 0.66) 0%, transparent 28%),
+        linear-gradient(0deg, rgba(3, 7, 18, 0.84) 0%, transparent 48%);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .a-enter-vr,
+    .a-enter-vr-button,
+    .a-orientation-modal,
+    #error-popup {
+      display: none !important;
+    }
+
+    #appHeader {
+      position: fixed;
+      top: max(14px, env(safe-area-inset-top));
+      left: 16px;
+      right: 16px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 52px;
+      padding: 8px 12px;
+      border: 1px solid var(--avi-border);
+      border-radius: 18px;
+      background: rgba(7, 12, 24, 0.64);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .avi-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      place-items: center;
+      border-radius: 12px;
+      color: var(--avi-accent-text);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0.04em;
+      background: var(--avi-accent);
+    }
+
+    .avi-header-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    #propertyName {
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 750;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #assistantStatus {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+      color: var(--avi-muted);
+      font-size: 12px;
+    }
+
+    #assistantStatus::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      content: "";
+      background: var(--avi-accent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--avi-accent) 17%, transparent);
+    }
+
+    #responseCard {
+      position: fixed;
+      top: calc(max(14px, env(safe-area-inset-top)) + 68px);
+      left: 16px;
+      right: 16px;
+      z-index: 15;
+      display: flex;
+      gap: 12px;
+      max-height: calc(100dvh - 330px);
+      padding: 16px;
+      overflow: hidden;
+      border: 1px solid var(--avi-border);
+      border-radius: 24px;
+      background: var(--avi-panel);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+      pointer-events: none;
+      backdrop-filter: blur(22px) saturate(125%);
+      -webkit-backdrop-filter: blur(22px) saturate(125%);
+      transition: opacity 180ms ease, transform 220ms ease;
+    }
+
+    #responseCard.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .response-avatar {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--avi-accent) 42%, transparent);
+      border-radius: 13px;
+      color: var(--avi-accent);
+      font-size: 17px;
+      background: color-mix(in srgb, var(--avi-accent) 13%, transparent);
+    }
+
+    .response-body {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #responseLabel {
+      display: block;
+      margin: 1px 0 7px;
+      color: var(--avi-accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #responseText {
+      max-height: calc(100dvh - 405px);
+      padding-right: 4px;
+      overflow-y: auto;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: clamp(16px, 4.2vw, 19px);
+      font-weight: 460;
+      line-height: 1.48;
+      white-space: pre-line;
+      scrollbar-width: thin;
+    }
+
+    #responseLoading {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+    }
+
+    #responseLoading.visible {
+      display: flex;
+    }
+
+    .loading-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--avi-accent);
+      animation: loadingPulse 900ms ease-in-out infinite alternate;
+    }
+
+    .loading-dot:nth-child(2) {
+      animation-delay: 160ms;
+    }
+
+    .loading-dot:nth-child(3) {
+      animation-delay: 320ms;
+    }
+
+    @keyframes loadingPulse {
+      from { opacity: 0.35; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(-2px); }
+    }
+
+    #bottomDock {
+      position: fixed;
+      right: 12px;
+      bottom: var(--safe-bottom);
+      left: 12px;
+      z-index: 30;
+      display: grid;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    #suggestions {
+      position: static;
+      display: none;
+      gap: 8px;
+      width: 100%;
+      max-width: none;
+      padding: 0 2px 2px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      transform: none;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      pointer-events: auto;
+      scroll-snap-type: x proximity;
+    }
+
+    #suggestions::-webkit-scrollbar {
+      display: none;
+    }
+
+    .suggestion-btn {
+      min-height: 42px;
+      flex: 0 0 auto;
+      max-width: 82vw;
+      padding: 10px 15px;
+      overflow: hidden;
+      border: 1px solid var(--avi-border);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 13px;
+      font-weight: 620;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      background: rgba(15, 23, 42, 0.82);
+      box-shadow: 0 9px 24px rgba(0, 0, 0, 0.2);
+      scroll-snap-align: start;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    #actionArea {
+      display: grid;
+      gap: 8px;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    #ctaContainer {
+      display: grid;
+      gap: 8px;
+    }
+
+    .avi-action {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 16px;
+      color: var(--avi-accent-text);
+      font-size: 15px;
+      font-weight: 780;
+      background: var(--avi-accent);
+      box-shadow: 0 10px 28px color-mix(in srgb, var(--avi-accent) 24%, transparent);
+    }
+
+    .avi-action.secondary {
+      border: 1px solid var(--avi-border);
+      color: #fff;
+      background: rgba(15, 23, 42, 0.88);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    #ui {
+      position: static;
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      padding: 7px;
+      transform: none;
+      border: 1px solid var(--avi-border);
+      border-radius: 21px;
+      background: rgba(7, 12, 24, 0.88);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+      pointer-events: auto;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    #ui #questionInput {
+      width: auto;
+      min-width: 0;
+      height: 50px;
+      flex: 1;
+      padding: 0 14px;
+      border: 0;
+      outline: 0;
+      border-radius: 15px;
+      color: #fff;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    #questionInput::placeholder {
+      color: rgba(255, 255, 255, 0.52);
+    }
+
+    #ui #sendBtn {
+      min-width: 76px;
+      height: 50px;
+      padding: 0 15px;
+      border: 0;
+      border-radius: 15px;
+      color: var(--avi-accent-text);
+      font-size: 14px;
+      font-weight: 820;
+      background: var(--avi-accent);
+    }
+
+    #sendBtn:disabled {
+      opacity: 0.72;
+    }
+
+    @media (min-width: 680px) {
+      #appHeader,
+      #responseCard,
+      #bottomDock {
+        width: min(520px, calc(100vw - 32px));
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      #responseCard {
+        transform: translateX(-50%) translateY(-8px) scale(0.98);
+      }
+
+      #responseCard.visible {
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+
+    @media (max-height: 650px) {
+      #responseCard {
+        max-height: calc(100dvh - 260px);
+      }
+
+      #responseText {
+        max-height: calc(100dvh - 330px);
+      }
+
+      #suggestions {
+        display: none !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -204,24 +585,54 @@
 </a-camera>
 </a-scene>
 
- <div id="suggestions"></div>
-  <!-- 🔥 UI HTML -->
-  <div id="ui">
-    <input
-      id="questionInput"
-      placeholder="Ej: ¿A qué hora es el check-in?"
-    />
-  
-    <button id="sendBtn" onclick="askAI()">Enviar</button>
+  <header id="appHeader">
+    <div class="avi-mark">AVI</div>
+    <div class="avi-header-copy">
+      <div id="propertyName">AVI</div>
+      <div id="assistantStatus">Asistente disponible</div>
+    </div>
+  </header>
+
+  <section id="responseCard" aria-live="polite">
+    <div class="response-avatar">✦</div>
+    <div class="response-body">
+      <span id="responseLabel">AVI responde</span>
+      <div id="responseLoading">
+        <span class="loading-dot"></span>
+        <span class="loading-dot"></span>
+        <span class="loading-dot"></span>
+      </div>
+      <div id="responseText"></div>
+    </div>
+  </section>
+
+  <div id="bottomDock">
+    <div id="suggestions"></div>
+    <div id="actionArea"></div>
+    <div id="ui">
+      <input
+        id="questionInput"
+        autocomplete="off"
+        enterkeyhint="send"
+        placeholder="Pregunta algo..."
+      />
+      <button id="sendBtn" type="button" onclick="askAI()">Enviar</button>
+    </div>
   </div>
   
   <script>
+    const IS_LOCAL_DEVELOPMENT = ["localhost", "127.0.0.1"].includes(
+      window.location.hostname
+    );
+    const API_BASE_URL = IS_LOCAL_DEVELOPMENT
+      ? "http://localhost:8000"
+      : "https://airbnb-ar-assistant.onrender.com";
+
     async function trackLeadEvent(eventType, category, itemName, leadId, metadata = {}) {
 
   try {
 
-    await fetch("https://airbnb-ar-assistant.onrender.com/track-lead", {
-      //await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/track-lead", {
+    await fetch(`${API_BASE_URL}/track-lead`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -275,13 +686,9 @@ function clearCTAs() {
 
   async function loadPropertyConfig() {
   try {
-    //const res = await fetch("https://gayla-subcalibre-destiny.ngrok-free.dev/property?property_id=" + CURRENT_PROPERTY)
-    //const res = await fetch("http://localhost:8000/property?property_id=" + CURRENT_PROPERTY)
     const res = await fetch(
-      "https://airbnb-ar-assistant.onrender.com/property?property_id=" + CURRENT_PROPERTY
-     //"http://localhost:8000/property?property_id=" + CURRENT_PROPERTY
+      `${API_BASE_URL}/property?property_id=${encodeURIComponent(CURRENT_PROPERTY)}`
     );
-    //const res = await fetch(`http://localhost:8000/data?property=${entity}`)
     const data = await res.json();
 
     // mapear a formato actual
@@ -330,6 +737,8 @@ console.log("THEME:", PROPERTY_CONFIG?.theme);
   const plane = document.getElementById("arPlane");
   const text = document.getElementById("arText");
   const btn = document.getElementById("sendBtn");
+  const propertyName = document.getElementById("propertyName");
+  const assistantStatus = document.getElementById("assistantStatus");
 
   if (!panel || !plane || !text) return;
  
@@ -342,14 +751,27 @@ console.log("THEME:", PROPERTY_CONFIG?.theme);
     btn.style.background = theme.button;
     btn.style.color = theme.buttonText;
   }
+  document.documentElement.style.setProperty("--avi-accent", theme.button || "#86c45c");
+  document.documentElement.style.setProperty(
+    "--avi-accent-text",
+    theme.buttonText || "#15240d"
+  );
+  document.documentElement.style.setProperty("--avi-panel", theme.panel || "rgba(15, 23, 42, 0.84)");
  
   const config = PROPERTY_CONFIG;
   console.log(Object.keys(PROPERTY_CONFIG));
   if (!config) return;
 
+  if (propertyName) propertyName.textContent = config.name;
+  if (assistantStatus) {
+    assistantStatus.textContent = CURRENT_LANG.startsWith("en")
+      ? "Digital concierge available"
+      : "Asistente digital disponible";
+  }
+
   
-  panel.setAttribute("scale", "1 1 1");
-  panel.setAttribute("visible", "true");
+  panel.setAttribute("scale", "0 0 0");
+  panel.setAttribute("visible", "false");
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   showARAnswer(config.welcome[langKey], playAudio);
@@ -465,81 +887,35 @@ function closePanel(delay = 0) {
  if (hideTimer) clearTimeout(hideTimer);
 
   hideTimer = setTimeout(() => {
-    const panel = document.getElementById("arPanel");
-    if (panel) {
-      //panel.setAttribute("scale", "0 0 0");
-      panel.setAttribute("opacity", "0.4");
-      //console.log("Mostrando suggestions:", BACKEND_SUGGESTIONS);
-      console.log("Suggestions RAW:", JSON.stringify(BACKEND_SUGGESTIONS, null, 2));
-      showSuggestions();
-    }
-     const btn = document.getElementById("ctaBtn");
-    if (btn) {
-      btn.style.display = "none";
-      btn.dataset.active = "false";
-    }
-  
+    showSuggestions();
+
   }, delay);
 }
 
 function showARAnswer(text, speakAudio = true) {
-const btn = document.getElementById("ctaBtn");
-if (btn) btn.style.display = "none";
-    // asegurar que es string
-  text = String(text || "");
-  // normalizar unicode (corrige tildes combinadas)
-  text = text.normalize("NFC");
-  // reconstruir caracteres correctamente
-  text = Array.from(text).join("");
-
+  const responseCard = document.getElementById("responseCard");
+  const responseText = document.getElementById("responseText");
+  const responseLoading = document.getElementById("responseLoading");
+  const responseLabel = document.getElementById("responseLabel");
   const panel = document.getElementById("arPanel");
-  const arText = document.getElementById("arText");
 
-  if (!panel || !arText) return;
+  if (!responseCard || !responseText) return;
 
-  const MAX_LENGTH = 260;
-
-  let finalText = String(text || "");
-
-  // evitar cortar palabras a la mitad
-  if (finalText.length > MAX_LENGTH) {
-
-    finalText = finalText.slice(0, MAX_LENGTH);
-
-    const lastSpace = finalText.lastIndexOf(" ");
-
-    if (lastSpace > 0) {
-      finalText = finalText.slice(0, lastSpace);
-    }
-
-    finalText += "...";
+  const finalText = String(text || "").normalize("NFC");
+  responseText.textContent = finalText;
+  responseText.scrollTop = 0;
+  responseLoading?.classList.remove("visible");
+  responseText.style.display = "block";
+  responseCard.classList.add("visible");
+  if (responseLabel) {
+    responseLabel.textContent = CURRENT_LANG.startsWith("en")
+      ? "AVI answers"
+      : "AVI responde";
   }
-
-
-  arText.setAttribute("troika-text", "value", "");
-  // pequeño delay para asegurar render
-  setTimeout(() => {
-    console.log("TEXTO ORIGINAL:", text);
-    console.log("FINAL TEXT:", finalText);
-  
-    arText.setAttribute("troika-text", {
-      value: finalText
-    });
-   
-  }, 80);
-
-  // mostrar panel
-  panel.setAttribute("scale", "1 1 1");
-  panel.setAttribute("opacity", "1");
-  panel.setAttribute("visible", "true");
-
-  panel.setAttribute("animation__pop", {
-    property: "scale",
-    from: "0.9 0.9 0.9",
-    to: "1 1 1",
-    dur: 260,
-    easing: "easeOutBack"
-  });
+  if (panel) {
+    panel.setAttribute("scale", "0 0 0");
+    panel.setAttribute("visible", "false");
+  }
 
   hideSuggestions();
 
@@ -605,38 +981,37 @@ input.placeholder =
 }
 }
 function showLoader() {
-  const panel = document.getElementById("arPanel");
-  const arText = document.getElementById("arText");
-  const loader = document.getElementById("arLoader");
+  const responseCard = document.getElementById("responseCard");
+  const responseText = document.getElementById("responseText");
+  const responseLoading = document.getElementById("responseLoading");
+  const responseLabel = document.getElementById("responseLabel");
+  const status = document.getElementById("assistantStatus");
 
-  if (panel) {
-    panel.setAttribute("scale", "1 1 1");
-    panel.setAttribute("visible", "true");
-    panel.setAttribute("animation__pop", {
-    property: "scale",
-    from: "0.9 0.9 0.9",
-    to: "1 1 1",
-    dur: 260,
-    easing: "easeOutBack"
-  });
-
+  responseCard?.classList.add("visible");
+  responseLoading?.classList.add("visible");
+  if (responseText) responseText.style.display = "none";
+  if (responseLabel) {
+    responseLabel.textContent = CURRENT_LANG.startsWith("en")
+      ? "AVI is checking"
+      : "AVI está consultando";
   }
-
-  if (arText) {
-    arText.setAttribute("troika-text", "");
-    
-  }
-
-  if (loader) {
-    const theme = PROPERTY_CONFIG?.theme || {};
-    loader.setAttribute("color", theme.spinner || "#94a3b8");
-    loader.setAttribute("visible", "true");
+  if (status) {
+    status.textContent = CURRENT_LANG.startsWith("en")
+      ? "Preparing your answer"
+      : "Preparando tu respuesta";
   }
 }
 
 function hideLoader() {
-  const loader = document.getElementById("arLoader");
-  if (loader) loader.setAttribute("visible", "false");
+  document.getElementById("responseLoading")?.classList.remove("visible");
+  const responseText = document.getElementById("responseText");
+  const status = document.getElementById("assistantStatus");
+  if (responseText) responseText.style.display = "block";
+  if (status) {
+    status.textContent = CURRENT_LANG.startsWith("en")
+      ? "Digital concierge available"
+      : "Asistente digital disponible";
+  }
 }
 
 
@@ -707,44 +1082,17 @@ function renderSuggestionsFromBackend() {
   });
 }
 function showThinking() {
-  const arText = document.getElementById("arText");
-  if (!arText || !PROPERTY_CONFIG) return;
-
-  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
-
-  const text =
-    PROPERTY_CONFIG.messages?.thinking?.[langKey] ||
-    "🤖 ...";
-
-  arText.setAttribute("troika-text", {
-    value: text
-  });
+  if (!PROPERTY_CONFIG) return;
+  showLoader();
 }
 function showCTA(cta) {
-  let btn = document.getElementById("ctaBtn");
+  clearCTAs();
+  const actionArea = document.getElementById("actionArea");
+  if (!actionArea) return;
 
-  // 🔥 SI YA EXISTE → resetearlo
-  if (btn) {
-    btn.remove(); // 💥 clave
-  }
-
-  // 🔥 crear nuevo SIEMPRE
-  btn = document.createElement("button");
+  const btn = document.createElement("button");
   btn.id = "ctaBtn";
-
-  btn.style.position = "fixed";
-  btn.style.bottom = "140px";
-  btn.style.left = "50%";
-  btn.style.transform = "translateX(-50%)";
-  btn.style.zIndex = "999999";
-  btn.style.padding = "14px";
-  btn.style.borderRadius = "12px";
-  btn.style.border = "none";
-  btn.style.background = "#00c853";
-  btn.style.color = "#fff";
-  btn.style.fontWeight = "bold";
-  btn.style.width = "85%";
-  btn.style.maxWidth = "320px";
+  btn.className = "avi-action";
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
 
@@ -757,7 +1105,7 @@ function showCTA(cta) {
     }, 100);
   };
 
-  document.body.appendChild(btn);
+  actionArea.appendChild(btn);
 }
 function showCTAanterior(cta) {
   let btn = document.getElementById("ctaBtn");
@@ -883,50 +1231,25 @@ function sendReservation(item) {
 function clearCTAs() {
   document.getElementById("ctaBtn")?.remove();
   document.getElementById("ctaContainer")?.remove();
+  const actionArea = document.getElementById("actionArea");
+  if (actionArea) actionArea.innerHTML = "";
 }
 function showMultipleCTA(options) {
+  clearCTAs();
+  const actionArea = document.getElementById("actionArea");
+  if (!actionArea) return;
 
-  let container = document.getElementById("ctaContainer");
-
-  if (container) container.remove();
-
-  container = document.createElement("div");
+  const container = document.createElement("div");
   container.id = "ctaContainer";
-
-  container.style.position = "fixed";
-  container.style.bottom = "140px";
-  container.style.left = "50%";
-  container.style.transform = "translateX(-50%)";
-  container.style.zIndex = "999999";
-  container.style.display = "flex";
-  container.style.flexDirection = "column";
-  container.style.gap = "10px";
-  container.style.width = "85%";
-  container.style.maxWidth = "320px";
-
-  // 🔥 IMPORTANTE
-  container.style.pointerEvents = "auto";
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
 
-  options.forEach(opt => {
+  options.forEach((opt, index) => {
 
     const btn = document.createElement("button");
 
     btn.textContent = opt.text[langKey];
-    const theme = PROPERTY_CONFIG?.theme || {};
-
-    btn.style.padding = "12px";
-    btn.style.borderRadius = "10px";
-    btn.style.border = "none";
-    btn.style.background = theme.button || "#00c853";
-    btn.style.color = theme.buttonText || "#ffffff";
-    //btn.style.background = "#00c853";
-    //btn.style.color = "#fff";
-    btn.style.position = "relative";
-
-    // 🔥 IMPORTANTE
-    btn.style.pointerEvents = "auto";
+    btn.className = index === 0 ? "avi-action" : "avi-action secondary";
 
     btn.onclick = async() => {
       console.log("CLICK:", opt);
@@ -951,7 +1274,7 @@ function showMultipleCTA(options) {
     container.appendChild(btn);
   });
 
-  document.body.appendChild(container);
+  actionArea.appendChild(container);
 }
 function showMultipleCTA1(options) {
   let container = document.getElementById("ctaContainer");
@@ -991,13 +1314,13 @@ function showMultipleCTA1(options) {
   document.body.appendChild(container);
 }
 async function askAI() {
-  
+  const input = document.getElementById("questionInput");
+  if (!input || !input.value.trim()) return;
+
   showThinking();
   unlockAudio();
   clearCTAs();
-  const input = document.getElementById("questionInput");
-  if (!input || !input.value.trim()) return;
- 
+  hideSuggestions();
   const question = input.value.trim();
 
   try {
@@ -1008,8 +1331,7 @@ async function askAI() {
     //("⏳ Pensando...", false);
 
     const res = await fetch(
-     "https://airbnb-ar-assistant.onrender.com/ask",
-    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+     `${API_BASE_URL}/ask`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1032,13 +1354,14 @@ async function askAI() {
 
       /*showARAnswer(ui.errors?.server?.[langKey], false);
       return;*/
-      const errors = PROPERTY_CONFIG?.messages?.errors || {};
+      const errors = PROPERTY_CONFIG?.ui?.errors || {};
       const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
 
   showARAnswer(
   errors.server?.[langKey] || "⚠️ Server error",
   false
 );
+      return;
     }
     //const text = await res.text();
     //console.log("RAW RESPONSE:", text);
@@ -1060,11 +1383,16 @@ if (data.cta_options) {
    const answer = data?.answer;
 
 hideLoader();
-showARAnswer(answer, true);
 if (!answer) {
-  showARAnswer("⚠️ Respuesta vacía. Intenta otra vez.", false);
+  showARAnswer(
+    CURRENT_LANG.startsWith("en")
+      ? "I could not prepare an answer. Please try again."
+      : "No pude preparar una respuesta. Intenta nuevamente.",
+    false
+  );
   return;
 }
+showARAnswer(answer, true);
 if (data.cta) {
   setTimeout(() => {
     showCTA(data.cta);
@@ -1101,16 +1429,11 @@ speechSynthesis.onvoiceschanged = () => {
   </script>
   <script>
     const input = document.getElementById("questionInput");
-    const scene = document.querySelector("a-scene");
-
-    input.addEventListener("focus", () => {
-      scene.style.visibility = "hidden";
-      scene.style.pointerEvents = "none";
-    });
-
-    input.addEventListener("blur", () => {
-       scene.style.visibility = "visible";
-       scene.style.pointerEvents = "auto";
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        askAI();
+      }
     });
 </script>
 
@@ -1131,8 +1454,7 @@ sceneTest.addEventListener("loaded", async () => {
   // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
   try {
     const res = await fetch(
-    "https://airbnb-ar-assistant.onrender.com/ask",
-    //"https://gayla-subcalibre-destiny.ngrok-free.dev/ask",
+    `${API_BASE_URL}/ask`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
