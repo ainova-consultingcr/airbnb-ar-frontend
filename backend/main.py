@@ -81,7 +81,9 @@ def get_property(property_id: str = "hotel_demo"):
             "name": data["name"],
             "color": data["branding"]["primary_color"],
             "welcome": data["branding"]["welcome"],
-            "suggestions": data.get("suggestions", {}),
+            "suggestions": data.get("ui", {}).get(
+                "suggestions", data.get("suggestions", {})
+            ),
             "messages": data.get("messages", {}),
             "theme": data.get("theme", {}),
             "ui": data.get("ui", {}),
@@ -134,10 +136,65 @@ def log_question(property_id, language, question, answer, unknown):
         #print("Error logging question:", e)
         print("LOG ERROR:", str(e))
 def detect_intent(question: str) -> str:
-    q = question.lower()
+    q = normalize_text(question)
 
-    if any(word in q for word in ["comer", "restaurante", "cenar", "almorzar", "food"]):
+    if any(word in q for word in [
+        "comer",
+        "restaurante",
+        "restaurantes",
+        "cenar",
+        "almorzar",
+        "food",
+        "restaurant",
+        "restaurants",
+        "where to eat",
+        "dining"
+    ]):
         return "food"
+    if any(phrase in q for phrase in [
+        "lugar turistico",
+        "lugares turisticos",
+        "que visitar",
+        "donde ir",
+        "atracciones",
+        "sitios turisticos",
+        "playas",
+        "parques nacionales",
+        "cataratas",
+        "tourist attraction",
+        "tourist attractions",
+        "places to visit",
+        "what to visit",
+        "beaches",
+        "national parks",
+        "waterfalls"
+    ]):
+        return "tourist_places"
+    if any(phrase in q for phrase in [
+        "farmacia",
+        "farmacias",
+        "pharmacy",
+        "pharmacies",
+        "supermercado",
+        "supermercados",
+        "supermarket",
+        "supermarkets",
+        "clinica",
+        "clinicas",
+        "centro medico",
+        "medical center",
+        "clinic",
+        "clinics",
+        "tienda de ropa",
+        "tiendas de ropa",
+        "clothing store",
+        "clothing stores",
+        "servicios y tiendas",
+        "services and shops",
+        "negocios cercanos",
+        "nearby businesses"
+    ]):
+        return "nearby_businesses"
     if any(word in q for word in ["tour", "excursion", "actividad", "paseo"]):
         return "tours"
     if any(word in q for word in ["carro", "auto", "rentar", "rent", "transport"]):
@@ -294,94 +351,35 @@ def ask(req: AskRequest):
         if not r.get("has_own_restaurant")
      ]
 
-     options = []
-
-     for r in external_restaurants:
-
-        lead_id = generate_lead_id("AVI-REST")
-
-        options.append({
-            "type": "restaurant",
-            "text": {
-                "es": r.get("name"),
-                "en": r.get("name")
-            },
-            "data": {
-                **r,
-                "lead_id": lead_id
-            }
-        })
+     restaurant_options = [
+        {**restaurant, "lead_id": generate_lead_id("AVI-REST")}
+        for restaurant in external_restaurants
+     ]
 
      return {
-        #"answer": "Estos son otros restaurantes cercanos:"
         "answer": MESSAGES["other_restaurants"][lang_key],
-        "cta_options": options
+        "restaurant_options": restaurant_options
      }    
     if intent == "food":
-     #own_restaurant = entity.get("restaurant", {})
-    # services = entity.get("ui", {}).get("services", {})
-     #restaurants = services.get("restaurants", [])
-     own_restaurant = next(
-    (r for r in restaurants if r.get("has_own_restaurant")),
-    None
-    )
-     #if own_restaurant.get("has_own_restaurant"):
-     if own_restaurant:
-       return {
-           # "answer": f"Te recomendamos primero nuestro restaurante {own_restaurant['name']}. ¿Deseas reservar o prefieres ver otras opciones cercanas?",
-            "answer": MESSAGES["own_restaurant"][lang_key].format(
-             name=own_restaurant["name"]),
-            "cta_options": [
-                {
-                    "type": "own_restaurant",
-                    "text": {
-                        "es": "Reservar restaurante",
-                        "en": "Book restaurant"
-                    },
-                    "data": own_restaurant
-                },
-                {
-                    "type": "external_restaurants",
-                    "text": {
-                        "es": "Ver otros restaurantes",
-                        "en": "See other restaurants"
-                    }
-                }
-            ]
-        }
-
-        
      if not restaurants:
         return {
             "answer": "No hay restaurantes disponibles en este momento.",
             "suggestions": entity.get("ui", {}).get("suggestions", {})
         }
 
-     options = []
-
-     for r in restaurants:
-
-        lead_id = generate_lead_id("AVI-REST")
-
-        options.append({
-            "type": "restaurant",
-            "text": {
-                "es": r.get("name", "Restaurante"),
-                "en": r.get("name", "Restaurant")
-            },
-            "data": {
-                **r,
-                "lead_id": lead_id
-            }
-        })
+     restaurant_options = [
+        {**restaurant, "lead_id": generate_lead_id("AVI-REST")}
+        for restaurant in restaurants
+     ]
 
      return {
          "answer": (
-         "You can book at these restaurants:"
+         "These are the restaurants recommended by the hotel:"
             if lang_key == "en"
-            else "Puedes reservar en estos restaurantes:"
+            else "Estos son los restaurantes recomendados por el hotel:"
          ),
-        "cta_options": options
+        "restaurant_options": restaurant_options,
+        "suggestions": entity.get("ui", {}).get("suggestions", {})
     }
     if intent == "tours":
 
@@ -416,7 +414,67 @@ def ask(req: AskRequest):
         #"answer": "Estas actividades están disponibles:"
         "answer": MESSAGES["tours_available"][lang_key],
         "cta_options": options
-    }
+     }
+
+    if intent == "tourist_places":
+     tourist_places = services.get("tourist_places", [])
+
+     if not tourist_places:
+        return {
+            "answer": NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"]),
+            "suggestions": entity.get("ui", {}).get("suggestions", {})
+        }
+
+     return {
+        "answer": (
+            "These are some recommended places to visit in Guanacaste. "
+            "Check the official link before traveling because access conditions may change."
+            if lang_key == "en"
+            else "Estos son algunos lugares recomendados para visitar en Guanacaste. "
+                 "Consulta el enlace oficial antes de viajar porque las condiciones de acceso pueden cambiar."
+        ),
+        "place_options": tourist_places,
+        "suggestions": entity.get("ui", {}).get("suggestions", {})
+     }
+
+    if intent == "nearby_businesses":
+     nearby_businesses = services.get("nearby_businesses", [])
+     normalized_question = normalize_text(req.question)
+     type_keywords = {
+        "pharmacy": ["farmacia", "farmacias", "pharmacy", "pharmacies"],
+        "supermarket": ["supermercado", "supermercados", "supermarket", "supermarkets"],
+        "clinic": ["clinica", "clinicas", "centro medico", "medical center", "clinic", "clinics"],
+        "clothing": ["tienda de ropa", "tiendas de ropa", "clothing store", "clothing stores"]
+     }
+     requested_types = {
+        business_type
+        for business_type, keywords in type_keywords.items()
+        if any(keyword in normalized_question for keyword in keywords)
+     }
+     if requested_types:
+        nearby_businesses = [
+            business
+            for business in nearby_businesses
+            if business.get("type") in requested_types
+        ]
+
+     if not nearby_businesses:
+        return {
+            "answer": NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"]),
+            "suggestions": entity.get("ui", {}).get("suggestions", {})
+        }
+
+     return {
+        "answer": (
+            "These nearby service categories may be useful during your stay. "
+            "Check the map for current locations and opening hours."
+            if lang_key == "en"
+            else "Estas categorías de servicios cercanos pueden ser útiles durante tu estadía. "
+                 "Consulta el mapa para verificar ubicaciones y horarios actuales."
+        ),
+        "business_options": nearby_businesses,
+        "suggestions": entity.get("ui", {}).get("suggestions", {})
+     }
         
         
         #suggestions = RECOMMENDATIONS.get(intent, [])

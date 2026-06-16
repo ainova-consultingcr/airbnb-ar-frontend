@@ -59,12 +59,18 @@
       "es": [
         "¿Cuál es la clave del WiFi?",
         "¿A qué hora es el desayuno?",
-        "¿A qué hora es el check-out?"
+        "¿A qué hora es el check-out?",
+        "¿Qué restaurantes recomiendan?",
+        "¿Qué lugares turísticos puedo visitar?",
+        "¿Qué servicios y tiendas hay cerca?"
       ],
       "en": [
         "What is the WiFi password?",
         "What time the breakfast is?",
-        "What time is check-out?"
+        "What time is check-out?",
+        "Which restaurants do you recommend?",
+        "Which tourist attractions can I visit?",
+        "Which services and shops are nearby?"
       ]
     },
   "services": {
@@ -77,20 +83,44 @@
         "has_own_restaurant": true,
         "name": "La Oveja",
         "whatsapp": "50686380783",
-        "menu": "url",
-        "type": "alianza"
+        "type": "own_restaurant",
+        "category": {
+          "es": "Restaurante del hotel",
+          "en": "Hotel restaurant"
+        },
+        "summary": {
+          "es": "La opción recomendada por el hotel. Puedes solicitar información o iniciar una reserva por WhatsApp.",
+          "en": "The hotel's recommended option. You can request information or start a reservation through WhatsApp."
+        },
+        "map_url": "https://www.google.com/maps/search/?api=1&query=La+Oveja%2C+Guanacaste%2C+Costa+Rica"
       },
       {
         "name": "La barca",
         "whatsapp": "50686380783",
-        "menu": "url",
-        "type": "alianza"
+        "type": "partner",
+        "category": {
+          "es": "Restaurante recomendado",
+          "en": "Recommended restaurant"
+        },
+        "summary": {
+          "es": "Restaurante aliado recomendado por el hotel. Consulta disponibilidad y detalles directamente al reservar.",
+          "en": "A partner restaurant recommended by the hotel. Ask about availability and details when booking."
+        },
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Restaurante+La+Barca%2C+Guanacaste%2C+Costa+Rica"
       },
       {
         "name": "Pizzeria Italia",
         "whatsapp": "50686380783",
-        "menu": "url",
-        "type": "alianza"
+        "type": "partner",
+        "category": {
+          "es": "Pizzería recomendada",
+          "en": "Recommended pizzeria"
+        },
+        "summary": {
+          "es": "Una alternativa recomendada para pizza. Consulta disponibilidad, ubicación exacta y opciones al reservar.",
+          "en": "A recommended pizza option. Ask about availability, exact location and choices when booking."
+        },
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Pizzeria+Italia%2C+Guanacaste%2C+Costa+Rica"
       }
     ],
     "tours": [
@@ -99,6 +129,170 @@
         "price": 65,
         "duration": "3h",
         "whatsapp": "506380783"
+      }
+    ],
+    "tourist_places": [
+      {
+        "id": "playa_tamarindo",
+        "name": "Playa Tamarindo",
+        "category": {
+          "es": "Playa y surf",
+          "en": "Beach and surfing"
+        },
+        "summary": {
+          "es": "Una de las playas más conocidas de Guanacaste, con opciones de surf, caminatas al atardecer y servicios turísticos.",
+          "en": "One of Guanacaste's best-known beaches, with surfing, sunset walks and visitor services."
+        },
+        "info_url": "https://www.visitcostarica.com/where-to-go/guanacaste/tourist-attractions-10-in-guanacaste",
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Playa+Tamarindo%2C+Guanacaste%2C+Costa+Rica",
+        "source": "Visit Costa Rica"
+      },
+      {
+        "id": "parque_las_baulas",
+        "name": "Parque Nacional Marino Las Baulas",
+        "category": {
+          "es": "Naturaleza y tortugas",
+          "en": "Nature and sea turtles"
+        },
+        "summary": {
+          "es": "Área protegida costera cercana a Tamarindo, importante para la conservación de tortugas marinas, manglares y playas.",
+          "en": "A protected coastal area near Tamarindo, important for sea turtle, mangrove and beach conservation."
+        },
+        "info_url": "https://www.sinac.go.cr/ES/ac/act/Paginas/pnmlb.aspx",
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Parque+Nacional+Marino+Las+Baulas%2C+Costa+Rica",
+        "source": "SINAC"
+      },
+      {
+        "id": "rincon_de_la_vieja",
+        "name": "Parque Nacional Rincón de la Vieja",
+        "category": {
+          "es": "Volcán y senderismo",
+          "en": "Volcano and hiking"
+        },
+        "summary": {
+          "es": "Senderos con actividad volcánica, fumarolas, pailas de barro, bosques y cataratas. Conviene revisar acceso y reservar antes de viajar.",
+          "en": "Trails with volcanic activity, fumaroles, mud pots, forests and waterfalls. Check access and book before traveling."
+        },
+        "info_url": "https://www.acguanacaste.ac.cr/turismo",
+        "booking_url": "https://serviciosenlinea.sinac.go.cr/",
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Parque+Nacional+Rincon+de+la+Vieja%2C+Costa+Rica",
+        "source": "Área de Conservación Guanacaste"
+      },
+      {
+        "id": "llanos_de_cortez",
+        "name": "Catarata Llanos de Cortés",
+        "category": {
+          "es": "Catarata",
+          "en": "Waterfall"
+        },
+        "summary": {
+          "es": "Catarata cerca de Bagaces con una poza y una zona de arena clara, rodeada por bosque de transición.",
+          "en": "A waterfall near Bagaces with a swimming area and light-colored sand, surrounded by transitional forest."
+        },
+        "info_url": "https://www.visitcostarica.com/where-to-go/guanacaste/tourist-attractions-10-in-guanacaste",
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Catarata+Llanos+de+Cortez%2C+Bagaces%2C+Costa+Rica",
+        "source": "Visit Costa Rica"
+      },
+      {
+        "id": "barra_honda",
+        "name": "Parque Nacional Barra Honda",
+        "category": {
+          "es": "Cuevas y bosque seco",
+          "en": "Caves and dry forest"
+        },
+        "summary": {
+          "es": "Parque cercano a Nicoya conocido por sus cavernas de piedra caliza, formaciones rocosas y senderos de bosque seco.",
+          "en": "A park near Nicoya known for limestone caves, rock formations and tropical dry-forest trails."
+        },
+        "info_url": "https://www.visitcostarica.com/where-to-go/guanacaste/tourist-attractions-10-in-guanacaste",
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Parque+Nacional+Barra+Honda%2C+Costa+Rica",
+        "source": "Visit Costa Rica"
+      },
+      {
+        "id": "santa_rosa",
+        "name": "Parque Nacional Santa Rosa",
+        "category": {
+          "es": "Historia y bosque seco",
+          "en": "History and dry forest"
+        },
+        "summary": {
+          "es": "Combina bosque tropical seco, vida silvestre y la Casona de Santa Rosa, un sitio central en la historia de Costa Rica.",
+          "en": "Combines tropical dry forest, wildlife and the Santa Rosa historical hacienda, a key site in Costa Rican history."
+        },
+        "info_url": "https://www.acguanacaste.ac.cr/turismo",
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Parque+Nacional+Santa+Rosa%2C+Guanacaste%2C+Costa+Rica",
+        "source": "Área de Conservación Guanacaste"
+      }
+    ],
+    "nearby_businesses": [
+      {
+        "id": "pharmacies",
+        "type": "pharmacy",
+        "name": {
+          "es": "Farmacias cercanas",
+          "en": "Nearby pharmacies"
+        },
+        "category": {
+          "es": "Salud y medicamentos",
+          "en": "Health and medication"
+        },
+        "summary": {
+          "es": "Consulta farmacias cercanas y verifica en el mapa su ubicación, horario y disponibilidad antes de desplazarte.",
+          "en": "Find nearby pharmacies and verify their location, hours and availability on the map before traveling."
+        },
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Farmacias+cerca+de+Santa+Cruz%2C+Guanacaste%2C+Costa+Rica"
+      },
+      {
+        "id": "supermarkets",
+        "type": "supermarket",
+        "name": {
+          "es": "Supermercados cercanos",
+          "en": "Nearby supermarkets"
+        },
+        "category": {
+          "es": "Compras y alimentos",
+          "en": "Groceries and supplies"
+        },
+        "summary": {
+          "es": "Encuentra supermercados para alimentos, bebidas y artículos básicos. Revisa horario y ruta antes de salir.",
+          "en": "Find supermarkets for food, drinks and basic supplies. Check opening hours and directions before leaving."
+        },
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Supermercados+cerca+de+Santa+Cruz%2C+Guanacaste%2C+Costa+Rica"
+      },
+      {
+        "id": "clinics",
+        "type": "clinic",
+        "name": {
+          "es": "Clínicas y centros médicos",
+          "en": "Clinics and medical centers"
+        },
+        "category": {
+          "es": "Atención médica",
+          "en": "Medical care"
+        },
+        "summary": {
+          "es": "Consulta centros médicos cercanos. Para una emergencia llama al 9-1-1; AVI no sustituye orientación médica profesional.",
+          "en": "Find nearby medical centers. For an emergency call 9-1-1; AVI does not replace professional medical advice."
+        },
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Clinicas+y+centros+medicos+cerca+de+Santa+Cruz%2C+Guanacaste%2C+Costa+Rica",
+        "info_url": "https://www.ccss.sa.cr/"
+      },
+      {
+        "id": "clothing",
+        "type": "clothing",
+        "name": {
+          "es": "Tiendas de ropa",
+          "en": "Clothing stores"
+        },
+        "category": {
+          "es": "Ropa y accesorios",
+          "en": "Clothing and accessories"
+        },
+        "summary": {
+          "es": "Explora tiendas de ropa y accesorios cercanas. Confirma ubicación y horario directamente en el mapa.",
+          "en": "Explore nearby clothing and accessory stores. Confirm their location and opening hours directly on the map."
+        },
+        "map_url": "https://www.google.com/maps/search/?api=1&query=Tiendas+de+ropa+cerca+de+Santa+Cruz%2C+Guanacaste%2C+Costa+Rica"
       }
     ]
   }

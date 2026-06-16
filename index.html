@@ -11,12 +11,6 @@
   <meta name="theme-color" content="#071018">
   <title>AVI | Asistente del huésped</title>
 
-  <!-- A-Frame -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://unpkg.com/aframe-troika-text/dist/aframe-troika-text.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  
-
   <style>
     html, body {
       margin: 0;
@@ -28,12 +22,6 @@
       
     }
 
-    a-scene {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      
-    }
 #suggestions {
   position: fixed;
   bottom: 20px;
@@ -150,6 +138,17 @@
       background:
         linear-gradient(180deg, rgba(3, 7, 18, 0.66) 0%, transparent 28%),
         linear-gradient(0deg, rgba(3, 7, 18, 0.84) 0%, transparent 48%);
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      content: "";
+      background:
+        radial-gradient(circle at 14% 16%, color-mix(in srgb, var(--avi-accent) 22%, transparent), transparent 30%),
+        radial-gradient(circle at 88% 82%, rgba(35, 99, 135, 0.22), transparent 34%),
+        linear-gradient(145deg, #08111e 0%, #040914 48%, #07121a 100%);
     }
 
     button,
@@ -415,6 +414,87 @@
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
     }
 
+    .place-list {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      padding: 1px 2px 5px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      scroll-snap-type: x mandatory;
+    }
+
+    .place-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .place-card {
+      width: min(82vw, 330px);
+      flex: 0 0 min(82vw, 330px);
+      padding: 15px;
+      border: 1px solid var(--avi-border);
+      border-radius: 19px;
+      color: #fff;
+      background: rgba(15, 23, 42, 0.92);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+      scroll-snap-align: start;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .place-category {
+      color: var(--avi-accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .place-name {
+      margin: 5px 0 7px;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .place-summary {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .place-source {
+      display: block;
+      margin-top: 9px;
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 11px;
+    }
+
+    .place-links {
+      display: flex;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .place-link {
+      min-height: 38px;
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--avi-border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 750;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .place-link.primary {
+      border-color: transparent;
+      color: var(--avi-accent-text);
+      background: var(--avi-accent);
+    }
+
     #ui {
       position: static;
       display: flex;
@@ -501,89 +581,6 @@
 </head>
 
 <body>
-
-  <!-- ESCENA AR -->
-<a-scene
-  embedded
-  vr-mode-ui="enabled: false"
-  arjs="sourceType: webcam; facingMode: environment; debugUIEnabled: false;"
-  device-orientation-permission-ui="enabled: false"
-  cursor="rayOrigin: mouse"
->
-
-  <a-camera position="0 0 0" look-controls="enabled: false">
-
-  <a-entity
-    id="arFloat"
-    position="0 0.2 -2"
-    animation="property: position;
-               dir: alternate;
-               dur: 3000;
-               easing: easeInOutSine;
-               loop: true;
-               to: 0 0.12 -2">
-
-    <a-entity id="arPanel" scale="0 0 0">
-
-      <a-plane
-        id="arPlane"
-        width="2.2"
-        height="1.2"
-        color="#0b1220"
-        opacity="0.62"
-        material="shader: flat; transparent: true"
-        >
-      </a-plane>
-      <a-plane
-        width="1.9"
-        height="1.1"
-        color="#ffffff"
-        opacity="0.12"
-        position="0 0 -0.01"
-        material="shader: flat; transparent: true"
-        ></a-plane>
-        <a-text
-        id="arTitle"
-        value=""
-        width="1.4"
-        color="#ffffff"
-        align="center"
-        position="0 0.50 0.15"
-        scale="0.85 0.85 0.85"
-        anchor="center">
-      </a-text>
-        <a-entity
-    id="arText"
-    troika-text="
-    value: ;
-    align: center;
-    color: #e5e7eb;
-    maxWidth: 1.6;
-    fontSize: 0.065;
-    overflowWrap: break-word;
-    lineHeight: 1.05;
-     letterSpacing: 0.02;
-    whiteSpace: normal;
-  "
-  position="0 -0.03 0.15">
-</a-entity>
-<a-ring
-  id="arLoader"
-  radius-inner="0.05"
-  radius-outer="0.08"
-  position="0 -0.25 0.1"
-  rotation="0 0 0"
-  theta-start="20"
-  theta-length="280"
-  color="#ffffff"
-  visible="false"
-  animation="property: rotation; to: 0 0 360; loop: true; dur: 700; easing: linear"
-></a-ring>
-    </a-entity>
-
-  </a-entity>
-</a-camera>
-</a-scene>
 
   <header id="appHeader">
     <div class="avi-mark">AVI</div>
@@ -693,6 +690,7 @@ function clearCTAs() {
 
     // mapear a formato actual
     PROPERTY_CONFIG = data;
+    BACKEND_SUGGESTIONS = data.suggestions || null;
     console.log("PROPERTY_CONFIG:", PROPERTY_CONFIG); // 🔥 aquí
     console.log("WELCOME:", PROPERTY_CONFIG?.welcome); // 🔥 aquí
 
@@ -733,19 +731,13 @@ console.log("CONFIG COMPLETO:", PROPERTY_CONFIG);
 console.log("WELCOME:", PROPERTY_CONFIG?.welcome);
 console.log("THEME:", PROPERTY_CONFIG?.theme);
 
-  const panel = document.getElementById("arPanel");
-  const plane = document.getElementById("arPlane");
-  const text = document.getElementById("arText");
   const btn = document.getElementById("sendBtn");
   const propertyName = document.getElementById("propertyName");
   const assistantStatus = document.getElementById("assistantStatus");
 
-  if (!panel || !plane || !text) return;
- 
- const theme = PROPERTY_CONFIG.theme || UI_THEME;
+  if (!PROPERTY_CONFIG) return;
 
-  plane.setAttribute("color", theme.panel);
-  plane.setAttribute("opacity", "0.72");
+ const theme = PROPERTY_CONFIG.theme || UI_THEME;
 
   if (btn) {
     btn.style.background = theme.button;
@@ -770,20 +762,8 @@ console.log("THEME:", PROPERTY_CONFIG?.theme);
   }
 
   
-  panel.setAttribute("scale", "0 0 0");
-  panel.setAttribute("visible", "false");
-
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   showARAnswer(config.welcome[langKey], playAudio);
-}
-function applyTitleBranding() {
-
-  const title = document.getElementById("arTitle");
-  const config = PROPERTY_CONFIG;
-    
-  if (!title || !config) return;
-
-  title.setAttribute("value", config.name);
 }
 
 function pickBestVoice(targetLang) {
@@ -897,7 +877,6 @@ function showARAnswer(text, speakAudio = true) {
   const responseText = document.getElementById("responseText");
   const responseLoading = document.getElementById("responseLoading");
   const responseLabel = document.getElementById("responseLabel");
-  const panel = document.getElementById("arPanel");
 
   if (!responseCard || !responseText) return;
 
@@ -912,11 +891,6 @@ function showARAnswer(text, speakAudio = true) {
       ? "AVI answers"
       : "AVI responde";
   }
-  if (panel) {
-    panel.setAttribute("scale", "0 0 0");
-    panel.setAttribute("visible", "false");
-  }
-
   hideSuggestions();
 
   // audio
@@ -1234,6 +1208,213 @@ function clearCTAs() {
   const actionArea = document.getElementById("actionArea");
   if (actionArea) actionArea.innerHTML = "";
 }
+
+function openExternalUrl(url) {
+  if (!url) return;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return;
+    window.open(parsed.href, "_blank", "noopener,noreferrer");
+  } catch (error) {
+    console.warn("URL inválida:", url);
+  }
+}
+
+function showTouristPlaces(places) {
+  clearCTAs();
+  const actionArea = document.getElementById("actionArea");
+  if (!actionArea || !Array.isArray(places)) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const list = document.createElement("div");
+  list.className = "place-list";
+
+  places.forEach((place) => {
+    const card = document.createElement("article");
+    card.className = "place-card";
+
+    const category = document.createElement("div");
+    category.className = "place-category";
+    category.textContent = place.category?.[langKey] || "";
+
+    const name = document.createElement("h3");
+    name.className = "place-name";
+    name.textContent = place.name || "";
+
+    const summary = document.createElement("p");
+    summary.className = "place-summary";
+    summary.textContent = place.summary?.[langKey] || "";
+
+    const source = document.createElement("span");
+    source.className = "place-source";
+    source.textContent = `${langKey === "en" ? "Source" : "Fuente"}: ${place.source || ""}`;
+
+    const links = document.createElement("div");
+    links.className = "place-links";
+
+    if (place.info_url) {
+      const infoButton = document.createElement("button");
+      infoButton.className = "place-link primary";
+      infoButton.textContent = langKey === "en" ? "Official info" : "Información";
+      infoButton.onclick = () => openExternalUrl(place.info_url);
+      links.appendChild(infoButton);
+    }
+
+    if (place.map_url) {
+      const mapButton = document.createElement("button");
+      mapButton.className = "place-link";
+      mapButton.textContent = langKey === "en" ? "Open map" : "Ver mapa";
+      mapButton.onclick = () => openExternalUrl(place.map_url);
+      links.appendChild(mapButton);
+    }
+
+    if (place.booking_url) {
+      const bookingButton = document.createElement("button");
+      bookingButton.className = "place-link";
+      bookingButton.textContent = langKey === "en" ? "Book entry" : "Reservar";
+      bookingButton.onclick = () => openExternalUrl(place.booking_url);
+      links.appendChild(bookingButton);
+    }
+
+    card.append(category, name, summary, source, links);
+    list.appendChild(card);
+  });
+
+  actionArea.appendChild(list);
+}
+
+function reserveRestaurant(restaurant) {
+  if (!restaurant?.whatsapp) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const message = langKey === "en"
+    ? `Hello, I would like to book a table at ${restaurant.name}. AVI code: ${restaurant.lead_id || "N/A"}`
+    : `Hola, quiero reservar una mesa en ${restaurant.name}. Código AVI: ${restaurant.lead_id || "N/A"}`;
+
+  trackLeadEvent(
+    "reservation_started",
+    "restaurant",
+    restaurant.name,
+    restaurant.lead_id
+  );
+
+  const phone = String(restaurant.whatsapp).replace(/\D/g, "");
+  openExternalUrl(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
+}
+
+function showRestaurants(restaurants) {
+  clearCTAs();
+  const actionArea = document.getElementById("actionArea");
+  if (!actionArea || !Array.isArray(restaurants)) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const list = document.createElement("div");
+  list.className = "place-list";
+
+  restaurants.forEach((restaurant) => {
+    const card = document.createElement("article");
+    card.className = "place-card restaurant-card";
+
+    const category = document.createElement("div");
+    category.className = "place-category";
+    category.textContent = restaurant.category?.[langKey] || (
+      langKey === "en" ? "Recommended restaurant" : "Restaurante recomendado"
+    );
+
+    const name = document.createElement("h3");
+    name.className = "place-name";
+    name.textContent = restaurant.name || "";
+
+    const summary = document.createElement("p");
+    summary.className = "place-summary";
+    summary.textContent = restaurant.summary?.[langKey] || "";
+
+    const links = document.createElement("div");
+    links.className = "place-links";
+
+    if (restaurant.whatsapp) {
+      const reserveButton = document.createElement("button");
+      reserveButton.className = "place-link primary";
+      reserveButton.textContent = langKey === "en" ? "Book table" : "Reservar";
+      reserveButton.onclick = () => reserveRestaurant(restaurant);
+      links.appendChild(reserveButton);
+    }
+
+    if (restaurant.map_url) {
+      const mapButton = document.createElement("button");
+      mapButton.className = "place-link";
+      mapButton.textContent = langKey === "en" ? "Open map" : "Ver mapa";
+      mapButton.onclick = () => openExternalUrl(restaurant.map_url);
+      links.appendChild(mapButton);
+    }
+
+    if (restaurant.menu_url) {
+      const menuButton = document.createElement("button");
+      menuButton.className = "place-link";
+      menuButton.textContent = langKey === "en" ? "View menu" : "Ver menú";
+      menuButton.onclick = () => openExternalUrl(restaurant.menu_url);
+      links.appendChild(menuButton);
+    }
+
+    card.append(category, name, summary, links);
+    list.appendChild(card);
+  });
+
+  actionArea.appendChild(list);
+}
+
+function showNearbyBusinesses(businesses) {
+  clearCTAs();
+  const actionArea = document.getElementById("actionArea");
+  if (!actionArea || !Array.isArray(businesses)) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const list = document.createElement("div");
+  list.className = "place-list";
+
+  businesses.forEach((business) => {
+    const card = document.createElement("article");
+    card.className = "place-card business-card";
+
+    const category = document.createElement("div");
+    category.className = "place-category";
+    category.textContent = business.category?.[langKey] || "";
+
+    const name = document.createElement("h3");
+    name.className = "place-name";
+    name.textContent = business.name?.[langKey] || "";
+
+    const summary = document.createElement("p");
+    summary.className = "place-summary";
+    summary.textContent = business.summary?.[langKey] || "";
+
+    const links = document.createElement("div");
+    links.className = "place-links";
+
+    if (business.map_url) {
+      const mapButton = document.createElement("button");
+      mapButton.className = "place-link primary";
+      mapButton.textContent = langKey === "en" ? "Open map" : "Ver mapa";
+      mapButton.onclick = () => openExternalUrl(business.map_url);
+      links.appendChild(mapButton);
+    }
+
+    if (business.info_url) {
+      const infoButton = document.createElement("button");
+      infoButton.className = "place-link";
+      infoButton.textContent = langKey === "en" ? "Official site" : "Sitio oficial";
+      infoButton.onclick = () => openExternalUrl(business.info_url);
+      links.appendChild(infoButton);
+    }
+
+    card.append(category, name, summary, links);
+    list.appendChild(card);
+  });
+
+  actionArea.appendChild(list);
+}
+
 function showMultipleCTA(options) {
   clearCTAs();
   const actionArea = document.getElementById("actionArea");
@@ -1380,6 +1561,21 @@ if (data.cta_options) {
     showMultipleCTA(data.cta_options);
   }, 300);
 }
+if (data.place_options) {
+  setTimeout(() => {
+    showTouristPlaces(data.place_options);
+  }, 300);
+}
+if (data.restaurant_options) {
+  setTimeout(() => {
+    showRestaurants(data.restaurant_options);
+  }, 300);
+}
+if (data.business_options) {
+  setTimeout(() => {
+    showNearbyBusinesses(data.business_options);
+  }, 300);
+}
    const answer = data?.answer;
 
 hideLoader();
@@ -1438,47 +1634,12 @@ speechSynthesis.onvoiceschanged = () => {
 </script>
 
 <script>
-const sceneTest = document.querySelector("a-scene");
-
-sceneTest.addEventListener("loaded", async () => {
-
+document.addEventListener("DOMContentLoaded", async () => {
   await loadPropertyConfig();
-   applyBranding(false);
+  applyBranding(false);
   applyInputBranding();
-  
-
-  setTimeout(() => {
   renderSuggestionsFromBackend();
-}, 300);
-
-  // 🔹 Cargar suggestions al iniciar (llamada silenciosa)
-  try {
-    const res = await fetch(
-    `${API_BASE_URL}/ask`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          property_id: CURRENT_PROPERTY,
-          question: "init",
-          language: CURRENT_LANG.startsWith("en") ? "en" : "es"
-        })
-      }
-    );
-
-    if (!res.ok) return;
-
-    const data = await res.json();
-
-    if (data.suggestions) {
-      BACKEND_SUGGESTIONS = data.suggestions;
-      renderSuggestionsFromBackend();
-      //renderSuggestions();
-    }
-
-  } catch (err) {
-    console.warn("No se pudieron cargar suggestions iniciales");
-  }
+  showSuggestions();
 });
 
 
