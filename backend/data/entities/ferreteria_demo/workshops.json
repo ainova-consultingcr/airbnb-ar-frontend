@@ -1,0 +1,59 @@
+[
+  {
+    "id": "paint_basics",
+    "title": {
+      "es": "Charla: Como pintar una habitacion",
+      "en": "Workshop: How to paint a room"
+    },
+    "category": "pintura",
+    "date": "2026-07-04",
+    "time": "10:00 AM",
+    "location": "Area de demostraciones, Pasillo 4",
+    "summary": {
+      "es": "Aprende preparacion de pared, calculo de pintura, herramientas y errores comunes.",
+      "en": "Learn wall prep, paint calculation, tools and common mistakes."
+    },
+    "registration": {
+      "type": "whatsapp",
+      "whatsapp": "+50600000000"
+    }
+  },
+  {
+    "id": "leak_repair",
+    "title": {
+      "es": "Demo: Reparacion basica de fugas PVC",
+      "en": "Demo: Basic PVC leak repair"
+    },
+    "category": "plomeria",
+    "date": "2026-07-11",
+    "time": "11:00 AM",
+    "location": "Mostrador de plomeria, Pasillo 7",
+    "summary": {
+      "es": "Demostracion de corte, limpieza, pegamento y piezas necesarias para reparaciones simples.",
+      "en": "Demo for cutting, cleaning, gluing and parts needed for simple repairs."
+    },
+    "registration": {
+      "type": "whatsapp",
+      "whatsapp": "+50600000000"
+    }
+  },
+  {
+    "id": "drill_safety",
+    "title": {
+      "es": "Mini charla: Uso seguro de taladros",
+      "en": "Mini talk: Safe drill use"
+    },
+    "category": "herramientas",
+    "date": "2026-07-18",
+    "time": "9:30 AM",
+    "location": "Herramientas, Pasillo 2",
+    "summary": {
+      "es": "Como escoger broca, velocidad, tarugo y equipo de seguridad.",
+      "en": "How to choose drill bit, speed, anchors and safety gear."
+    },
+    "registration": {
+      "type": "whatsapp",
+      "whatsapp": "+50600000000"
+    }
+  }
+]

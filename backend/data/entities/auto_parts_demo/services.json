@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Búsqueda de repuestos por vehículo",
+    "details": "El cliente puede indicar marca, modelo, año y repuesto para recibir opciones compatibles según catálogo."
+  },
+  {
+    "name": "Asesoría de compatibilidad",
+    "details": "Si falta información, AVI solicita datos como motor, versión, VIN o foto de la pieza."
+  },
+  {
+    "name": "Ofertas activas",
+    "details": "AVI puede mencionar promociones vigentes sin presionar al cliente."
+  },
+  {
+    "name": "Sugerencias preventivas",
+    "details": "AVI sugiere piezas relacionadas por antigüedad del vehículo o tipo de búsqueda, de forma consultiva."
+  }
+]

@@ -1,0 +1,197 @@
+{
+  "id": "auto_parts_demo",
+  "name": "Repuestos Ruta 27",
+  "type": "auto_parts_store",
+  "status": "active",
+  "location": {
+    "country": "Costa Rica",
+    "province": "San José",
+    "city": "Escazú",
+    "address": "Frente a carretera principal"
+  },
+  "branding": {
+    "primary_color": "#f59e0b",
+    "welcome": {
+      "es": "Bienvenido a Repuestos Ruta 27\n\nSoy AVI, tu asistente de ventas.\n\nPuedo ayudarte a buscar repuestos por marca, modelo, año y necesidad del vehículo.",
+      "en": "Welcome to Repuestos Ruta 27\n\nI'm AVI, your sales assistant.\n\nI can help you search parts by vehicle make, model, year and need."
+    }
+  },
+  "contact": {
+    "whatsapp": "+50600000000",
+    "host_name": "Ventas"
+  },
+  "messages": {
+    "thinking": {
+      "es": "AVI está revisando compatibilidad y disponibilidad...",
+      "en": "AVI is checking compatibility and availability..."
+    }
+  },
+  "theme": {
+    "panel": "#111827",
+    "button": "#f59e0b",
+    "buttonText": "#1f1300",
+    "spinner": "#f59e0b"
+  },
+  "ui": {
+    "send_button": {
+      "es": "Buscar",
+      "en": "Search"
+    },
+    "input_placeholder": {
+      "es": "Ej: Toyota Corolla 2012 pastillas de freno...",
+      "en": "Ex: Toyota Corolla 2012 brake pads..."
+    },
+    "errors": {
+      "network": {
+        "es": "Error de red. Intenta nuevamente.",
+        "en": "Network error. Please try again."
+      },
+      "server": {
+        "es": "No pudimos procesar la búsqueda. Intenta nuevamente.",
+        "en": "We could not process the search. Please try again."
+      }
+    },
+    "suggestions": {
+      "es": [
+        "Buscar repuesto por vehículo",
+        "Toyota Corolla 2012 pastillas de freno",
+        "¿Qué ofertas hay activas?",
+        "¿Qué repuestos debería revisar por kilometraje?"
+      ],
+      "en": [
+        "Search part by vehicle",
+        "Toyota Corolla 2012 brake pads",
+        "What offers are active?",
+        "Which parts should I check by mileage?"
+      ]
+    },
+    "services": {
+      "sales_flow": {
+        "required_fields": [
+          "vehicle_make",
+          "vehicle_model",
+          "vehicle_year",
+          "part_needed"
+        ],
+        "optional_fields": [
+          "engine",
+          "vin",
+          "trim",
+          "mileage",
+          "fuel_type"
+        ],
+        "missing_info_questions": {
+          "es": [
+            "¿Cuál es la marca del vehículo?",
+            "¿Cuál es el modelo?",
+            "¿De qué año es?",
+            "¿Qué repuesto estás buscando?",
+            "Si lo tienes a mano, ¿puedes compartir motor o VIN para confirmar compatibilidad?"
+          ],
+          "en": [
+            "What is the vehicle make?",
+            "What is the model?",
+            "What year is it?",
+            "Which part are you looking for?",
+            "If available, can you share engine or VIN to confirm compatibility?"
+          ]
+        }
+      },
+      "supported_vehicles": [
+        {
+          "make": "Toyota",
+          "models": [
+            {
+              "name": "Corolla",
+              "years": {
+                "from": 2009,
+                "to": 2019
+              }
+            },
+            {
+              "name": "Yaris",
+              "years": {
+                "from": 2006,
+                "to": 2020
+              }
+            },
+            {
+              "name": "Hilux",
+              "years": {
+                "from": 2005,
+                "to": 2022
+              }
+            }
+          ]
+        },
+        {
+          "make": "Nissan",
+          "models": [
+            {
+              "name": "Sentra",
+              "years": {
+                "from": 2007,
+                "to": 2019
+              }
+            },
+            {
+              "name": "Frontier",
+              "years": {
+                "from": 2008,
+                "to": 2022
+              }
+            }
+          ]
+        },
+        {
+          "make": "Hyundai",
+          "models": [
+            {
+              "name": "Accent",
+              "years": {
+                "from": 2006,
+                "to": 2020
+              }
+            },
+            {
+              "name": "Tucson",
+              "years": {
+                "from": 2010,
+                "to": 2022
+              }
+            }
+          ]
+        },
+        {
+          "make": "Honda",
+          "models": [
+            {
+              "name": "Civic",
+              "years": {
+                "from": 2006,
+                "to": 2021
+              }
+            },
+            {
+              "name": "CR-V",
+              "years": {
+                "from": 2007,
+                "to": 2022
+              }
+            }
+          ]
+        }
+      ],
+      "sales_rules": [
+        "Actuar como vendedor consultivo, amable y no invasivo.",
+        "Primero confirmar compatibilidad antes de recomendar una pieza.",
+        "Si falta marca, modelo, año o repuesto, pedir esos datos de forma breve.",
+        "No prometer disponibilidad, precio o garantía si no aparece en el catálogo.",
+        "Ofrecer promociones activas solo si son relevantes para la búsqueda.",
+        "Sugerir repuestos relacionados solo como recomendación preventiva, no como presión de venta.",
+        "Si el cliente menciona frenos, dirección, suspensión o seguridad, recomendar revisión por mecánico calificado.",
+        "Cuando haya duda de compatibilidad, pedir VIN, motor o foto de la pieza."
+      ]
+    }
+  }
+}

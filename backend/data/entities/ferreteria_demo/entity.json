@@ -2,6 +2,7 @@
   "id": "ferreteria_demo",
   "name": "Ferreteria Perlin",
   "type": "hardware_store",
+  "status": "active",
   "location": {
     "country": "Costa Rica",
     "province": "Guanacaste",
@@ -9,14 +10,181 @@
     "address": "Frente a banco principal"
   },
   "branding": {
-    "primary_color": "#ff9800",
+    "primary_color": "#f97316",
     "welcome": {
-      "es": "Bienvenido a ferreteria Perlin ¿En qué te puedo ayudar?",
-      "en": "Welcome to store 🌴 How can I help you?"
+      "es": "Bienvenido a Ferreteria Perlin\n\nSoy AVI, tu asistente de ferreteria.\n\nPuedo ayudarte a encontrar productos por proyecto, categoria o pasillo, revisar ofertas y sugerirte complementos utiles.",
+      "en": "Welcome to Ferreteria Perlin\n\nI'm AVI, your hardware store assistant.\n\nI can help you find products by project, category or aisle, check offers and suggest useful add-ons."
     }
   },
   "contact": {
     "whatsapp": "+50600000000",
-    "host_name": "Alberto"
+    "host_name": "Ventas"
+  },
+  "messages": {
+    "thinking": {
+      "es": "AVI esta revisando pasillos, productos y ofertas...",
+      "en": "AVI is checking aisles, products and offers..."
+    }
+  },
+  "theme": {
+    "panel": "#111827",
+    "button": "#f97316",
+    "buttonText": "#1f1300",
+    "spinner": "#f97316"
+  },
+  "ui": {
+    "send_button": {
+      "es": "Buscar",
+      "en": "Search"
+    },
+    "input_placeholder": {
+      "es": "Ej: pintar una pared, taladro, tubo PVC...",
+      "en": "Ex: paint a wall, drill, PVC pipe..."
+    },
+    "errors": {
+      "network": {
+        "es": "Error de red. Intenta nuevamente.",
+        "en": "Network error. Please try again."
+      },
+      "server": {
+        "es": "No pudimos procesar la busqueda. Intenta nuevamente.",
+        "en": "We could not process the search. Please try again."
+      }
+    },
+    "suggestions": {
+      "es": [
+        "Quiero pintar una habitacion",
+        "Donde encuentro tubos PVC",
+        "Que ofertas hay hoy",
+        "Hay charlas o talleres esta semana"
+      ],
+      "en": [
+        "I want to paint a room",
+        "Where can I find PVC pipes",
+        "What offers are active today",
+        "Are there workshops this week"
+      ]
+    },
+    "services": {
+      "sales_flow": {
+        "required_fields": [
+          "project_or_need",
+          "category",
+          "product_needed"
+        ],
+        "optional_fields": [
+          "measurements",
+          "surface_type",
+          "material",
+          "budget",
+          "brand_preference"
+        ],
+        "missing_info_questions": {
+          "es": [
+            "Que proyecto estas haciendo?",
+            "Buscas una categoria o un producto especifico?",
+            "Tienes medidas aproximadas o cantidad necesaria?",
+            "Quieres opcion economica, estandar o premium?"
+          ],
+          "en": [
+            "What project are you working on?",
+            "Are you looking for a category or a specific product?",
+            "Do you have approximate measurements or quantity needed?",
+            "Do you want an economy, standard or premium option?"
+          ]
+        }
+      },
+      "store_sections": [
+        {
+          "id": "pintura",
+          "name": {
+            "es": "Pintura",
+            "en": "Paint"
+          },
+          "aisle": "Pasillo 4",
+          "projects": [
+            "pintar pared",
+            "remodelacion",
+            "sellar humedad"
+          ]
+        },
+        {
+          "id": "plomeria",
+          "name": {
+            "es": "Plomeria",
+            "en": "Plumbing"
+          },
+          "aisle": "Pasillo 7",
+          "projects": [
+            "reparar fuga",
+            "instalar grifo",
+            "tuberia PVC"
+          ]
+        },
+        {
+          "id": "herramientas",
+          "name": {
+            "es": "Herramientas",
+            "en": "Tools"
+          },
+          "aisle": "Pasillo 2",
+          "projects": [
+            "perforar",
+            "armar muebles",
+            "trabajo profesional"
+          ]
+        },
+        {
+          "id": "corte",
+          "name": {
+            "es": "Sierras y corte",
+            "en": "Saws and cutting"
+          },
+          "aisle": "Pasillo 2",
+          "projects": [
+            "cortar madera",
+            "serrucho",
+            "carpinteria",
+            "corte manual"
+          ]
+        },
+        {
+          "id": "electrico",
+          "name": {
+            "es": "Electrico",
+            "en": "Electrical"
+          },
+          "aisle": "Pasillo 9",
+          "projects": [
+            "cambiar tomacorriente",
+            "extension electrica",
+            "iluminacion"
+          ]
+        },
+        {
+          "id": "jardineria",
+          "name": {
+            "es": "Jardineria",
+            "en": "Garden"
+          },
+          "aisle": "Pasillo 12",
+          "projects": [
+            "cuidar jardin",
+            "riego",
+            "podar"
+          ]
+        }
+      ],
+      "sales_rules": [
+        "Actuar como vendedor consultivo, amable y no invasivo.",
+        "Primero entender el proyecto antes de recomendar un producto.",
+        "Si faltan medidas, material o uso, pedir esos datos de forma breve.",
+        "Indicar pasillo y seccion cuando existan en el catalogo.",
+        "Ofrecer promociones activas solo si son relevantes.",
+        "Sugerir complementos utiles como brochas, teflon, tornillos, tarugos, selladores o equipo de seguridad.",
+        "No prometer inventario exacto si no aparece como disponible.",
+        "Para temas electricos, gas o estructurales, recomendar instalacion por personal calificado."
+      ]
+    }
   }
 }

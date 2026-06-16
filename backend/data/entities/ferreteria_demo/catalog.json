@@ -1,7 +1,126 @@
 [
-      "Herramientas eléctricas",
-      "Pinturas",
-      "Plomería",
-      "Construcción",
-      "Jardinería"
+  {
+    "sku": "PNT-LTX-BLANCO-GL",
+    "name": "Pintura latex blanca 1 galon",
+    "category": "pintura",
+    "aisle": "Pasillo 4",
+    "bay": "Seccion 4B",
+    "projects": ["pintar pared", "remodelacion", "interior"],
+    "quality_options": [
+      {
+        "type": "estandar",
+        "details": "Buena cobertura para interiores de uso diario."
+      },
+      {
+        "type": "premium",
+        "details": "Mejor lavabilidad y acabado para areas de alto uso."
+      }
+    ],
+    "notes": "Confirmar metros cuadrados, tipo de pared y si necesita sellador.",
+    "related_parts": ["rodillo", "brocha", "bandeja para pintura", "cinta masking", "sellador"]
+  },
+  {
+    "sku": "PLM-PVC-1-2",
+    "name": "Tubo PVC 1/2 pulgada",
+    "category": "plomeria",
+    "aisle": "Pasillo 7",
+    "bay": "Seccion 7A",
+    "projects": ["instalacion de agua", "reparar fuga", "tuberia PVC"],
+    "quality_options": [
+      {
+        "type": "presion",
+        "details": "Para lineas de agua fria segun especificacion del proyecto."
+      }
+    ],
+    "notes": "Confirmar diametro, presion requerida y si es agua fria o caliente.",
+    "related_parts": ["codos PVC", "uniones PVC", "pegamento PVC", "cinta teflon", "cortador de tubo"]
+  },
+  {
+    "sku": "HER-TAL-650W",
+    "name": "Taladro percutor 650W",
+    "category": "herramientas",
+    "aisle": "Pasillo 2",
+    "bay": "Seccion 2C",
+    "projects": ["perforar concreto", "instalar repisas", "armar muebles"],
+    "quality_options": [
+      {
+        "type": "hogar",
+        "details": "Uso ocasional para trabajos pequenos."
+      },
+      {
+        "type": "profesional",
+        "details": "Mayor durabilidad para uso frecuente."
+      }
+    ],
+    "notes": "Confirmar si perforara madera, metal o concreto.",
+    "related_parts": ["brocas para concreto", "brocas para metal", "tarugos", "tornillos", "lentes de seguridad"]
+  },
+  {
+    "sku": "COR-SER-20",
+    "name": "Serrucho para madera 20 pulgadas",
+    "category": "corte",
+    "aisle": "Pasillo 2",
+    "bay": "Seccion 2A - Sierras manuales",
+    "projects": ["cortar madera", "serrucho", "carpinteria", "corte manual"],
+    "quality_options": [
+      {
+        "type": "hogar",
+        "details": "Adecuado para cortes ocasionales en madera suave."
+      },
+      {
+        "type": "profesional",
+        "details": "Mejor filo y ergonomia para uso frecuente."
+      }
+    ],
+    "notes": "Confirmar si el cliente cortara madera, PVC u otro material para recomendar hoja adecuada.",
+    "related_parts": ["lija", "prensa de carpintero", "lapiz de carpintero", "escuadra", "lentes de seguridad"]
+  },
+  {
+    "sku": "ELE-TOMA-GFCI",
+    "name": "Tomacorriente GFCI",
+    "category": "electrico",
+    "aisle": "Pasillo 9",
+    "bay": "Seccion 9D",
+    "projects": ["bano", "cocina", "seguridad electrica"],
+    "quality_options": [
+      {
+        "type": "seguridad",
+        "details": "Recomendado para zonas humedas cuando aplica normativa local."
+      }
+    ],
+    "notes": "Recomendar instalacion por electricista calificado.",
+    "related_parts": ["caja electrica", "placa", "cinta aislante", "probador de voltaje"]
+  },
+  {
+    "sku": "JAR-MANG-20M",
+    "name": "Manguera reforzada 20 metros",
+    "category": "jardineria",
+    "aisle": "Pasillo 12",
+    "bay": "Seccion 12A",
+    "projects": ["riego", "jardin", "lavado exterior"],
+    "quality_options": [
+      {
+        "type": "reforzada",
+        "details": "Mayor resistencia a dobleces y uso exterior."
+      }
+    ],
+    "notes": "Confirmar distancia, presion de agua y accesorios necesarios.",
+    "related_parts": ["pistola de riego", "conectores rapidos", "abrazaderas", "soporte para manguera"]
+  },
+  {
+    "sku": "SEG-GUA-NIT",
+    "name": "Guantes de nitrilo reutilizables",
+    "category": "seguridad",
+    "aisle": "Pasillo 1",
+    "bay": "Seccion 1A",
+    "projects": ["pintura", "limpieza", "quimicos", "plomeria"],
+    "quality_options": [
+      {
+        "type": "proteccion",
+        "details": "Ayudan a proteger manos durante trabajos con pintura, pegamentos o limpieza."
+      }
+    ],
+    "notes": "Sugerir talla adecuada y revisar compatibilidad con quimicos.",
+    "related_parts": ["lentes de seguridad", "mascarilla", "delantal"]
+  }
 ]

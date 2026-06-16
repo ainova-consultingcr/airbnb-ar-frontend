@@ -495,6 +495,99 @@
       background: var(--avi-accent);
     }
 
+    #guidedPartsSearch,
+    #guidedHardwareSearch {
+      display: none;
+      gap: 9px;
+      padding: 12px;
+      border: 1px solid var(--avi-border);
+      border-radius: 20px;
+      background: rgba(7, 12, 24, 0.9);
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+      pointer-events: auto;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    #guidedPartsSearch.visible,
+    #guidedHardwareSearch.visible {
+      display: grid;
+    }
+
+    .guided-title {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 14px;
+      font-weight: 780;
+    }
+
+    .guided-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .guided-select {
+      width: 100%;
+      min-width: 0;
+      height: 42px;
+      padding: 0 10px;
+      border: 1px solid var(--avi-border);
+      border-radius: 13px;
+      color: #fff;
+      outline: 0;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .guided-select option {
+      color: #111827;
+    }
+
+    #guidedPartChips,
+    #guidedHardwareChips {
+      display: flex;
+      gap: 7px;
+      min-height: 38px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    #guidedPartChips::-webkit-scrollbar,
+    #guidedHardwareChips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .part-chip {
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid var(--avi-border);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      font-weight: 720;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .part-chip.selected {
+      border-color: transparent;
+      color: var(--avi-accent-text);
+      background: var(--avi-accent);
+    }
+
+    #guidedSearchBtn {
+      min-height: 44px;
+      border: 0;
+      border-radius: 14px;
+      color: var(--avi-accent-text);
+      font-size: 14px;
+      font-weight: 820;
+      background: var(--avi-accent);
+    }
+
+    #guidedSearchBtn:disabled {
+      opacity: 0.55;
+    }
+
     #ui {
       position: static;
       display: flex;
@@ -604,6 +697,26 @@
   </section>
 
   <div id="bottomDock">
+    <section id="guidedPartsSearch">
+      <div class="guided-title">Busca tu repuesto paso a paso</div>
+      <div class="guided-grid">
+        <select id="vehicleMakeSelect" class="guided-select"></select>
+        <select id="vehicleModelSelect" class="guided-select"></select>
+        <select id="vehicleYearSelect" class="guided-select"></select>
+        <select id="partCategorySelect" class="guided-select"></select>
+      </div>
+      <div id="guidedPartChips"></div>
+      <button id="guidedSearchBtn" type="button">Consultar con AVI</button>
+    </section>
+    <section id="guidedHardwareSearch">
+      <div class="guided-title">Encuentra lo que necesitas por proyecto</div>
+      <div class="guided-grid">
+        <select id="hardwareProjectSelect" class="guided-select"></select>
+        <select id="hardwareCategorySelect" class="guided-select"></select>
+      </div>
+      <div id="guidedHardwareChips"></div>
+      <button id="guidedHardwareSearchBtn" type="button">Consultar con AVI</button>
+    </section>
     <div id="suggestions"></div>
     <div id="actionArea"></div>
     <div id="ui">
@@ -714,6 +827,160 @@ const CURRENT_PROPERTY = getPropertyFromURL();
   let hideTimer = null;
   let currentUtterance = null;
   let audioUnlocked = false;
+  let selectedGuidedPart = "";
+  let activeConversationContext = null;
+  let responseRenderToken = 0;
+
+function localizedValue(value, fallback = "") {
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value[langKey] || value.es || value.en || fallback;
+  }
+  return value || fallback;
+}
+
+function setLastActionContext(actionType, topic, item = {}, options = []) {
+  activeConversationContext = {
+    type: "last_action",
+    action_type: actionType,
+    topic,
+    item,
+    options: Array.isArray(options) ? options.slice(0, 5) : []
+  };
+}
+
+function isContinuationReply(text) {
+  const normalized = (text || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return [
+    "si",
+    "si quiero",
+    "si algo mas",
+    "algo mas",
+    "mas",
+    "mas informacion",
+    "otra opcion",
+    "otra cosa",
+    "ok",
+    "okay",
+    "dale",
+    "claro",
+    "correcto",
+    "quiero",
+    "quiero ayuda",
+    "ayuda",
+    "ayudame",
+    "me interesa",
+    "reservar",
+    "reserva",
+    "quiero reservar",
+    "yes",
+    "yes please",
+    "more",
+    "more info",
+    "something else",
+    "yeah",
+    "yep",
+    "sure",
+    "help me"
+  ].includes(normalized);
+}
+
+function isNegativeReply(text) {
+  const normalized = (text || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return [
+    "no",
+    "no gracias",
+    "gracias no",
+    "por ahora no",
+    "ahora no",
+    "no thanks",
+    "not now"
+  ].includes(normalized);
+}
+
+function getConversationContextForQuestion(question) {
+  if (!activeConversationContext) return {};
+  if (activeConversationContext.type === "auto_parts_search") {
+    if (isContinuationReply(question) || isNegativeReply(question)) return activeConversationContext;
+    const normalizedQuestion = (question || "").toLowerCase();
+    const vehicle = activeConversationContext.vehicle || {};
+    const part = activeConversationContext.part || {};
+    const signals = [
+      vehicle.make,
+      vehicle.model,
+      vehicle.year,
+      part.name,
+      part.category,
+      part.sku
+    ].filter(Boolean).map((value) => String(value).toLowerCase());
+    return signals.some((signal) => normalizedQuestion.includes(signal))
+      ? activeConversationContext
+      : {};
+  }
+  if (activeConversationContext.type === "hardware_search") {
+    if (isContinuationReply(question) || isNegativeReply(question)) return activeConversationContext;
+    const normalizedQuestion = (question || "").toLowerCase();
+    const item = activeConversationContext.item || {};
+    const signals = [
+      item.name,
+      item.category,
+      item.sku,
+      item.aisle,
+      activeConversationContext.topic
+    ].filter(Boolean).map((value) => String(value).toLowerCase());
+    return signals.some((signal) => normalizedQuestion.includes(signal))
+      ? activeConversationContext
+      : {};
+  }
+  return (isContinuationReply(question) || isNegativeReply(question)) ? activeConversationContext : {};
+}
+
+function setContextFromResponseData(data, originalQuestion = "") {
+  if (data?.cta_options?.length) {
+    const option = data.cta_options[0];
+    setLastActionContext(
+      option.type || "cta",
+      localizedValue(option.text, "accion disponible"),
+      option.data || option,
+      data.cta_options.map((item) => item.data || item)
+    );
+    return;
+  }
+  if (data?.restaurant_options?.length) {
+    setLastActionContext("restaurants", "restaurantes", data.restaurant_options[0], data.restaurant_options);
+    return;
+  }
+  if (data?.business_options?.length) {
+    setLastActionContext("nearby_businesses", "servicios cercanos", data.business_options[0], data.business_options);
+    return;
+  }
+  if (data?.place_options?.length) {
+    setLastActionContext("tourist_places", "lugares turisticos", data.place_options[0], data.place_options);
+    return;
+  }
+  if (data?.answer && originalQuestion && !isContinuationReply(originalQuestion) && !isNegativeReply(originalQuestion)) {
+    setLastActionContext(
+      "general_answer",
+      originalQuestion,
+      {
+        name: originalQuestion,
+        summary: {
+          es: data.answer,
+          en: data.answer
+        }
+      },
+      []
+    );
+  }
+}
   
 
    function unlockAudio() {
@@ -764,6 +1031,468 @@ console.log("THEME:", PROPERTY_CONFIG?.theme);
   
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   showARAnswer(config.welcome[langKey], playAudio);
+  setupGuidedPartsSearch();
+  setupGuidedHardwareSearch();
+}
+
+function setupGuidedPartsSearch() {
+  const wrapper = document.getElementById("guidedPartsSearch");
+  if (!wrapper) return;
+
+  if (PROPERTY_CONFIG?.type !== "auto_parts_store" || !PROPERTY_CONFIG?.auto_parts) {
+    wrapper.classList.remove("visible");
+    return;
+  }
+
+  wrapper.classList.add("visible");
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const title = wrapper.querySelector(".guided-title");
+  const makeSelect = document.getElementById("vehicleMakeSelect");
+  const modelSelect = document.getElementById("vehicleModelSelect");
+  const yearSelect = document.getElementById("vehicleYearSelect");
+  const categorySelect = document.getElementById("partCategorySelect");
+  const searchBtn = document.getElementById("guidedSearchBtn");
+
+  title.textContent = langKey === "en"
+    ? "Find your part step by step"
+    : "Busca tu repuesto paso a paso";
+  searchBtn.textContent = langKey === "en" ? "Ask AVI" : "Consultar con AVI";
+
+  fillSelect(makeSelect, [
+    {
+      value: "",
+      label: langKey === "en" ? "Make" : "Marca"
+    },
+    ...PROPERTY_CONFIG.auto_parts.supported_vehicles.map((vehicle) => ({
+      value: vehicle.make,
+      label: vehicle.make
+    }))
+  ]);
+
+  fillSelect(modelSelect, [{ value: "", label: langKey === "en" ? "Model" : "Modelo" }]);
+  fillSelect(yearSelect, [{ value: "", label: langKey === "en" ? "Year" : "Año" }]);
+  fillPartCategories();
+  renderGuidedPartChips();
+  updateGuidedSearchButton();
+
+  makeSelect.onchange = () => {
+    selectedGuidedPart = "";
+    updateVehicleModels();
+    fillSelect(yearSelect, [{ value: "", label: langKey === "en" ? "Year" : "Año" }]);
+    renderGuidedPartChips();
+    updateGuidedSearchButton();
+  };
+
+  modelSelect.onchange = () => {
+    selectedGuidedPart = "";
+    updateVehicleYears();
+    renderGuidedPartChips();
+    updateGuidedSearchButton();
+  };
+
+  yearSelect.onchange = () => {
+    selectedGuidedPart = "";
+    renderGuidedPartChips();
+    updateGuidedSearchButton();
+  };
+
+  categorySelect.onchange = () => {
+    selectedGuidedPart = "";
+    renderGuidedPartChips();
+    updateGuidedSearchButton();
+  };
+
+  searchBtn.onclick = submitGuidedPartsSearch;
+}
+
+function fillSelect(select, options) {
+  if (!select) return;
+  select.innerHTML = "";
+  options.forEach((option) => {
+    const element = document.createElement("option");
+    element.value = option.value;
+    element.textContent = option.label;
+    select.appendChild(element);
+  });
+}
+
+function updateVehicleModels() {
+  const make = document.getElementById("vehicleMakeSelect")?.value;
+  const modelSelect = document.getElementById("vehicleModelSelect");
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const vehicle = PROPERTY_CONFIG.auto_parts.supported_vehicles.find((item) => item.make === make);
+  const models = vehicle?.models || [];
+
+  fillSelect(modelSelect, [
+    { value: "", label: langKey === "en" ? "Model" : "Modelo" },
+    ...models.map((model) => ({ value: model.name, label: model.name }))
+  ]);
+}
+
+function updateVehicleYears() {
+  const make = document.getElementById("vehicleMakeSelect")?.value;
+  const model = document.getElementById("vehicleModelSelect")?.value;
+  const yearSelect = document.getElementById("vehicleYearSelect");
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const vehicle = PROPERTY_CONFIG.auto_parts.supported_vehicles.find((item) => item.make === make);
+  const modelData = vehicle?.models.find((item) => item.name === model);
+  const years = [];
+
+  if (modelData?.years) {
+    for (let year = modelData.years.to; year >= modelData.years.from; year--) {
+      years.push({ value: String(year), label: String(year) });
+    }
+  }
+
+  fillSelect(yearSelect, [
+    { value: "", label: langKey === "en" ? "Year" : "Año" },
+    ...years
+  ]);
+}
+
+function fillPartCategories() {
+  const categorySelect = document.getElementById("partCategorySelect");
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const categoryLabels = {
+    frenos: langKey === "en" ? "Brakes" : "Frenos",
+    mantenimiento: langKey === "en" ? "Maintenance" : "Mantenimiento",
+    "suspensión": langKey === "en" ? "Suspension" : "Suspensión",
+    electrico: langKey === "en" ? "Electrical" : "Eléctrico",
+    "eléctrico": langKey === "en" ? "Electrical" : "Eléctrico",
+    visibilidad: langKey === "en" ? "Visibility" : "Visibilidad"
+  };
+  const categories = Array.from(new Set(
+    (PROPERTY_CONFIG.auto_parts.catalog || []).map((item) => item.category).filter(Boolean)
+  ));
+
+  fillSelect(categorySelect, [
+    { value: "", label: langKey === "en" ? "Part category" : "Tipo de repuesto" },
+    ...categories.map((category) => ({
+      value: category,
+      label: categoryLabels[category] || category
+    }))
+  ]);
+}
+
+function getCompatibleGuidedParts() {
+  const make = document.getElementById("vehicleMakeSelect")?.value;
+  const model = document.getElementById("vehicleModelSelect")?.value;
+  const year = Number(document.getElementById("vehicleYearSelect")?.value);
+  const category = document.getElementById("partCategorySelect")?.value;
+  const catalog = PROPERTY_CONFIG?.auto_parts?.catalog || [];
+
+  return catalog.filter((part) => {
+    if (category && part.category !== category) return false;
+    if (!make || !model || !year) return true;
+
+    return (part.vehicle_fitment || []).some((fitment) => {
+      const universal = String(fitment.make).toLowerCase() === "universal";
+      const sameVehicle = fitment.make === make && fitment.model === model;
+      const inYear = year >= fitment.year_from && year <= fitment.year_to;
+      return (universal || sameVehicle) && inYear;
+    });
+  });
+}
+
+function renderGuidedPartChips() {
+  const container = document.getElementById("guidedPartChips");
+  if (!container) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const make = document.getElementById("vehicleMakeSelect")?.value;
+  const model = document.getElementById("vehicleModelSelect")?.value;
+  const year = document.getElementById("vehicleYearSelect")?.value;
+  const parts = getCompatibleGuidedParts();
+  container.innerHTML = "";
+
+  if (!make || !model || !year) {
+    const guide = document.createElement("button");
+    guide.className = "part-chip";
+    guide.disabled = true;
+    guide.textContent = langKey === "en"
+      ? "Choose make, model and year first"
+      : "Primero elige marca, modelo y año";
+    container.appendChild(guide);
+    return;
+  }
+
+  if (!parts.length) {
+    const empty = document.createElement("button");
+    empty.className = "part-chip";
+    empty.disabled = true;
+    empty.textContent = langKey === "en" ? "No matching catalog item" : "Sin coincidencias en catálogo";
+    container.appendChild(empty);
+  }
+
+  parts.forEach((part) => {
+    const chip = document.createElement("button");
+    chip.className = "part-chip" + (selectedGuidedPart === part.name ? " selected" : "");
+    chip.textContent = part.name;
+    chip.onclick = () => {
+      selectedGuidedPart = part.name;
+      renderGuidedPartChips();
+      updateGuidedSearchButton();
+    };
+    container.appendChild(chip);
+  });
+
+  const otherChip = document.createElement("button");
+  otherChip.className = "part-chip" + (selectedGuidedPart === "otro repuesto" ? " selected" : "");
+  otherChip.textContent = langKey === "en" ? "I need another part" : "No veo mi repuesto";
+  otherChip.onclick = () => {
+    selectedGuidedPart = "otro repuesto";
+    renderGuidedPartChips();
+    updateGuidedSearchButton();
+  };
+  container.appendChild(otherChip);
+}
+
+function updateGuidedSearchButton() {
+  const searchBtn = document.getElementById("guidedSearchBtn");
+  if (!searchBtn) return;
+
+  const make = document.getElementById("vehicleMakeSelect")?.value;
+  const model = document.getElementById("vehicleModelSelect")?.value;
+  const year = document.getElementById("vehicleYearSelect")?.value;
+  const category = document.getElementById("partCategorySelect")?.value;
+
+  searchBtn.disabled = !(make && model && year && (selectedGuidedPart || category));
+}
+
+function buildGuidedPartsConversationContext(make, model, year, category, partLabel) {
+  const catalog = PROPERTY_CONFIG?.auto_parts?.catalog || [];
+  const selectedPart = catalog.find((item) => item.name === partLabel) || {};
+  const effectiveCategory = selectedPart.category || category || partLabel;
+  const offers = (PROPERTY_CONFIG?.auto_parts?.offers || []).filter((offer) => {
+    if (!offer.active) return false;
+    if (!effectiveCategory) return true;
+    return (offer.categories || []).includes(effectiveCategory);
+  });
+
+  return {
+    type: "auto_parts_search",
+    vehicle: { make, model, year },
+    part: {
+      name: selectedPart.name || (partLabel === "otro repuesto" ? "" : partLabel),
+      category: effectiveCategory,
+      sku: selectedPart.sku || "",
+      related_parts: selectedPart.related_parts || []
+    },
+    offers
+  };
+}
+
+function submitGuidedPartsSearch() {
+  const input = document.getElementById("questionInput");
+  const make = document.getElementById("vehicleMakeSelect")?.value;
+  const model = document.getElementById("vehicleModelSelect")?.value;
+  const year = document.getElementById("vehicleYearSelect")?.value;
+  const category = document.getElementById("partCategorySelect")?.value;
+  const part = selectedGuidedPart || category;
+
+  if (!input || !make || !model || !year || !part) return;
+
+  activeConversationContext = buildGuidedPartsConversationContext(
+    make,
+    model,
+    year,
+    category,
+    part
+  );
+
+  input.value = CURRENT_LANG.startsWith("en")
+    ? `${make} ${model} ${year} ${part}. Check compatibility, active offers and preventive related parts.`
+    : `${make} ${model} ${year} ${part}. Revisa compatibilidad, ofertas activas y repuestos preventivos relacionados.`;
+  askAI();
+}
+
+function setupGuidedHardwareSearch() {
+  const wrapper = document.getElementById("guidedHardwareSearch");
+  if (!wrapper) return;
+
+  if (PROPERTY_CONFIG?.type !== "hardware_store" || !PROPERTY_CONFIG?.hardware) {
+    wrapper.classList.remove("visible");
+    return;
+  }
+
+  wrapper.classList.add("visible");
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const title = wrapper.querySelector(".guided-title");
+  const projectSelect = document.getElementById("hardwareProjectSelect");
+  const categorySelect = document.getElementById("hardwareCategorySelect");
+  const searchBtn = document.getElementById("guidedHardwareSearchBtn");
+  const projects = getHardwareProjects();
+  const categories = getHardwareCategories();
+
+  title.textContent = langKey === "en"
+    ? "Find products by project"
+    : "Encuentra lo que necesitas por proyecto";
+  searchBtn.textContent = langKey === "en" ? "Ask AVI" : "Consultar con AVI";
+
+  fillSelect(projectSelect, [
+    { value: "", label: langKey === "en" ? "Project" : "Proyecto" },
+    ...projects.map((project) => ({ value: project, label: project }))
+  ]);
+
+  fillSelect(categorySelect, [
+    { value: "", label: langKey === "en" ? "Category" : "Categoria" },
+    ...categories.map((category) => ({ value: category, label: getHardwareCategoryLabel(category, langKey) }))
+  ]);
+
+  renderGuidedHardwareChips();
+  updateGuidedHardwareSearchButton();
+
+  projectSelect.onchange = () => {
+    renderGuidedHardwareChips();
+    updateGuidedHardwareSearchButton();
+  };
+  categorySelect.onchange = () => {
+    renderGuidedHardwareChips();
+    updateGuidedHardwareSearchButton();
+  };
+  searchBtn.onclick = submitGuidedHardwareSearch;
+}
+
+function getHardwareProjects() {
+  const projectSet = new Set();
+  (PROPERTY_CONFIG?.hardware?.store_sections || []).forEach((section) => {
+    (section.projects || []).forEach((project) => projectSet.add(project));
+  });
+  (PROPERTY_CONFIG?.hardware?.catalog || []).forEach((item) => {
+    (item.projects || []).forEach((project) => projectSet.add(project));
+  });
+  return Array.from(projectSet);
+}
+
+function getHardwareCategories() {
+  const categorySet = new Set();
+  (PROPERTY_CONFIG?.hardware?.store_sections || []).forEach((section) => {
+    if (section.id) categorySet.add(section.id);
+  });
+  (PROPERTY_CONFIG?.hardware?.catalog || []).forEach((item) => {
+    if (item.category) categorySet.add(item.category);
+  });
+  return Array.from(categorySet);
+}
+
+function getHardwareCategoryLabel(category, langKey) {
+  const section = (PROPERTY_CONFIG?.hardware?.store_sections || []).find((item) => item.id === category);
+  return localizedValue(section?.name, category);
+}
+
+function getCompatibleHardwareItems() {
+  const project = document.getElementById("hardwareProjectSelect")?.value;
+  const category = document.getElementById("hardwareCategorySelect")?.value;
+  const catalog = PROPERTY_CONFIG?.hardware?.catalog || [];
+
+  return catalog.filter((item) => {
+    const matchesCategory = !category || item.category === category;
+    const matchesProject = !project || (item.projects || []).includes(project);
+    return matchesCategory && matchesProject;
+  });
+}
+
+function renderGuidedHardwareChips() {
+  const container = document.getElementById("guidedHardwareChips");
+  if (!container) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const project = document.getElementById("hardwareProjectSelect")?.value;
+  const category = document.getElementById("hardwareCategorySelect")?.value;
+  const items = getCompatibleHardwareItems();
+  container.innerHTML = "";
+
+  if (!project && !category) {
+    const guide = document.createElement("button");
+    guide.className = "part-chip";
+    guide.disabled = true;
+    guide.textContent = langKey === "en"
+      ? "Choose a project or category first"
+      : "Elige un proyecto o categoria primero";
+    container.appendChild(guide);
+    return;
+  }
+
+  if (!items.length) {
+    const empty = document.createElement("button");
+    empty.className = "part-chip";
+    empty.disabled = true;
+    empty.textContent = langKey === "en" ? "No matching item in catalog" : "Sin coincidencias en catalogo";
+    container.appendChild(empty);
+  }
+
+  items.forEach((item) => {
+    const chip = document.createElement("button");
+    chip.className = "part-chip";
+    chip.textContent = item.aisle ? `${item.name} - ${item.aisle}` : item.name;
+    chip.onclick = () => submitGuidedHardwareSearch(item);
+    container.appendChild(chip);
+  });
+
+  const otherChip = document.createElement("button");
+  otherChip.className = "part-chip";
+  otherChip.textContent = langKey === "en" ? "I need something else" : "No veo lo que busco";
+  otherChip.onclick = () => submitGuidedHardwareSearch(null);
+  container.appendChild(otherChip);
+}
+
+function updateGuidedHardwareSearchButton() {
+  const searchBtn = document.getElementById("guidedHardwareSearchBtn");
+  if (!searchBtn) return;
+
+  const project = document.getElementById("hardwareProjectSelect")?.value;
+  const category = document.getElementById("hardwareCategorySelect")?.value;
+  searchBtn.disabled = !(project || category);
+}
+
+function buildHardwareConversationContext(project, category, item) {
+  const section = (PROPERTY_CONFIG?.hardware?.store_sections || []).find((entry) => entry.id === category);
+  const offers = (PROPERTY_CONFIG?.hardware?.offers || []).filter((offer) => {
+    if (!offer.active) return false;
+    return !category || (offer.categories || []).includes(category);
+  });
+  const workshops = (PROPERTY_CONFIG?.hardware?.workshops || []).filter((workshop) => {
+    return !category || workshop.category === category;
+  });
+
+  return {
+    type: "hardware_search",
+    action_type: "hardware_search",
+    topic: category ? getHardwareCategoryLabel(category, CURRENT_LANG.startsWith("en") ? "en" : "es") : "ferreteria",
+    item: item || {
+      name: project || getHardwareCategoryLabel(category, CURRENT_LANG.startsWith("en") ? "en" : "es"),
+      category,
+      aisle: section?.aisle || ""
+    },
+    options: [
+      ...(item ? [item] : getCompatibleHardwareItems()),
+      ...offers,
+      ...workshops
+    ].slice(0, 5)
+  };
+}
+
+function submitGuidedHardwareSearch(selectedItem = null) {
+  const input = document.getElementById("questionInput");
+  const project = document.getElementById("hardwareProjectSelect")?.value;
+  const category = document.getElementById("hardwareCategorySelect")?.value;
+  const categoryLabel = category
+    ? getHardwareCategoryLabel(category, CURRENT_LANG.startsWith("en") ? "en" : "es")
+    : "";
+
+  if (!input || (!project && !category && !selectedItem)) return;
+
+  activeConversationContext = buildHardwareConversationContext(project, category, selectedItem);
+  const productText = selectedItem
+    ? `${selectedItem.name}${selectedItem.aisle ? ` en ${selectedItem.aisle}` : ""}`
+    : categoryLabel || project;
+
+  input.value = CURRENT_LANG.startsWith("en")
+    ? `${project ? `Project: ${project}. ` : ""}I need help with ${productText}. Show aisle, offers, workshops and useful add-ons.`
+    : `${project ? `Proyecto: ${project}. ` : ""}Necesito ayuda con ${productText}. Muestra pasillo, ofertas, charlas y complementos utiles.`;
+  askAI();
 }
 
 function pickBestVoice(targetLang) {
@@ -1063,6 +1792,7 @@ function showCTA(cta) {
   clearCTAs();
   const actionArea = document.getElementById("actionArea");
   if (!actionArea) return;
+  setLastActionContext(cta.type || "cta", localizedValue(cta.text, "accion"), cta);
 
   const btn = document.createElement("button");
   btn.id = "ctaBtn";
@@ -1225,6 +1955,7 @@ function showTouristPlaces(places) {
   clearCTAs();
   const actionArea = document.getElementById("actionArea");
   if (!actionArea || !Array.isArray(places)) return;
+  setLastActionContext("tourist_places", "lugares turisticos", places[0] || {}, places);
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
@@ -1307,6 +2038,7 @@ function showRestaurants(restaurants) {
   clearCTAs();
   const actionArea = document.getElementById("actionArea");
   if (!actionArea || !Array.isArray(restaurants)) return;
+  setLastActionContext("restaurants", "restaurantes", restaurants[0] || {}, restaurants);
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
@@ -1368,6 +2100,7 @@ function showNearbyBusinesses(businesses) {
   clearCTAs();
   const actionArea = document.getElementById("actionArea");
   if (!actionArea || !Array.isArray(businesses)) return;
+  setLastActionContext("nearby_businesses", "servicios cercanos", businesses[0] || {}, businesses);
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
@@ -1419,6 +2152,14 @@ function showMultipleCTA(options) {
   clearCTAs();
   const actionArea = document.getElementById("actionArea");
   if (!actionArea) return;
+  if (Array.isArray(options) && options.length) {
+    setLastActionContext(
+      options[0].type || "cta",
+      localizedValue(options[0].text, "accion disponible"),
+      options[0].data || options[0],
+      options.map((option) => option.data || option)
+    );
+  }
 
   const container = document.createElement("div");
   container.id = "ctaContainer";
@@ -1434,6 +2175,12 @@ function showMultipleCTA(options) {
 
     btn.onclick = async() => {
       console.log("CLICK:", opt);
+        setLastActionContext(
+          opt.type || "cta",
+          localizedValue(opt.text, "accion disponible"),
+          opt.data || opt,
+          [opt.data || opt]
+        );
         clearCTAs(); // 🔥 importante
 
        /* await trackLeadEvent(
@@ -1503,6 +2250,23 @@ async function askAI() {
   clearCTAs();
   hideSuggestions();
   const question = input.value.trim();
+  const negativeReply = isNegativeReply(question);
+  const requestContext = { ...getConversationContextForQuestion(question) };
+  if (negativeReply && requestContext.type) {
+    requestContext.decline_count = activeConversationContext?.decline_count || 0;
+    activeConversationContext = {
+      ...activeConversationContext,
+      decline_count: (activeConversationContext?.decline_count || 0) + 1
+    };
+  }
+  if (
+    !isContinuationReply(question)
+    && !negativeReply
+    && !["auto_parts_search", "hardware_search"].includes(activeConversationContext?.type)
+  ) {
+    activeConversationContext = null;
+  }
+  const currentRenderToken = ++responseRenderToken;
 
   try {
     setLoading(true);
@@ -1520,7 +2284,8 @@ async function askAI() {
           property_id: CURRENT_PROPERTY,
           question: question,
           //language: CURRENT_LANG
-          language: CURRENT_LANG.startsWith("en") ? "en" : "es"
+          language: CURRENT_LANG.startsWith("en") ? "en" : "es",
+          conversation_context: requestContext
         })
       }
     );
@@ -1548,6 +2313,10 @@ async function askAI() {
     //console.log("RAW RESPONSE:", text);
     const data = await res.json();
     console.log("DATA COMPLETA:", data);
+    if (data.reset_context) {
+      activeConversationContext = null;
+    }
+    setContextFromResponseData(data, question);
   
 
     if (data.suggestions) {
@@ -1558,21 +2327,25 @@ async function askAI() {
   
 if (data.cta_options) {
   setTimeout(() => {
+    if (currentRenderToken !== responseRenderToken) return;
     showMultipleCTA(data.cta_options);
   }, 300);
 }
 if (data.place_options) {
   setTimeout(() => {
+    if (currentRenderToken !== responseRenderToken) return;
     showTouristPlaces(data.place_options);
   }, 300);
 }
 if (data.restaurant_options) {
   setTimeout(() => {
+    if (currentRenderToken !== responseRenderToken) return;
     showRestaurants(data.restaurant_options);
   }, 300);
 }
 if (data.business_options) {
   setTimeout(() => {
+    if (currentRenderToken !== responseRenderToken) return;
     showNearbyBusinesses(data.business_options);
   }, 300);
 }

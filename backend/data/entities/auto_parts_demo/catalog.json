@@ -1,0 +1,145 @@
+[
+  {
+    "sku": "BRK-COR-09-13-F",
+    "name": "Pastillas de freno delanteras",
+    "category": "frenos",
+    "vehicle_fitment": [
+      {
+        "make": "Toyota",
+        "model": "Corolla",
+        "year_from": 2009,
+        "year_to": 2013
+      }
+    ],
+    "quality_options": [
+      {
+        "type": "estándar",
+        "details": "Uso diario, buena relación precio-rendimiento."
+      },
+      {
+        "type": "premium",
+        "details": "Menor ruido y mejor desempeño en uso frecuente."
+      }
+    ],
+    "notes": "Confirmar versión y sistema de frenos antes de vender.",
+    "related_parts": [
+      "discos de freno",
+      "líquido de frenos",
+      "limpiador de frenos"
+    ]
+  },
+  {
+    "sku": "FLT-OIL-COR-09-19",
+    "name": "Filtro de aceite",
+    "category": "mantenimiento",
+    "vehicle_fitment": [
+      {
+        "make": "Toyota",
+        "model": "Corolla",
+        "year_from": 2009,
+        "year_to": 2019
+      },
+      {
+        "make": "Toyota",
+        "model": "Yaris",
+        "year_from": 2006,
+        "year_to": 2020
+      }
+    ],
+    "quality_options": [
+      {
+        "type": "estándar",
+        "details": "Recomendado para mantenimiento regular."
+      }
+    ],
+    "notes": "Confirmar motor para asegurar rosca y tamaño correcto.",
+    "related_parts": [
+      "aceite de motor",
+      "filtro de aire",
+      "arandela de tapón"
+    ]
+  },
+  {
+    "sku": "SUS-HIL-05-15-F",
+    "name": "Amortiguadores delanteros",
+    "category": "suspensión",
+    "vehicle_fitment": [
+      {
+        "make": "Toyota",
+        "model": "Hilux",
+        "year_from": 2005,
+        "year_to": 2015
+      }
+    ],
+    "quality_options": [
+      {
+        "type": "reforzado",
+        "details": "Recomendado para uso de carga o caminos irregulares."
+      }
+    ],
+    "notes": "Revisar bases, bujes y rótulas al cambiar amortiguadores.",
+    "related_parts": [
+      "bases de amortiguador",
+      "bujes",
+      "rótulas"
+    ]
+  },
+  {
+    "sku": "BAT-NS60",
+    "name": "Batería NS60",
+    "category": "eléctrico",
+    "vehicle_fitment": [
+      {
+        "make": "Toyota",
+        "model": "Yaris",
+        "year_from": 2006,
+        "year_to": 2020
+      },
+      {
+        "make": "Hyundai",
+        "model": "Accent",
+        "year_from": 2006,
+        "year_to": 2020
+      }
+    ],
+    "quality_options": [
+      {
+        "type": "sellada",
+        "details": "Libre de mantenimiento en uso normal."
+      }
+    ],
+    "notes": "Confirmar polaridad, tamaño físico y capacidad requerida.",
+    "related_parts": [
+      "terminales de batería",
+      "limpiador de bornes",
+      "alternador"
+    ]
+  },
+  {
+    "sku": "WIP-UNIV-22",
+    "name": "Escobillas limpiaparabrisas 22 pulgadas",
+    "category": "visibilidad",
+    "vehicle_fitment": [
+      {
+        "make": "universal",
+        "model": "universal",
+        "year_from": 1995,
+        "year_to": 2026
+      }
+    ],
+    "quality_options": [
+      {
+        "type": "convencional",
+        "details": "Opción económica para uso regular."
+      },
+      {
+        "type": "silicón",
+        "details": "Mayor durabilidad y mejor desempeño bajo lluvia."
+      }
+    ],
+    "notes": "Confirmar medida exacta por lado del vehículo.",
+    "related_parts": [
+      "líquido limpiaparabrisas"
+    ]
+  }
+]

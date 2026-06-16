@@ -1,15 +1,106 @@
 [
-    {
-      "title": "Cómo cambiar un grifo",
-      "steps": [
-        "Cerrar la llave de paso",
-        "Retirar el grifo anterior",
-        "Colocar cinta teflón",
-        "Instalar el grifo nuevo"
-      ],
-      "requred": [
-        "Ya tienes cinta de teflon? en el pasillo 3 lo encontraras",
-        "Si realizas un corte en el tubo necesitaras pegamento pvc en el pasillo 3 lo encontraras"
-      ]
-    }
-  ]
+  {
+    "id": "paint_room",
+    "title": {
+      "es": "Como pintar una habitacion",
+      "en": "How to paint a room"
+    },
+    "category": "pintura",
+    "difficulty": {
+      "es": "Principiante",
+      "en": "Beginner"
+    },
+    "estimated_time": {
+      "es": "Medio dia a un dia",
+      "en": "Half day to one day"
+    },
+    "steps": [
+      "Medir paredes para calcular pintura.",
+      "Limpiar y proteger piso y muebles.",
+      "Aplicar sellador si la pared lo necesita.",
+      "Pintar bordes con brocha.",
+      "Aplicar pintura con rodillo en capas uniformes."
+    ],
+    "required_products": [
+      "pintura latex",
+      "rodillo",
+      "brocha",
+      "bandeja",
+      "cinta masking",
+      "plastico protector"
+    ],
+    "safety_notes": [
+      "Ventilar el area.",
+      "Usar guantes si hay contacto prolongado con pintura."
+    ]
+  },
+  {
+    "id": "fix_leak",
+    "title": {
+      "es": "Reparacion basica de fuga en PVC",
+      "en": "Basic PVC leak repair"
+    },
+    "category": "plomeria",
+    "difficulty": {
+      "es": "Intermedio",
+      "en": "Intermediate"
+    },
+    "estimated_time": {
+      "es": "1 a 2 horas",
+      "en": "1 to 2 hours"
+    },
+    "steps": [
+      "Cerrar la llave de paso.",
+      "Identificar diametro y tipo de tubo.",
+      "Cortar la seccion danada.",
+      "Limpiar superficies.",
+      "Aplicar pegamento PVC y colocar union o reemplazo."
+    ],
+    "required_products": [
+      "tubo PVC",
+      "union PVC",
+      "pegamento PVC",
+      "cortador de tubo",
+      "cinta teflon"
+    ],
+    "safety_notes": [
+      "Confirmar que no haya presion de agua antes de cortar.",
+      "Si es una fuga compleja, llamar a un profesional."
+    ]
+  },
+  {
+    "id": "install_shelf",
+    "title": {
+      "es": "Instalar una repisa",
+      "en": "Install a shelf"
+    },
+    "category": "herramientas",
+    "difficulty": {
+      "es": "Principiante",
+      "en": "Beginner"
+    },
+    "estimated_time": {
+      "es": "30 a 60 minutos",
+      "en": "30 to 60 minutes"
+    },
+    "steps": [
+      "Marcar altura y nivel.",
+      "Seleccionar broca segun pared.",
+      "Perforar e instalar tarugos.",
+      "Atornillar soportes.",
+      "Colocar repisa y revisar nivel."
+    ],
+    "required_products": [
+      "taladro",
+      "brocas",
+      "tarugos",
+      "tornillos",
+      "nivel",
+      "lentes de seguridad"
+    ],
+    "safety_notes": [
+      "Verificar que no haya cables o tuberias antes de perforar.",
+      "Usar lentes de seguridad."
+    ]
+  }
+]

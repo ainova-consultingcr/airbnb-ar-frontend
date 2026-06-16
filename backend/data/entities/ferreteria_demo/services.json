@@ -1,13 +1,27 @@
 [
-    {
-      "id": "delivery",
-      "name": "Entrega a domicilio",
-      "details": "Disponible en Santa Cruz y alrededores. Se coordina en caja."
-    },
-    {
-      "id": "cutting",
-      "name": "Corte de material",
-      "details": "Corte de tubos y madera según disponibilidad del personal."
-    }
+  {
+    "id": "delivery",
+    "name": "Entrega a domicilio",
+    "details": "Disponible en Santa Cruz y alrededores. Se coordina en caja o por WhatsApp segun volumen y distancia."
+  },
+  {
+    "id": "cutting",
+    "name": "Corte de material",
+    "details": "Corte de tubos, varilla y madera segun disponibilidad del personal y normas de seguridad."
+  },
+  {
+    "id": "paint_mixing",
+    "name": "Preparacion de color",
+    "details": "Servicio de mezcla de pintura en mostrador de pintura. Lleva referencia de color o muestra si la tienes."
+  },
+  {
+    "id": "project_advice",
+    "name": "Asesoria de proyecto",
+    "details": "AVI puede orientar sobre lista de materiales, pasillo y complementos. Para calculos estructurales o electricos se recomienda profesional calificado."
+  },
+  {
+    "id": "pickup",
+    "name": "Retiro en tienda",
+    "details": "El cliente puede consultar por WhatsApp y retirar en mostrador cuando el pedido este preparado."
+  }
 ]
-  

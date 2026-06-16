@@ -1,0 +1,13 @@
+{
+  "sales": [
+    "Ofrecer confirmar compatibilidad por WhatsApp",
+    "Sugerir revisión de piezas relacionadas si el vehículo tiene más de 8 años",
+    "Mencionar ofertas activas solo cuando coinciden con la necesidad"
+  ],
+  "safety": [
+    "Frenos",
+    "Suspensión",
+    "Dirección",
+    "Batería y sistema eléctrico"
+  ]
+}

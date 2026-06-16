@@ -1,10 +1,22 @@
 [
   {
-    "question": "¿A qué hora cierran?",
-    "answer": "La fereteria cierra a las 5:00 PM."
+    "question": "A que hora cierran?",
+    "answer": "La ferreteria cierra a las 6:00 PM de lunes a sabado y a las 2:00 PM los domingos."
   },
   {
-    "question": "¿A qué hora abren?",
-    "answer": "Abren a las 8:00 AM."
+    "question": "A que hora abren?",
+    "answer": "Abrimos a las 8:00 AM de lunes a sabado y a las 9:00 AM los domingos."
+  },
+  {
+    "question": "Hacen entregas a domicilio?",
+    "answer": "Si, hay entrega a domicilio en Santa Cruz y alrededores. El costo depende de distancia, volumen y disponibilidad."
+  },
+  {
+    "question": "Donde esta pintura?",
+    "answer": "Pintura esta en el Pasillo 4. Tambien puedes pedir ayuda en mostrador para preparar colores."
+  },
+  {
+    "question": "Tienen charlas o talleres?",
+    "answer": "Si, hay charlas de pintura, reparacion de fugas y herramientas. Consulta el calendario de talleres disponible en AVI."
   }
 ]

@@ -1,11 +1,44 @@
 [
-    {
-      "title": "10% descuento en pinturas",
-      "details": "Válido esta semana en marcas seleccionadas."
+  {
+    "id": "paint_week",
+    "title": {
+      "es": "Semana de pintura",
+      "en": "Paint week"
     },
-  
-    {
-      "title": "10% descuento en ceramicas y porcelanato",
-      "details": "Válido esta semana en marcas seleccionadas."
-    }
-  ]
+    "details": {
+      "es": "10% de descuento en pinturas seleccionadas y precio especial en rodillos.",
+      "en": "10% off selected paints and special price on rollers."
+    },
+    "categories": ["pintura"],
+    "active": true,
+    "valid_until": "2026-07-31"
+  },
+  {
+    "id": "plumbing_fix",
+    "title": {
+      "es": "Combo reparacion de fugas",
+      "en": "Leak repair combo"
+    },
+    "details": {
+      "es": "Precio especial al comprar tubo PVC, conectores y pegamento.",
+      "en": "Special price when buying PVC pipe, connectors and glue."
+    },
+    "categories": ["plomeria"],
+    "active": true,
+    "valid_until": "2026-07-31"
+  },
+  {
+    "id": "tool_upgrade",
+    "title": {
+      "es": "Renueva tus herramientas",
+      "en": "Upgrade your tools"
+    },
+    "details": {
+      "es": "Promocion en taladros y brocas seleccionadas.",
+      "en": "Promotion on selected drills and drill bits."
+    },
+    "categories": ["herramientas"],
+    "active": true,
+    "valid_until": "2026-07-31"
+  }
+]

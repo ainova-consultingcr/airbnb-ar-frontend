@@ -88,6 +88,96 @@ def build_context(entity: dict) -> str:
             if srv.get("details"):
                 lines.append(f"  Details: {srv.get('details')}")
 
+    catalog = entity.get("catalog", [])
+    if catalog:
+        lines.append("Catalog:")
+        for item in catalog:
+            lines.append(f"- {item.get('name', 'Item')} (SKU: {item.get('sku', 'N/A')})")
+            if item.get("category"):
+                lines.append(f"  Category: {item.get('category')}")
+            fitment = item.get("vehicle_fitment", [])
+            if fitment:
+                fitment_text = []
+                for vehicle in fitment:
+                    fitment_text.append(
+                        f"{vehicle.get('make')} {vehicle.get('model')} "
+                        f"{vehicle.get('year_from')}-{vehicle.get('year_to')}"
+                    )
+                lines.append(f"  Compatible vehicles: {', '.join(fitment_text)}")
+            if item.get("quality_options"):
+                options = [
+                    f"{option.get('type')}: {option.get('details')}"
+                    for option in item.get("quality_options", [])
+                ]
+                lines.append(f"  Quality options: {'; '.join(options)}")
+            if item.get("notes"):
+                lines.append(f"  Notes: {item.get('notes')}")
+            if item.get("related_parts"):
+                lines.append(f"  Related parts: {', '.join(item.get('related_parts'))}")
+
+    offers = entity.get("offers", [])
+    if offers:
+        lines.append("Active offers:")
+        for offer in offers:
+            if offer.get("active") is False:
+                continue
+            title = offer.get("title", {})
+            details = offer.get("details", {})
+            lines.append(f"- {title.get('es') or title.get('en') or offer.get('id')}")
+            if details:
+                lines.append(f"  Details: {details.get('es') or details.get('en')}")
+            if offer.get("categories"):
+                lines.append(f"  Categories: {', '.join(offer.get('categories'))}")
+            if offer.get("valid_until"):
+                lines.append(f"  Valid until: {offer.get('valid_until')}")
+
+    diy_guides = entity.get("diy_guides", [])
+    if diy_guides:
+        lines.append("DIY guides:")
+        for guide in diy_guides:
+            title = guide.get("title", {})
+            lines.append(f"- {title.get('es') or title.get('en') or guide.get('id')}")
+            if guide.get("category"):
+                lines.append(f"  Category: {guide.get('category')}")
+            difficulty = guide.get("difficulty", {})
+            if difficulty:
+                lines.append(f"  Difficulty: {difficulty.get('es') or difficulty.get('en')}")
+            if guide.get("estimated_time"):
+                estimated = guide.get("estimated_time", {})
+                lines.append(f"  Estimated time: {estimated.get('es') or estimated.get('en')}")
+            if guide.get("required_products"):
+                lines.append(f"  Required products: {', '.join(guide.get('required_products'))}")
+            if guide.get("safety_notes"):
+                lines.append(f"  Safety notes: {', '.join(guide.get('safety_notes'))}")
+
+    workshops = entity.get("workshops", [])
+    if workshops:
+        lines.append("Workshops and talks:")
+        for workshop in workshops:
+            title = workshop.get("title", {})
+            lines.append(f"- {title.get('es') or title.get('en') or workshop.get('id')}")
+            if workshop.get("category"):
+                lines.append(f"  Category: {workshop.get('category')}")
+            if workshop.get("date") or workshop.get("time"):
+                lines.append(f"  Date/time: {workshop.get('date', '')} {workshop.get('time', '')}".strip())
+            if workshop.get("location"):
+                lines.append(f"  Location: {workshop.get('location')}")
+            summary = workshop.get("summary", {})
+            if summary:
+                lines.append(f"  Summary: {summary.get('es') or summary.get('en')}")
+
+    wear_suggestions = entity.get("wear_suggestions", [])
+    if wear_suggestions:
+        lines.append("Preventive wear suggestions:")
+        for group in wear_suggestions:
+            label = group.get("label", {})
+            lines.append(f"- {label.get('es') or label.get('en') or group.get('condition')}")
+            for suggestion in group.get("suggestions", []):
+                reason = suggestion.get("reason", {})
+                lines.append(
+                    f"  {suggestion.get('part')}: {reason.get('es') or reason.get('en')}"
+                )
+
     # --- FAQs ---
     faqs = entity.get("faqs", [])
     if faqs:
@@ -169,6 +259,13 @@ def load_property_data(entity_id : str) -> dict:
      faqs = _load_json(os.path.join(entity_path, "faqs.json"), [])
      schedules = _load_json(os.path.join(entity_path, "schedules.json"), {})
      recommendations = _load_json(os.path.join(entity_path, "recommendations.json"), {})
+     catalog = _load_json(os.path.join(entity_path, "catalog.json"), [])
+     offers = _load_json(os.path.join(entity_path, "offers.json"), [])
+     diy_guides = _load_json(os.path.join(entity_path, "diy_guides.json"), [])
+     workshops = _load_json(os.path.join(entity_path, "workshops.json"), [])
+     wear_suggestions = _load_json(
+         os.path.join(entity_path, "wear_suggestions.json"), []
+     )
 
      entity["spaces"] = spaces
      entity["services"] = services
@@ -176,6 +273,11 @@ def load_property_data(entity_id : str) -> dict:
      entity["faqs"] = faqs
      entity["schedules"] = schedules
      entity["recommendations"] = recommendations
+     entity["catalog"] = catalog
+     entity["offers"] = offers
+     entity["diy_guides"] = diy_guides
+     entity["workshops"] = workshops
+     entity["wear_suggestions"] = wear_suggestions
     #with open(path, "r", encoding="utf-8") as f:
        #return json.load(f)
      return entity

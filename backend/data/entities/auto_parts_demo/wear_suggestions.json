@@ -1,0 +1,78 @@
+[
+  {
+    "condition": "vehicle_age_8_plus",
+    "label": {
+      "es": "Vehículo de 8 años o más",
+      "en": "Vehicle 8 years or older"
+    },
+    "suggestions": [
+      {
+        "part": "batería",
+        "reason": {
+          "es": "Puede perder capacidad con los años, especialmente si hay arranques lentos.",
+          "en": "It may lose capacity over time, especially if starts feel slow."
+        }
+      },
+      {
+        "part": "amortiguadores",
+        "reason": {
+          "es": "El desgaste puede afectar estabilidad, frenado y comodidad.",
+          "en": "Wear can affect stability, braking and comfort."
+        }
+      },
+      {
+        "part": "bujes y rótulas",
+        "reason": {
+          "es": "Pueden generar ruidos, vibraciones o juego en la suspensión.",
+          "en": "They can cause noise, vibration or looseness in the suspension."
+        }
+      }
+    ]
+  },
+  {
+    "condition": "vehicle_age_12_plus",
+    "label": {
+      "es": "Vehículo de 12 años o más",
+      "en": "Vehicle 12 years or older"
+    },
+    "suggestions": [
+      {
+        "part": "mangueras y fajas",
+        "reason": {
+          "es": "El caucho envejece y puede presentar grietas o pérdida de tensión.",
+          "en": "Rubber ages and may show cracks or lose tension."
+        }
+      },
+      {
+        "part": "sensores de motor",
+        "reason": {
+          "es": "Si hay fallos intermitentes o luz de check engine, conviene diagnosticar antes de cambiar piezas.",
+          "en": "If there are intermittent failures or a check engine light, diagnose before replacing parts."
+        }
+      }
+    ]
+  },
+  {
+    "condition": "brake_related_search",
+    "label": {
+      "es": "Búsqueda relacionada con frenos",
+      "en": "Brake-related search"
+    },
+    "suggestions": [
+      {
+        "part": "discos de freno",
+        "reason": {
+          "es": "Si las pastillas están gastadas, también conviene revisar espesor y superficie de discos.",
+          "en": "If pads are worn, check rotor thickness and surface condition too."
+        }
+      },
+      {
+        "part": "líquido de frenos",
+        "reason": {
+          "es": "El líquido contaminado reduce desempeño y seguridad.",
+          "en": "Contaminated fluid reduces performance and safety."
+        }
+      }
+    ]
+  }
+]

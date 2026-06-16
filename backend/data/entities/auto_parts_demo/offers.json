@@ -1,0 +1,50 @@
+[
+  {
+    "id": "brake_week",
+    "title": {
+      "es": "Semana de frenos",
+      "en": "Brake week"
+    },
+    "details": {
+      "es": "10% de descuento en pastillas de freno seleccionadas.",
+      "en": "10% off selected brake pads."
+    },
+    "categories": [
+      "frenos"
+    ],
+    "active": true,
+    "valid_until": "2026-07-31"
+  },
+  {
+    "id": "maintenance_combo",
+    "title": {
+      "es": "Combo de mantenimiento",
+      "en": "Maintenance combo"
+    },
+    "details": {
+      "es": "Precio especial al comprar filtro de aceite, filtro de aire y aceite de motor.",
+      "en": "Special price when buying oil filter, air filter and engine oil."
+    },
+    "categories": [
+      "mantenimiento"
+    ],
+    "active": true,
+    "valid_until": "2026-07-31"
+  },
+  {
+    "id": "rain_ready",
+    "title": {
+      "es": "Listo para la lluvia",
+      "en": "Rain ready"
+    },
+    "details": {
+      "es": "Promoción en escobillas y líquido limpiaparabrisas.",
+      "en": "Promotion on wiper blades and washer fluid."
+    },
+    "categories": [
+      "visibilidad"
+    ],
+    "active": true,
+    "valid_until": "2026-07-31"
+  }
+]

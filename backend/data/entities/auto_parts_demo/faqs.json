@@ -1,0 +1,18 @@
+[
+  {
+    "question": "¿Cómo busco un repuesto?",
+    "answer": "Indica marca, modelo, año y el repuesto que necesitas. Si tienes motor, versión o VIN, ayuda a confirmar compatibilidad."
+  },
+  {
+    "question": "¿Puedo comprar por WhatsApp?",
+    "answer": "Sí. Podemos confirmar compatibilidad y continuar la atención por WhatsApp con el equipo de ventas."
+  },
+  {
+    "question": "¿AVI confirma compatibilidad exacta?",
+    "answer": "AVI puede orientar con la información del catálogo, pero si hay duda debe confirmar con VIN, motor, foto de la pieza o revisión del vendedor."
+  },
+  {
+    "question": "¿Tienen ofertas activas?",
+    "answer": "Sí. AVI puede mostrar ofertas activas cuando son relevantes para el repuesto que buscas."
+  }
+]

@@ -1,5 +1,6 @@
 {
-  "open": "Se abre a las 8:00 AM",
-  "close": "Se cierra a las 6:00 PM",
-  "delivery_hours": "6:00 AM - 7:00 PM"
+  "store_hours": "Lunes a sabado 8:00 AM - 6:00 PM. Domingo 9:00 AM - 2:00 PM.",
+  "delivery_hours": "Lunes a sabado 9:00 AM - 5:00 PM.",
+  "paint_counter": "Lunes a sabado 8:30 AM - 5:30 PM.",
+  "cutting_service": "Lunes a sabado 9:00 AM - 4:30 PM segun disponibilidad."
 }
