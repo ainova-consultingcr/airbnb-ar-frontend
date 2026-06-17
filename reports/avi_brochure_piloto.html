@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AVI - Brochure de prueba piloto</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0f1b2d;
+      --panel-soft: #132238;
+      --text: #f8fafc;
+      --muted: #a8b3c7;
+      --accent: #86c45c;
+      --accent-2: #5cc8ff;
+      --warm: #f59e0b;
+      --border: rgba(255,255,255,.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(134,196,92,.28), transparent 27rem),
+        radial-gradient(circle at 90% 20%, rgba(245,158,11,.18), transparent 24rem),
+        radial-gradient(circle at bottom right, rgba(92,200,255,.16), transparent 28rem),
+        var(--bg);
+    }
+    main { max-width: 1120px; margin: 0 auto; padding: 34px 22px 54px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.026));
+      box-shadow: 0 22px 70px rgba(0,0,0,.26);
+      backdrop-filter: blur(18px);
+    }
+    .intro { padding: 30px; }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 12px 0 12px; font-size: clamp(34px, 6vw, 62px); line-height: .94; }
+    h2 { margin: 0 0 14px; font-size: 20px; }
+    h3 { margin: 0 0 8px; font-size: 16px; }
+    p { color: var(--muted); line-height: 1.6; margin: 0; }
+    .tagline { max-width: 760px; font-size: 17px; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: #dbeafe;
+      background: rgba(92,200,255,.1);
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .qr-card {
+      display: grid;
+      place-items: center;
+      padding: 26px;
+      text-align: center;
+    }
+    .qr-box {
+      display: grid;
+      place-items: center;
+      width: 150px;
+      height: 150px;
+      margin-bottom: 16px;
+      border-radius: 24px;
+      color: #07111f;
+      background:
+        linear-gradient(90deg, #111827 10px, transparent 10px) 0 0 / 30px 30px,
+        linear-gradient(#111827 10px, transparent 10px) 0 0 / 30px 30px,
+        #fff;
+      box-shadow: inset 0 0 0 12px #fff, 0 18px 42px rgba(0,0,0,.24);
+      font-weight: 900;
+      letter-spacing: .12em;
+    }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 18px 0; }
+    .metric { padding: 18px; border-radius: 22px; background: var(--panel); border: 1px solid var(--border); }
+    .metric span { color: var(--muted); font-size: 13px; }
+    .metric strong { display: block; margin-top: 8px; font-size: 26px; line-height: 1.1; }
+    .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    section { padding: 23px; }
+    ul, ol { margin: 0; padding-left: 20px; }
+    li { margin: 10px 0; color: #dbe4f0; line-height: 1.45; }
+    li::marker { color: var(--accent); }
+    .use-cases {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .case {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: rgba(15,27,45,.72);
+    }
+    .case strong { display: block; margin-bottom: 8px; color: #fff; }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .step {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(255,255,255,.045);
+    }
+    .step b { display: block; color: var(--accent-2); margin-bottom: 6px; }
+    .cta {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+      padding: 24px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(134,196,92,.22), rgba(92,200,255,.15));
+      border: 1px solid var(--border);
+    }
+    .cta strong { font-size: 24px; }
+    .contact {
+      display: inline-flex;
+      padding: 12px 16px;
+      border-radius: 999px;
+      color: #10210b;
+      background: var(--accent);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    footer { margin-top: 22px; color: var(--muted); font-size: 12px; text-align: center; }
+    @media (max-width: 880px) {
+      .hero, .section-grid, .grid, .use-cases, .flow { grid-template-columns: 1fr; }
+      .cta { align-items: flex-start; flex-direction: column; }
+    }
+    @media print {
+      body { background: #fff; color: #172033; }
+      main { padding: 16px; }
+      .card, .metric, .case, .step, .cta { box-shadow: none; background: #fff; border-color: #d7dce5; }
+      p, li, .metric span, footer { color: #4b5563; }
+      .eyebrow, .step b { color: #2563eb; }
+      .contact { color: #172033; background: #d9f99d; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="hero">
+      <div class="intro card">
+        <div class="eyebrow">Prueba piloto AVI</div>
+        <h1>Asistente Virtual Inteligente para negocios y hospedajes</h1>
+        <p class="tagline">AVI atiende consultas desde un QR, guia al cliente o huesped, recomienda opciones utiles y genera informacion para que el negocio entienda que estan preguntando sus usuarios.</p>
+        <div class="pill-row">
+          <span class="pill">QR sin instalacion</span>
+          <span class="pill">Respuestas 24/7</span>
+          <span class="pill">Multi-entidad</span>
+          <span class="pill">Reportes semanales</span>
+        </div>
+      </div>
+      <div class="qr-card card">
+        <div class="qr-box">QR</div>
+        <h2>Escanear, preguntar, resolver</h2>
+        <p>El usuario entra directo a la entidad correcta: hotel, Airbnb, ferreteria, repuestos u otro negocio.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="metric"><span>Acceso</span><strong>QR + Web</strong></div>
+      <div class="metric"><span>Canal</span><strong>Browser movil</strong></div>
+      <div class="metric"><span>Datos</span><strong>Entity JSON</strong></div>
+      <div class="metric"><span>IA</span><strong>OpenAI + RAG</strong></div>
+    </div>
+
+    <div class="section-grid">
+      <section class="card">
+        <h2>Que resuelve AVI</h2>
+        <ul>
+          <li>Reduce preguntas repetitivas y tiempos de espera.</li>
+          <li>Guia al usuario hacia informacion, productos, servicios o reservas.</li>
+          <li>Mantiene contexto: si el usuario responde "si" o "no", AVI entiende el hilo.</li>
+          <li>Genera reportes para descubrir dudas frecuentes y oportunidades comerciales.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Como funciona</h2>
+        <div class="flow">
+          <div class="step"><b>1</b>Negocio define su entidad.</div>
+          <div class="step"><b>2</b>Cliente escanea QR.</div>
+          <div class="step"><b>3</b>AVI responde y guia.</div>
+          <div class="step"><b>4</b>Se revisan reportes.</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Casos de uso disponibles</h2>
+      <div class="use-cases">
+        <div class="case">
+          <strong>Hoteles y Airbnb</strong>
+          <p>WiFi, check-out, reglas, restaurantes, transporte, turismo y negocios cercanos.</p>
+        </div>
+        <div class="case">
+          <strong>Repuestos</strong>
+          <p>Busqueda guiada por marca, modelo, ano y repuesto, con ofertas y sugerencias preventivas.</p>
+        </div>
+        <div class="case">
+          <strong>Ferreterias</strong>
+          <p>Guia por proyecto, categoria, pasillo, producto, complementos, ofertas y charlas.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-grid">
+      <section class="card">
+        <h2>Que incluye el piloto</h2>
+        <ul>
+          <li>Configuracion de una entidad inicial.</li>
+          <li>QR funcional para pruebas reales.</li>
+          <li>Preguntas frecuentes, servicios y datos clave.</li>
+          <li>Prueba de flujos guiados segun el tipo de negocio.</li>
+          <li>Reporte de consultas y oportunidades detectadas.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Checklist antes de salir a campo</h2>
+        <ul>
+          <li>URL de produccion revisada.</li>
+          <li>Contactos, horarios, precios y enlaces confirmados.</li>
+          <li>QR probado en telefono real.</li>
+          <li>Preguntas frecuentes cargadas.</li>
+          <li>Reporte semanal configurado.</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Indicadores que se mediran</h2>
+      <div class="grid">
+        <div class="metric"><span>Consultas</span><strong>Volumen</strong></div>
+        <div class="metric"><span>Calidad</span><strong>Respuestas utiles</strong></div>
+        <div class="metric"><span>Ventas</span><strong>Leads</strong></div>
+        <div class="metric"><span>Mejora</span><strong>Datos faltantes</strong></div>
+      </div>
+    </section>
+
+    <div class="cta">
+      <div>
+        <div class="eyebrow">Siguiente paso</div>
+        <strong>Seleccionar un negocio piloto y validar AVI con usuarios reales.</strong>
+        <p>La meta del piloto es aprender rapido: que preguntan, que informacion falta y que flujos generan valor.</p>
+      </div>
+      <div class="contact">AVI Pilot Ready</div>
+    </div>
+
+    <footer>
+      AVI - Asistente Virtual Inteligente. Brochure informativo para prueba piloto.
+    </footer>
+  </main>
+</body>
+</html>
