@@ -402,6 +402,7 @@
     #actionArea {
       display: grid;
       gap: 8px;
+      min-width: 0;
       width: 100%;
       pointer-events: auto;
     }
@@ -433,13 +434,19 @@
 
     .place-list {
       display: flex;
+      align-items: stretch;
       gap: 10px;
+      box-sizing: border-box;
+      min-width: 0;
       width: 100%;
+      max-width: 100%;
       padding: 1px 2px 5px;
       overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
       overscroll-behavior-x: contain;
       scrollbar-width: none;
-      scroll-snap-type: x mandatory;
+      scroll-snap-type: x proximity;
     }
 
     .place-list::-webkit-scrollbar {
@@ -447,8 +454,10 @@
     }
 
     .place-card {
+      box-sizing: border-box;
       width: min(82vw, 330px);
-      flex: 0 0 min(82vw, 330px);
+      min-width: min(82vw, 330px);
+      flex: 0 0 auto;
       padding: 15px;
       border: 1px solid var(--avi-border);
       border-radius: 19px;
@@ -456,8 +465,8 @@
       background: rgba(15, 23, 42, 0.92);
       box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
       scroll-snap-align: start;
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      backface-visibility: hidden;
+      transform: translateZ(0);
     }
 
     .place-category {
@@ -1978,6 +1987,7 @@ function showTouristPlaces(places) {
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
   list.className = "place-list";
+  const fragment = document.createDocumentFragment();
 
   places.forEach((place) => {
     const card = document.createElement("article");
@@ -2027,9 +2037,10 @@ function showTouristPlaces(places) {
     }
 
     card.append(category, name, summary, source, links);
-    list.appendChild(card);
+    fragment.appendChild(card);
   });
 
+  list.appendChild(fragment);
   actionArea.appendChild(list);
 }
 
@@ -2061,6 +2072,7 @@ function showRestaurants(restaurants) {
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
   list.className = "place-list";
+  const fragment = document.createDocumentFragment();
 
   restaurants.forEach((restaurant) => {
     const card = document.createElement("article");
@@ -2110,9 +2122,10 @@ function showRestaurants(restaurants) {
     }
 
     card.append(category, name, summary, links);
-    list.appendChild(card);
+    fragment.appendChild(card);
   });
 
+  list.appendChild(fragment);
   actionArea.appendChild(list);
 }
 
@@ -2125,6 +2138,7 @@ function showNearbyBusinesses(businesses) {
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
   list.className = "place-list";
+  const fragment = document.createDocumentFragment();
 
   businesses.forEach((business) => {
     const card = document.createElement("article");
@@ -2175,9 +2189,10 @@ function showNearbyBusinesses(businesses) {
     card.append(category, name, summary);
     if (detailLines.length) card.appendChild(details);
     card.appendChild(links);
-    list.appendChild(card);
+    fragment.appendChild(card);
   });
 
+  list.appendChild(fragment);
   actionArea.appendChild(list);
 }
 
