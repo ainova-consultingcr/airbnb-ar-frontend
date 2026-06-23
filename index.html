@@ -2091,11 +2091,13 @@ function showRestaurants(restaurants) {
       links.appendChild(reserveButton);
     }
 
-    if (restaurant.map_url) {
+    const isHotelRestaurant = restaurant.has_own_restaurant || restaurant.type === "own_restaurant";
+    const directionsUrl = isHotelRestaurant ? null : (restaurant.directions_url || restaurant.map_url);
+    if (directionsUrl) {
       const mapButton = document.createElement("button");
       mapButton.className = "place-link";
-      mapButton.textContent = langKey === "en" ? "Open map" : "Ver mapa";
-      mapButton.onclick = () => openExternalUrl(restaurant.map_url);
+      mapButton.textContent = langKey === "en" ? "Direct route" : "Ruta directa";
+      mapButton.onclick = () => openExternalUrl(directionsUrl);
       links.appendChild(mapButton);
     }
 
@@ -2140,14 +2142,25 @@ function showNearbyBusinesses(businesses) {
     summary.className = "place-summary";
     summary.textContent = business.summary?.[langKey] || "";
 
+    const details = document.createElement("div");
+    details.className = "place-summary";
+    const detailLines = [
+      business.recommended_by ? (langKey === "en" ? `Recommended by: ${business.recommended_by}` : `Recomendado por: ${business.recommended_by}`) : "",
+      business.address ? (langKey === "en" ? `Address: ${business.address}` : `Direccion: ${business.address}`) : "",
+      business.hours ? (langKey === "en" ? `Hours: ${business.hours}` : `Horario: ${business.hours}`) : "",
+      business.phone ? (langKey === "en" ? `Phone: ${business.phone}` : `Telefono: ${business.phone}`) : ""
+    ].filter(Boolean);
+    details.innerHTML = detailLines.map((line) => `<span style="display:block">${line}</span>`).join("");
+
     const links = document.createElement("div");
     links.className = "place-links";
 
-    if (business.map_url) {
+    const directionsUrl = business.directions_url || business.map_url;
+    if (directionsUrl) {
       const mapButton = document.createElement("button");
       mapButton.className = "place-link primary";
-      mapButton.textContent = langKey === "en" ? "Open map" : "Ver mapa";
-      mapButton.onclick = () => openExternalUrl(business.map_url);
+      mapButton.textContent = langKey === "en" ? "Direct route" : "Ruta directa";
+      mapButton.onclick = () => openExternalUrl(directionsUrl);
       links.appendChild(mapButton);
     }
 
@@ -2159,7 +2172,9 @@ function showNearbyBusinesses(businesses) {
       links.appendChild(infoButton);
     }
 
-    card.append(category, name, summary, links);
+    card.append(category, name, summary);
+    if (detailLines.length) card.appendChild(details);
+    card.appendChild(links);
     list.appendChild(card);
   });
 

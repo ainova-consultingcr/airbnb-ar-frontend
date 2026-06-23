@@ -109,7 +109,11 @@ class MainTests(unittest.TestCase):
 
         self.assertEqual(len(response["restaurant_options"]), 3)
         for restaurant in response["restaurant_options"]:
-            self.assertTrue(restaurant["map_url"].startswith("https://"))
+            if restaurant.get("has_own_restaurant"):
+                self.assertNotIn("directions_url", restaurant)
+            else:
+                self.assertTrue(restaurant["directions_url"].startswith("https://"))
+            self.assertNotIn("map_url", restaurant)
             self.assertTrue(restaurant["whatsapp"])
             self.assertTrue(restaurant["summary"]["es"])
 
