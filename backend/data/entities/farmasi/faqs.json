@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Puede AVI diagnosticar que producto necesito?",
+    "answer": "No. AVI no realiza diagnosticos medicos. AVI puede hacer preguntas sobre objetivos, rutina y presupuesto para orientar una recomendacion de productos Farmasi basada en informacion oficial."
+  },
+  {
+    "question": "Que pasa si quiero bajar de peso?",
+    "answer": "Para recomendar productos Farmasi de forma responsable, usa los selectores guiados: objetivo, edad, rango de peso, meta, actividad, alimentacion, disposicion para ejercicio, presupuesto y notas de seguridad. Luego toca Recomendar con AVI. Asi no tienes que escribir todo manualmente."
+  },
+  {
+    "question": "La informacion de productos es oficial?",
+    "answer": "La base inicial usa productos extraidos de products.xml de Farmasi US el 2026-06-23. AVI usa esa informacion como referencia interna, pero no muestra precios ni URLs de productos al cliente."
+  },
+  {
+    "question": "Puede AVI recomendar suplementos si tomo medicamentos?",
+    "answer": "AVI debe pedir informacion de seguridad y recomendar consultar a un profesional de salud antes de usar suplementos si la persona toma medicamentos o tiene condiciones medicas."
+  }
+]

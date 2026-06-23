@@ -89,12 +89,27 @@ def build_context(entity: dict) -> str:
                 lines.append(f"  Details: {srv.get('details')}")
 
     catalog = entity.get("catalog", [])
+    hide_commercial_fields = entity.get("type") == "wellness_sales_assistant"
     if catalog:
         lines.append("Catalog:")
         for item in catalog:
             lines.append(f"- {item.get('name', 'Item')} (SKU: {item.get('sku', 'N/A')})")
+            if item.get("brand"):
+                lines.append(f"  Brand: {item.get('brand')}")
             if item.get("category"):
                 lines.append(f"  Category: {item.get('category')}")
+            if item.get("price") and not hide_commercial_fields:
+                lines.append(f"  Price: {item.get('price')}")
+            if item.get("availability"):
+                lines.append(f"  Availability: {item.get('availability')}")
+            if item.get("official_summary"):
+                lines.append(f"  Official summary: {item.get('official_summary')}")
+            if item.get("how_to_use"):
+                lines.append(f"  How to use: {item.get('how_to_use')}")
+            if item.get("goal_tags"):
+                lines.append(f"  Goal tags: {', '.join(item.get('goal_tags'))}")
+            if item.get("source_url") and not hide_commercial_fields:
+                lines.append(f"  Official URL: {item.get('source_url')}")
             fitment = item.get("vehicle_fitment", [])
             if fitment:
                 fitment_text = []

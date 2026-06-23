@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- 🔥 CLAVE PARA MÓVIL -->
+  <!-- ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ CLAVE PARA MÃƒÆ’Ã¢â‚¬Å“VIL -->
  <!-- VERSION: FIX-PROPERTY-08/01/2025 4:31 pm-OK -->
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
   <meta name="theme-color" content="#071018">
-  <title>AVI | Asistente del huésped</title>
+  <title>AVI | Asistente del huÃƒÆ’Ã‚Â©sped</title>
 
   <style>
     html, body {
@@ -19,7 +19,7 @@
       height: 100%;
       overflow: hidden;
       font-family: sans-serif;
-      
+
     }
 
 #suggestions {
@@ -45,7 +45,7 @@
   font-size: 14px;
   cursor: pointer;
 }
-    /* 🔥 UI ENCIMA DEL AR */
+    /* ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ UI ENCIMA DEL AR */
     #ui {
       position: fixed;
       bottom: 20px;
@@ -522,7 +522,8 @@
     }
 
     #guidedPartsSearch,
-    #guidedHardwareSearch {
+    #guidedHardwareSearch,
+    #guidedWellnessSearch {
       display: none;
       gap: 9px;
       padding: 12px;
@@ -535,9 +536,26 @@
       -webkit-backdrop-filter: blur(20px);
     }
 
+    #guidedWellnessSearch {
+      position: fixed;
+      top: calc(max(14px, env(safe-area-inset-top)) + 132px);
+      right: 12px;
+      bottom: calc(var(--safe-bottom) + 78px);
+      left: 12px;
+      z-index: 28;
+      overflow-y: auto;
+      pointer-events: auto;
+    }
+
     #guidedPartsSearch.visible,
-    #guidedHardwareSearch.visible {
+    #guidedHardwareSearch.visible,
+    #guidedWellnessSearch.visible {
       display: grid;
+    }
+
+    #guidedWellnessSearch.guided-highlight {
+      border-color: color-mix(in srgb, var(--avi-accent) 70%, white);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--avi-accent) 24%, transparent);
     }
 
     .guided-title {
@@ -569,7 +587,8 @@
     }
 
     #guidedPartChips,
-    #guidedHardwareChips {
+    #guidedHardwareChips,
+    #guidedWellnessChips {
       display: flex;
       gap: 7px;
       min-height: 38px;
@@ -578,7 +597,8 @@
     }
 
     #guidedPartChips::-webkit-scrollbar,
-    #guidedHardwareChips::-webkit-scrollbar {
+    #guidedHardwareChips::-webkit-scrollbar,
+    #guidedWellnessChips::-webkit-scrollbar {
       display: none;
     }
 
@@ -600,7 +620,9 @@
       background: var(--avi-accent);
     }
 
-    #guidedSearchBtn {
+    #guidedSearchBtn,
+    #guidedHardwareSearchBtn,
+    #guidedWellnessSearchBtn {
       min-height: 44px;
       border: 0;
       border-radius: 14px;
@@ -610,7 +632,9 @@
       background: var(--avi-accent);
     }
 
-    #guidedSearchBtn:disabled {
+    #guidedSearchBtn:disabled,
+    #guidedHardwareSearchBtn:disabled,
+    #guidedWellnessSearchBtn:disabled {
       opacity: 0.55;
     }
 
@@ -710,7 +734,7 @@
   </header>
 
   <section id="responseCard" aria-live="polite">
-    <div class="response-avatar">✦</div>
+    <div class="response-avatar">AI</div>
     <div class="response-body">
       <span id="responseLabel">AVI responde</span>
       <div id="responseLoading">
@@ -743,6 +767,21 @@
       <div id="guidedHardwareChips"></div>
       <button id="guidedHardwareSearchBtn" type="button">Consultar con AVI</button>
     </section>
+    <section id="guidedWellnessSearch">
+      <div class="guided-title">Recomendacion Farmasi paso a paso</div>
+      <div class="guided-grid">
+        <select id="wellnessGoalSelect" class="guided-select"></select>
+        <select id="wellnessAgeSelect" class="guided-select"></select>
+        <select id="wellnessWeightSelect" class="guided-select"></select>
+        <select id="wellnessTargetSelect" class="guided-select"></select>
+        <select id="wellnessActivitySelect" class="guided-select"></select>
+        <select id="wellnessDietSelect" class="guided-select"></select>
+        <select id="wellnessExerciseSelect" class="guided-select"></select>
+        <select id="wellnessBudgetSelect" class="guided-select"></select>
+      </div>
+      <div id="guidedWellnessChips"></div>
+      <button id="guidedWellnessSearchBtn" type="button">Consultar con AVI</button>
+    </section>
     <div id="suggestions"></div>
     <div id="actionArea"></div>
     <div id="ui">
@@ -755,7 +794,7 @@
       <button id="sendBtn" type="button" onclick="askAI()">Enviar</button>
     </div>
   </div>
-  
+
   <script>
     const IS_LOCAL_DEVELOPMENT = ["localhost", "127.0.0.1"].includes(
       window.location.hostname
@@ -830,8 +869,8 @@ function clearCTAs() {
     // mapear a formato actual
     PROPERTY_CONFIG = data;
     BACKEND_SUGGESTIONS = data.suggestions || null;
-    console.log("PROPERTY_CONFIG:", PROPERTY_CONFIG); // 🔥 aquí
-    console.log("WELCOME:", PROPERTY_CONFIG?.welcome); // 🔥 aquí
+    console.log("PROPERTY_CONFIG:", PROPERTY_CONFIG); // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ aquÃƒÆ’Ã‚Â­
+    console.log("WELCOME:", PROPERTY_CONFIG?.welcome); // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ aquÃƒÆ’Ã‚Â­
 
   } catch (err) {
     console.error("Error cargando config:", err);
@@ -854,6 +893,7 @@ const CURRENT_PROPERTY = getPropertyFromURL();
   let currentUtterance = null;
   let audioUnlocked = false;
   let selectedGuidedPart = "";
+  let selectedWellnessSafetyNotes = new Set();
   let activeConversationContext = null;
   let responseRenderToken = 0;
 
@@ -966,6 +1006,24 @@ function getConversationContextForQuestion(question) {
       ? activeConversationContext
       : {};
   }
+  if (activeConversationContext.type === "wellness_profile") {
+    if (isContinuationReply(question) || isNegativeReply(question)) return activeConversationContext;
+    const normalizedQuestion = (question || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    const profile = activeConversationContext.profile || {};
+    const signals = [
+      profile.goal,
+      profile.activity_level,
+      profile.diet_style,
+      profile.budget,
+      ...(activeConversationContext.options || []).map((item) => item.name)
+    ].filter(Boolean).map((value) => String(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+    return signals.some((signal) => normalizedQuestion.includes(signal))
+      ? activeConversationContext
+      : {};
+  }
   return (isContinuationReply(question) || isNegativeReply(question)) ? activeConversationContext : {};
 }
 
@@ -1007,7 +1065,7 @@ function setContextFromResponseData(data, originalQuestion = "") {
     );
   }
 }
-  
+
 
    function unlockAudio() {
     if (audioUnlocked) return;
@@ -1043,7 +1101,7 @@ console.log("THEME:", PROPERTY_CONFIG?.theme);
     theme.buttonText || "#15240d"
   );
   document.documentElement.style.setProperty("--avi-panel", theme.panel || "rgba(15, 23, 42, 0.84)");
- 
+
   const config = PROPERTY_CONFIG;
   console.log(Object.keys(PROPERTY_CONFIG));
   if (!config) return;
@@ -1055,11 +1113,12 @@ console.log("THEME:", PROPERTY_CONFIG?.theme);
       : "Asistente digital disponible";
   }
 
-  
+
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   showARAnswer(config.welcome[langKey], playAudio);
   setupGuidedPartsSearch();
   setupGuidedHardwareSearch();
+  setupGuidedWellnessSearch();
 }
 
 function setupGuidedPartsSearch() {
@@ -1098,7 +1157,7 @@ function setupGuidedPartsSearch() {
   ]);
 
   fillSelect(modelSelect, [{ value: "", label: langKey === "en" ? "Model" : "Modelo" }]);
-  fillSelect(yearSelect, [{ value: "", label: langKey === "en" ? "Year" : "Año" }]);
+  fillSelect(yearSelect, [{ value: "", label: langKey === "en" ? "Year" : "AÃƒÆ’Ã‚Â±o" }]);
   fillPartCategories();
   renderGuidedPartChips();
   updateGuidedSearchButton();
@@ -1106,7 +1165,7 @@ function setupGuidedPartsSearch() {
   makeSelect.onchange = () => {
     selectedGuidedPart = "";
     updateVehicleModels();
-    fillSelect(yearSelect, [{ value: "", label: langKey === "en" ? "Year" : "Año" }]);
+    fillSelect(yearSelect, [{ value: "", label: langKey === "en" ? "Year" : "AÃƒÆ’Ã‚Â±o" }]);
     renderGuidedPartChips();
     updateGuidedSearchButton();
   };
@@ -1173,7 +1232,7 @@ function updateVehicleYears() {
   }
 
   fillSelect(yearSelect, [
-    { value: "", label: langKey === "en" ? "Year" : "Año" },
+    { value: "", label: langKey === "en" ? "Year" : "AÃƒÆ’Ã‚Â±o" },
     ...years
   ]);
 }
@@ -1184,9 +1243,9 @@ function fillPartCategories() {
   const categoryLabels = {
     frenos: langKey === "en" ? "Brakes" : "Frenos",
     mantenimiento: langKey === "en" ? "Maintenance" : "Mantenimiento",
-    "suspensión": langKey === "en" ? "Suspension" : "Suspensión",
-    electrico: langKey === "en" ? "Electrical" : "Eléctrico",
-    "eléctrico": langKey === "en" ? "Electrical" : "Eléctrico",
+    "suspensiÃƒÆ’Ã‚Â³n": langKey === "en" ? "Suspension" : "SuspensiÃƒÆ’Ã‚Â³n",
+    electrico: langKey === "en" ? "Electrical" : "ElÃƒÆ’Ã‚Â©ctrico",
+    "elÃƒÆ’Ã‚Â©ctrico": langKey === "en" ? "Electrical" : "ElÃƒÆ’Ã‚Â©ctrico",
     visibilidad: langKey === "en" ? "Visibility" : "Visibilidad"
   };
   const categories = Array.from(new Set(
@@ -1239,7 +1298,7 @@ function renderGuidedPartChips() {
     guide.disabled = true;
     guide.textContent = langKey === "en"
       ? "Choose make, model and year first"
-      : "Primero elige marca, modelo y año";
+      : "Primero elige marca, modelo y aÃƒÆ’Ã‚Â±o";
     container.appendChild(guide);
     return;
   }
@@ -1248,7 +1307,7 @@ function renderGuidedPartChips() {
     const empty = document.createElement("button");
     empty.className = "part-chip";
     empty.disabled = true;
-    empty.textContent = langKey === "en" ? "No matching catalog item" : "Sin coincidencias en catálogo";
+    empty.textContent = langKey === "en" ? "No matching catalog item" : "Sin coincidencias en catÃƒÆ’Ã‚Â¡logo";
     container.appendChild(empty);
   }
 
@@ -1522,6 +1581,279 @@ function submitGuidedHardwareSearch(selectedItem = null) {
   askAI();
 }
 
+function setupGuidedWellnessSearch() {
+  const wrapper = document.getElementById("guidedWellnessSearch");
+  if (!wrapper) return;
+
+  if (PROPERTY_CONFIG?.type !== "wellness_sales_assistant") {
+    wrapper.classList.remove("visible");
+    return;
+  }
+
+  wrapper.classList.add("visible");
+  selectedWellnessSafetyNotes = new Set();
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const title = wrapper.querySelector(".guided-title");
+  const goalSelect = document.getElementById("wellnessGoalSelect");
+  const ageSelect = document.getElementById("wellnessAgeSelect");
+  const weightSelect = document.getElementById("wellnessWeightSelect");
+  const targetSelect = document.getElementById("wellnessTargetSelect");
+  const activitySelect = document.getElementById("wellnessActivitySelect");
+  const dietSelect = document.getElementById("wellnessDietSelect");
+  const exerciseSelect = document.getElementById("wellnessExerciseSelect");
+  const budgetSelect = document.getElementById("wellnessBudgetSelect");
+  const searchBtn = document.getElementById("guidedWellnessSearchBtn");
+
+  title.textContent = langKey === "en"
+    ? "Choose your Farmasi profile"
+    : "Selecciona tu perfil Farmasi";
+  searchBtn.textContent = langKey === "en" ? "Get recommendation" : "Recomendar con AVI";
+
+  fillSelect(goalSelect, [
+    { value: "", label: langKey === "en" ? "Main goal" : "Objetivo principal" },
+    { value: "weight_support", label: langKey === "en" ? "Weight support" : "Bajar o controlar peso" },
+    { value: "energy", label: langKey === "en" ? "More energy" : "Mas energia" },
+    { value: "workout_support", label: langKey === "en" ? "Workout support" : "Apoyo para entrenar" },
+    { value: "skin_hair_nails", label: langKey === "en" ? "Skin, hair and nails" : "Piel, cabello y unas" },
+    { value: "wellness", label: langKey === "en" ? "General wellness" : "Bienestar general" }
+  ]);
+
+  fillSelect(ageSelect, [
+    { value: "", label: langKey === "en" ? "Age range" : "Rango de edad" },
+    { value: "under_18", label: langKey === "en" ? "Under 18" : "Menor de 18" },
+    { value: "18_24", label: "18-24" },
+    { value: "25_34", label: "25-34" },
+    { value: "35_44", label: "35-44" },
+    { value: "45_54", label: "45-54" },
+    { value: "55_plus", label: "55+" }
+  ]);
+
+  fillSelect(weightSelect, [
+    { value: "", label: langKey === "en" ? "Current weight" : "Peso actual aproximado" },
+    { value: "under_120_lb", label: langKey === "en" ? "Under 120 lb" : "Menos de 120 lb" },
+    { value: "120_150_lb", label: "120-150 lb" },
+    { value: "151_180_lb", label: "151-180 lb" },
+    { value: "181_220_lb", label: "181-220 lb" },
+    { value: "over_220_lb", label: langKey === "en" ? "Over 220 lb" : "Mas de 220 lb" },
+    { value: "prefer_not_say", label: langKey === "en" ? "Prefer not to say" : "Prefiero no indicar" }
+  ]);
+
+  fillSelect(targetSelect, [
+    { value: "", label: langKey === "en" ? "Goal / target" : "Meta principal" },
+    { value: "lose_5_10_lb", label: langKey === "en" ? "Lose 5-10 lb" : "Bajar 5-10 lb" },
+    { value: "lose_10_20_lb", label: langKey === "en" ? "Lose 10-20 lb" : "Bajar 10-20 lb" },
+    { value: "maintain_weight", label: langKey === "en" ? "Maintain weight" : "Mantener peso" },
+    { value: "more_energy", label: langKey === "en" ? "More energy" : "Tener mas energia" },
+    { value: "tone_or_strength", label: langKey === "en" ? "Tone/strength" : "Tonificar o fuerza" },
+    { value: "skin_hair_nails", label: langKey === "en" ? "Skin/hair/nails" : "Piel/cabello/unas" }
+  ]);
+
+  fillSelect(activitySelect, [
+    { value: "", label: langKey === "en" ? "Activity level" : "Nivel de actividad" },
+    { value: "sedentary", label: langKey === "en" ? "Sedentary" : "Sedentario" },
+    { value: "light", label: langKey === "en" ? "Light activity" : "Actividad ligera" },
+    { value: "moderate", label: langKey === "en" ? "Moderate activity" : "Actividad moderada" },
+    { value: "active", label: langKey === "en" ? "Active" : "Activo" }
+  ]);
+
+  fillSelect(dietSelect, [
+    { value: "", label: langKey === "en" ? "Diet style" : "Tipo de alimentacion" },
+    { value: "no_plan", label: langKey === "en" ? "No specific plan" : "Sin plan especifico" },
+    { value: "balanced", label: langKey === "en" ? "Balanced" : "Balanceada" },
+    { value: "high_protein", label: langKey === "en" ? "High protein" : "Alta en proteina" },
+    { value: "low_carb", label: langKey === "en" ? "Low carb" : "Baja en carbohidratos" },
+    { value: "vegetarian", label: langKey === "en" ? "Vegetarian" : "Vegetariana" }
+  ]);
+
+  fillSelect(exerciseSelect, [
+    { value: "", label: langKey === "en" ? "Willing to exercise?" : "Dispuesto a ejercitarse?" },
+    { value: "yes", label: langKey === "en" ? "Yes" : "Si" },
+    { value: "some", label: langKey === "en" ? "A little" : "Un poco" },
+    { value: "no", label: "No" }
+  ]);
+
+  fillSelect(budgetSelect, [
+    { value: "", label: langKey === "en" ? "Monthly budget" : "Presupuesto mensual" },
+    { value: "under_35", label: langKey === "en" ? "Under $35" : "Menos de $35" },
+    { value: "35_60", label: "$35-$60" },
+    { value: "60_100", label: "$60-$100" },
+    { value: "100_plus", label: "$100+" }
+  ]);
+
+  [goalSelect, ageSelect, weightSelect, targetSelect, activitySelect, dietSelect, exerciseSelect, budgetSelect]
+    .filter(Boolean)
+    .forEach((field) => {
+      field.onchange = updateGuidedWellnessSearchButton;
+      field.oninput = updateGuidedWellnessSearchButton;
+    });
+
+  renderGuidedWellnessChips();
+  updateGuidedWellnessSearchButton();
+  searchBtn.onclick = submitGuidedWellnessSearch;
+}
+
+function renderGuidedWellnessChips() {
+  const container = document.getElementById("guidedWellnessChips");
+  if (!container) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const chips = [
+    { value: "no_known_conditions", label: langKey === "en" ? "No known conditions" : "Sin condiciones conocidas" },
+    { value: "medications", label: langKey === "en" ? "Takes medication" : "Toma medicamentos" },
+    { value: "pregnancy_breastfeeding", label: langKey === "en" ? "Pregnancy/breastfeeding" : "Embarazo/lactancia" },
+    { value: "caffeine_sensitive", label: langKey === "en" ? "Caffeine sensitive" : "Sensible a cafeina" },
+    { value: "allergies", label: langKey === "en" ? "Allergies" : "Alergias" }
+  ];
+
+  container.innerHTML = "";
+  chips.forEach((item) => {
+    const chip = document.createElement("button");
+    chip.className = "part-chip" + (selectedWellnessSafetyNotes.has(item.value) ? " selected" : "");
+    chip.textContent = item.label;
+    chip.onclick = () => {
+      if (item.value === "no_known_conditions") {
+        selectedWellnessSafetyNotes = selectedWellnessSafetyNotes.has(item.value)
+          ? new Set()
+          : new Set([item.value]);
+      } else {
+        selectedWellnessSafetyNotes.delete("no_known_conditions");
+        if (selectedWellnessSafetyNotes.has(item.value)) {
+          selectedWellnessSafetyNotes.delete(item.value);
+        } else {
+          selectedWellnessSafetyNotes.add(item.value);
+        }
+      }
+      renderGuidedWellnessChips();
+      updateGuidedWellnessSearchButton();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function updateGuidedWellnessSearchButton() {
+  const searchBtn = document.getElementById("guidedWellnessSearchBtn");
+  if (!searchBtn) return;
+
+  const goal = document.getElementById("wellnessGoalSelect")?.value;
+  const age = document.getElementById("wellnessAgeSelect")?.value;
+  const weight = document.getElementById("wellnessWeightSelect")?.value;
+  const target = document.getElementById("wellnessTargetSelect")?.value;
+  const activity = document.getElementById("wellnessActivitySelect")?.value;
+  const diet = document.getElementById("wellnessDietSelect")?.value;
+  const exercise = document.getElementById("wellnessExerciseSelect")?.value;
+  const budget = document.getElementById("wellnessBudgetSelect")?.value;
+  searchBtn.disabled = !(goal && age && weight && target && activity && diet && exercise && budget && selectedWellnessSafetyNotes.size);
+}
+
+function getFarmasiRelevantProducts(goal) {
+  const catalog = PROPERTY_CONFIG?.wellness?.catalog || [];
+  return catalog.filter((item) => {
+    const tags = item.goal_tags || [];
+    const matchesGoal = !goal || tags.includes(goal) || (goal === "energy" && tags.includes("energy"));
+    return matchesGoal;
+  }).slice(0, 5);
+}
+
+function buildWellnessConversationContext(profile) {
+  return {
+    type: "wellness_profile",
+    action_type: "farmasi_recommendation",
+    topic: profile.goal,
+    profile,
+    options: getFarmasiRelevantProducts(profile.goal)
+  };
+}
+
+function submitGuidedWellnessSearch() {
+  const input = document.getElementById("questionInput");
+  if (!input) return;
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  const profile = {
+    goal: document.getElementById("wellnessGoalSelect")?.value || "",
+    age_range: document.getElementById("wellnessAgeSelect")?.value || "",
+    current_weight: document.getElementById("wellnessWeightSelect")?.value || "",
+    target: document.getElementById("wellnessTargetSelect")?.value || "",
+    activity_level: document.getElementById("wellnessActivitySelect")?.value || "",
+    diet_style: document.getElementById("wellnessDietSelect")?.value || "",
+    exercise_willingness: document.getElementById("wellnessExerciseSelect")?.value || "",
+    budget: document.getElementById("wellnessBudgetSelect")?.value || "",
+    safety_notes: Array.from(selectedWellnessSafetyNotes).join(", ")
+  };
+
+  if (!(profile.goal && profile.age_range && profile.current_weight && profile.target && profile.activity_level && profile.diet_style && profile.exercise_willingness && profile.budget && profile.safety_notes)) return;
+
+  activeConversationContext = buildWellnessConversationContext(profile);
+  input.value = langKey === "en"
+    ? `Farmasi product recommendation profile. Wellness goal: ${profile.goal}. Age range: ${profile.age_range}. Weight range: ${profile.current_weight || "not provided"}. Desired result: ${profile.target || "not provided"}. Movement level: ${profile.activity_level}. Eating style: ${profile.diet_style || "not provided"}. Exercise willingness: ${profile.exercise_willingness || "not provided"}. Monthly budget: ${profile.budget}. Safety notes: ${profile.safety_notes}. Recommend official Farmasi products only, mention availability and simple usage guidance. Do not show prices or product URLs. Do not diagnose.`
+    : `Perfil para recomendacion de productos Farmasi. Objetivo de bienestar: ${profile.goal}. Rango de edad: ${profile.age_range}. Rango de peso: ${profile.current_weight || "no indicado"}. Resultado deseado: ${profile.target || "no indicado"}. Nivel de movimiento: ${profile.activity_level}. Estilo de alimentacion: ${profile.diet_style || "no indicado"}. Disposicion para ejercicio: ${profile.exercise_willingness || "no indicado"}. Presupuesto mensual: ${profile.budget}. Notas de seguridad: ${profile.safety_notes}. Recomienda solo productos oficiales Farmasi, menciona disponibilidad y forma de uso simple. No muestres precios ni URLs de productos. No diagnostiques.`;
+  askAI();
+}
+
+function inferWellnessShortcut(text) {
+  const normalized = (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (normalized.includes("bajar") || normalized.includes("peso") || normalized.includes("weight")) {
+    return { goal: "weight_support" };
+  }
+  if (normalized.includes("energia") || normalized.includes("energy")) {
+    return { goal: "energy" };
+  }
+  if (normalized.includes("entren") || normalized.includes("workout") || normalized.includes("exercise")) {
+    return { goal: "workout_support" };
+  }
+  if (normalized.includes("piel") || normalized.includes("cabello") || normalized.includes("unas") || normalized.includes("skin") || normalized.includes("hair") || normalized.includes("nail")) {
+    return { goal: "skin_hair_nails" };
+  }
+  if (normalized.includes("presupuesto") || normalized.includes("budget")) {
+    return { budget: "under_35" };
+  }
+  return null;
+}
+
+function focusGuidedWellnessForm(message = "") {
+  const wrapper = document.getElementById("guidedWellnessSearch");
+  if (!wrapper) return;
+
+  wrapper.classList.add("guided-highlight");
+  setTimeout(() => wrapper.classList.remove("guided-highlight"), 1400);
+  wrapper.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  showARAnswer(
+    message || (
+      langKey === "en"
+        ? "Use the selectors below. Choose your goal, age, weight range, target, activity, budget and safety notes, then tap Get recommendation."
+        : "Usa los selectores de abajo. Elige objetivo, edad, rango de peso, meta, actividad, presupuesto y notas de seguridad; luego toca Recomendar con AVI."
+    ),
+    false
+  );
+}
+
+function handleWellnessShortcut(text) {
+  if (PROPERTY_CONFIG?.type !== "wellness_sales_assistant") return false;
+
+  const preset = inferWellnessShortcut(text);
+  const goalSelect = document.getElementById("wellnessGoalSelect");
+  const budgetSelect = document.getElementById("wellnessBudgetSelect");
+
+  if (preset?.goal && goalSelect) goalSelect.value = preset.goal;
+  if (preset?.budget && budgetSelect) budgetSelect.value = preset.budget;
+  updateGuidedWellnessSearchButton();
+
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  focusGuidedWellnessForm(
+    langKey === "en"
+      ? "Good. I preselected what I could. Complete the remaining selectors so I can recommend Farmasi products responsibly."
+      : "Listo. Preseleccione lo que pude. Completa los demas selectores para recomendar productos Farmasi de forma responsable."
+  );
+  return true;
+}
+
 function pickBestVoice(targetLang) {
 
   const voices = speechSynthesis.getVoices();
@@ -1542,7 +1874,7 @@ function pickBestVoice(targetLang) {
     "maria"
   ];
 
-  // 1️⃣ buscar voz femenina del idioma
+  // 1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ buscar voz femenina del idioma
   let voice = voices.find(v =>
     v.lang.toLowerCase().startsWith(langPrefix) &&
     femaleHints.some(h => v.name.toLowerCase().includes(h))
@@ -1550,14 +1882,14 @@ function pickBestVoice(targetLang) {
 
   if (voice) return voice;
 
-  // 2️⃣ fallback: cualquier voz del idioma
+  // 2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ fallback: cualquier voz del idioma
   voice = voices.find(v =>
     v.lang.toLowerCase().startsWith(langPrefix)
   );
 
   if (voice) return voice;
 
-  // 3️⃣ fallback total
+  // 3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ fallback total
   return voices[0] || null;
 }
 
@@ -1574,12 +1906,12 @@ function showSuggestions() {
   const container = document.getElementById("suggestions");
 
   if (container && BACKEND_SUGGESTIONS) {
-    renderSuggestionsFromBackend(); // 🔥 clave
+    renderSuggestionsFromBackend(); // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ clave
     container.style.display = "flex";
   }
 }
 
- 
+
 
 function normalizeLang(lang) {
   if (!lang) return "es-ES";
@@ -1599,7 +1931,7 @@ function speak(text) {
   // Cancelar lo anterior
   speechSynthesis.cancel();
 
-  // Idioma según tu CURRENT_LANG detectado
+  // Idioma segÃƒÆ’Ã‚Âºn tu CURRENT_LANG detectado
   const targetLang = normalizeLang(CURRENT_LANG);
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = targetLang;
@@ -1611,9 +1943,9 @@ function speak(text) {
   utterance.pitch = 1;
   utterance.volume = 1;
 
-    // 🔥 CUANDO TERMINA EL AUDIO
+    // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ CUANDO TERMINA EL AUDIO
   utterance.onend = () => {
-    closePanel(3000); // 👈 buffer elegante de 3s
+    closePanel(3000); // ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‹â€  buffer elegante de 3s
   };
 
   speechSynthesis.speak(utterance);
@@ -1723,7 +2055,7 @@ function showLoader() {
   if (responseLabel) {
     responseLabel.textContent = CURRENT_LANG.startsWith("en")
       ? "AVI is checking"
-      : "AVI está consultando";
+      : "AVI estÃƒÆ’Ã‚Â¡ consultando";
   }
   if (status) {
     status.textContent = CURRENT_LANG.startsWith("en")
@@ -1777,6 +2109,7 @@ function renderSuggestions() {
     btn.textContent = q;
 
     btn.onclick = () => {
+      if (handleWellnessShortcut(q)) return;
       const input = document.getElementById("questionInput");
       if (input) input.value = q;
       askAI();
@@ -1803,6 +2136,7 @@ function renderSuggestionsFromBackend() {
     btn.textContent = q;
     //btn.background = button
     btn.onclick = () => {
+      if (handleWellnessShortcut(q)) return;
       const input = document.getElementById("questionInput");
       if (input) input.value = q;
       askAI();
@@ -1845,12 +2179,12 @@ function showCTAanterior(cta) {
     btn = document.createElement("button");
     btn.id = "ctaBtn";
 
-    // 🔥 FORZAR VISIBILIDAD
+    // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ FORZAR VISIBILIDAD
     btn.style.position = "fixed";
     btn.style.bottom = "140px";
     btn.style.left = "50%";
     btn.style.transform = "translateX(-50%)";
-    btn.style.zIndex = "999999"; // 🔥 súper alto
+    btn.style.zIndex = "999999"; // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ sÃƒÆ’Ã‚Âºper alto
     btn.style.padding = "12px 18px";
     btn.style.borderRadius = "14px";
     btn.style.border = "none";
@@ -1874,15 +2208,15 @@ function showCTAanterior(cta) {
 
 
    btn.onclick = () => {
-  // 👇 ocultar INMEDIATO
+  // ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¡ ocultar INMEDIATO
   btn.style.display = "none";
 
   // opcional: reset estado
   btn.dataset.active = "false";
 
-  // 👇 abrir después (pequeño delay)
+  // ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¡ abrir despuÃƒÆ’Ã‚Â©s (pequeÃƒÆ’Ã‚Â±o delay)
   setTimeout(() => {
-    
+
     window.open(cta.url, "_blank");
   }, 100);
 };
@@ -1894,10 +2228,10 @@ function showRestaurantList() {
     console.log("Restaurante:", r.name);
   });
 
-  // luego podés convertir esto en botones
+  // luego podÃƒÆ’Ã‚Â©s convertir esto en botones
 }
 function handleCTAAction(type) {
-  
+
   if (type === "own_restaurant") {
     window.open("https://wa.me/50686380783?text=Quiero reservar en el restaurante del hotel");
   }
@@ -1921,7 +2255,7 @@ function showReservationForm(item) {
     <input id="resTime" type="time" />
     <input id="resPeople" type="number" placeholder="Personas" />
 
-    ${item.menu ? `<a href="${item.menu}" target="_blank">Ver menú</a>` : ""}
+    ${item.menu ? `<a href="${item.menu}" target="_blank">Ver menÃƒÆ’Ã‚Âº</a>` : ""}
 
     <button id="sendRes">Reservar</button>
   `;
@@ -1939,7 +2273,7 @@ function sendReservation(item) {
   const people = document.getElementById("resPeople").value;
 
   const msg = `Hola, quiero reservar en ${item.name}
-  Código AVI: ${item.lead_id}
+  CÃƒÆ’Ã‚Â³digo AVI: ${item.lead_id}
 
     Nombre: ${name}
     Fecha: ${date}
@@ -1974,7 +2308,7 @@ function openExternalUrl(url) {
     if (parsed.protocol !== "https:") return;
     window.open(parsed.href, "_blank", "noopener,noreferrer");
   } catch (error) {
-    console.warn("URL inválida:", url);
+    console.warn("URL invÃƒÆ’Ã‚Â¡lida:", url);
   }
 }
 
@@ -2015,7 +2349,7 @@ function showTouristPlaces(places) {
     if (place.info_url) {
       const infoButton = document.createElement("button");
       infoButton.className = "place-link primary";
-      infoButton.textContent = langKey === "en" ? "Official info" : "Información";
+      infoButton.textContent = langKey === "en" ? "Official info" : "InformaciÃƒÆ’Ã‚Â³n";
       infoButton.onclick = () => openExternalUrl(place.info_url);
       links.appendChild(infoButton);
     }
@@ -2050,7 +2384,7 @@ function reserveRestaurant(restaurant) {
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const message = langKey === "en"
     ? `Hello, I would like to book a table at ${restaurant.name}. AVI code: ${restaurant.lead_id || "N/A"}`
-    : `Hola, quiero reservar una mesa en ${restaurant.name}. Código AVI: ${restaurant.lead_id || "N/A"}`;
+    : `Hola, quiero reservar una mesa en ${restaurant.name}. CÃƒÆ’Ã‚Â³digo AVI: ${restaurant.lead_id || "N/A"}`;
 
   trackLeadEvent(
     "reservation_started",
@@ -2116,7 +2450,7 @@ function showRestaurants(restaurants) {
     if (restaurant.menu_url) {
       const menuButton = document.createElement("button");
       menuButton.className = "place-link";
-      menuButton.textContent = langKey === "en" ? "View menu" : "Ver menú";
+      menuButton.textContent = langKey === "en" ? "View menu" : "Ver menÃƒÆ’Ã‚Âº";
       menuButton.onclick = () => openExternalUrl(restaurant.menu_url);
       links.appendChild(menuButton);
     }
@@ -2229,7 +2563,7 @@ function showMultipleCTA(options) {
           opt.data || opt,
           [opt.data || opt]
         );
-        clearCTAs(); // 🔥 importante
+        clearCTAs(); // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ importante
 
        /* await trackLeadEvent(
          "cta_click",
@@ -2310,7 +2644,7 @@ async function askAI() {
   if (
     !isContinuationReply(question)
     && !negativeReply
-    && !["auto_parts_search", "hardware_search"].includes(activeConversationContext?.type)
+    && !["auto_parts_search", "hardware_search", "wellness_profile"].includes(activeConversationContext?.type)
   ) {
     activeConversationContext = null;
   }
@@ -2321,7 +2655,7 @@ async function askAI() {
 
     // UX: feedback inmediato
     showLoader();
-    //("⏳ Pensando...", false);
+    //(\"Pensando...\", false);
 
     const res = await fetch(
      `${API_BASE_URL}/ask`,
@@ -2337,7 +2671,7 @@ async function askAI() {
         })
       }
     );
-    // Si backend respondió error
+    // Si backend respondio error
     if (!res.ok) {
       let detail = "";
        hideLoader();
@@ -2352,7 +2686,7 @@ async function askAI() {
       const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
 
   showARAnswer(
-  errors.server?.[langKey] || "⚠️ Server error",
+  errors.server?.[langKey] || "Server error",
   false
 );
       return;
@@ -2365,14 +2699,17 @@ async function askAI() {
       activeConversationContext = null;
     }
     setContextFromResponseData(data, question);
-  
+    if (requestContext?.type === "wellness_profile" && !data.reset_context) {
+      activeConversationContext = requestContext;
+    }
+
 
     if (data.suggestions) {
 
   BACKEND_SUGGESTIONS = data.suggestions;
   renderSuggestionsFromBackend();
 }
-  
+
 if (data.cta_options) {
   setTimeout(() => {
     if (currentRenderToken !== responseRenderToken) return;
@@ -2413,7 +2750,7 @@ showARAnswer(answer, true);
 if (data.cta) {
   setTimeout(() => {
     showCTA(data.cta);
-  }, 600); // pequeño delay para evitar que el render lo tape
+  }, 600); // pequeno delay para evitar que el render lo tape
 }
 
 input.value = "";
@@ -2422,13 +2759,13 @@ input.value = "";
   } catch (err) {
     console.error("Fetch error:", err);
     hideLoader();
-   
+
     const ui = PROPERTY_CONFIG.ui || {};
     const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
 
   showARAnswer(
   ui.errors?.network?.[langKey] ||
-  "⚠️ Error de red. Revisa tu conexión.",
+  "Error de red. Revisa tu conexion.",
   false
 );
 
@@ -2436,13 +2773,13 @@ input.value = "";
   } finally {
     setLoading(false);
   }
- 
+
 }
 
 speechSynthesis.onvoiceschanged = () => {
-  console.log("✅ Voces cargadas:", speechSynthesis.getVoices().length);
+  console.log("Voces cargadas:", speechSynthesis.getVoices().length);
 };
-  
+
   </script>
   <script>
     const input = document.getElementById("questionInput");

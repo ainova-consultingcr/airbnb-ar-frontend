@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Personalized product recommendation",
+    "how_to_use": "AVI asks profile questions first, then recommends Farmasi products according to goal, safety profile, budget and availability.",
+    "details": "Useful for weight support, workout support, energy, skin/hair/nails, immune support and general wellness."
+  },
+  {
+    "name": "Product usage guidance",
+    "how_to_use": "When AVI recommends a product, it should explain simple usage guidance from the catalog and mention availability.",
+    "details": "The product catalog comes from Farmasi US products.xml. AVI should not show prices or product URLs to the customer."
+  }
+]

@@ -1,0 +1,117 @@
+{
+  "id": "farmasi",
+  "name": "Farmasi",
+  "type": "wellness_sales_assistant",
+  "status": "active",
+  "location": {
+    "country": "United States",
+    "province": "",
+    "city": "",
+    "address": "Online store"
+  },
+  "branding": {
+    "primary_color": "#b83280",
+    "welcome": {
+      "es": "Bienvenido a Farmasi\n\nSoy AVI, tu asistente de recomendacion personalizada.\n\nPuedo ayudarte a elegir productos Farmasi segun tu objetivo, estilo de vida y presupuesto. Para cuidarte mejor, primero te hare algunas preguntas.",
+      "en": "Welcome to Farmasi\n\nI'm AVI, your personalized recommendation assistant.\n\nI can help you choose Farmasi products based on your goal, lifestyle and budget. To guide you better, I will ask a few questions first."
+    }
+  },
+  "contact": {
+    "whatsapp": "+50600000000",
+    "host_name": "Farmasi Advisor"
+  },
+  "messages": {
+    "thinking": {
+      "es": "AVI esta revisando tu objetivo y productos Farmasi oficiales...",
+      "en": "AVI is reviewing your goal and official Farmasi products..."
+    }
+  },
+  "theme": {
+    "panel": "#2a1026",
+    "button": "#f5a3d7",
+    "buttonText": "#2a1026",
+    "spinner": "#f5a3d7"
+  },
+  "ui": {
+    "send_button": {
+      "es": "Consultar",
+      "en": "Ask"
+    },
+    "input_placeholder": {
+      "es": "Ej: quiero bajar de peso, tener mas energia o cuidar mi piel...",
+      "en": "Ex: I want weight support, more energy or skin care..."
+    },
+    "errors": {
+      "network": {
+        "es": "Error de red. Intenta nuevamente.",
+        "en": "Network error. Please try again."
+      },
+      "server": {
+        "es": "No pudimos procesar tu consulta. Intenta nuevamente.",
+        "en": "We could not process your request. Please try again."
+      }
+    },
+    "suggestions": {
+      "es": [
+        "Quiero bajar de peso",
+        "Busco mas energia para entrenar",
+        "Quiero cuidar piel, cabello y unas",
+        "Tengo presupuesto limitado",
+        "Que productos Farmasi hay disponibles?"
+      ],
+      "en": [
+        "I want weight support",
+        "I need more energy for workouts",
+        "I want skin, hair and nail support",
+        "I have a limited budget",
+        "Which Farmasi products are available?"
+      ]
+    },
+    "services": {
+      "recommendation_flow": {
+        "name": "Farmasi personalized recommendation",
+        "required_fields": [
+          "goal",
+          "age",
+          "current_weight",
+          "target_goal",
+          "activity_level",
+          "diet_style",
+          "exercise_willingness",
+          "budget",
+          "health_conditions",
+          "medications_or_supplements",
+          "allergies_or_sensitivities"
+        ],
+        "missing_info_questions": {
+          "es": [
+            "Cual es tu objetivo principal: peso, energia, ejercicio, piel, cabello, bienestar general u otro?",
+            "Que edad tienes?",
+            "Cual es tu peso actual y cual es tu meta realista?",
+            "Actualmente haces ejercicio? Si si, que tipo y cuantas veces por semana?",
+            "Como describirias tu alimentacion actual?",
+            "Estas dispuesto a hacer cambios de rutina o ejercicio?",
+            "Que presupuesto deseas invertir por mes?",
+            "Tienes alguna condicion medica, embarazo, lactancia, medicacion, alergias o sensibilidad a cafeina?"
+          ],
+          "en": [
+            "What is your main goal: weight, energy, workouts, skin, hair, general wellness or something else?",
+            "How old are you?",
+            "What is your current weight and realistic target?",
+            "Do you currently exercise? If yes, what type and how often?",
+            "How would you describe your current diet?",
+            "Are you willing to change your routine or exercise?",
+            "What monthly budget do you want to invest?",
+            "Do you have any medical condition, pregnancy, breastfeeding, medication, allergies or caffeine sensitivity?"
+          ]
+        }
+      },
+      "official_source": {
+        "name": "Farmasi US products.xml",
+        "url": "https://www.farmasius.com/products.xml",
+        "retrieved_at": "2026-06-23",
+        "notes": "Product names, availability, descriptions and internal source references were extracted from Farmasi US products.xml. AVI should not show product prices or product URLs to the customer."
+      }
+    }
+  }
+}

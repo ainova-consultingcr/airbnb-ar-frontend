@@ -27,6 +27,23 @@ class EmptyOpenAI:
         )
 
 
+class GenericUnknownOpenAI:
+    def __init__(self, api_key=None):
+        self.chat = SimpleNamespace(
+            completions=SimpleNamespace(
+                create=lambda **kwargs: SimpleNamespace(
+                    choices=[
+                        SimpleNamespace(
+                            message=SimpleNamespace(
+                                content="No tengo esa información."
+                            )
+                        )
+                    ]
+                )
+            )
+        )
+
+
 class CaptureOpenAI:
     last_kwargs = None
 
@@ -68,6 +85,109 @@ class MainTests(unittest.TestCase):
                 with self.assertRaises(HTTPException) as error:
                     main.get_property(property_id)
                 self.assertEqual(error.exception.status_code, 404)
+
+    def test_farmasi_entity_loads_official_catalog_context(self):
+        response = main.get_property("farmasi")
+
+        self.assertEqual(response["id"], "farmasi")
+        self.assertEqual(response["type"], "wellness_sales_assistant")
+        self.assertIn("Quiero bajar de peso", response["suggestions"]["es"])
+
+        data = load_property_data("farmasi")
+        context = build_context(data)
+
+        self.assertIn("Nutriplus L-Carnitine Shot", context)
+        self.assertIn("Availability: in_stock", context)
+        self.assertIn("How to use:", context)
+        self.assertNotIn("Official URL:", context)
+        self.assertNotIn("Price:", context)
+        self.assertIn("must not diagnose", context)
+
+    @patch.object(main, "log_question")
+    @patch.object(main, "OpenAI", CaptureOpenAI)
+    def test_farmasi_activity_question_does_not_trigger_tours(self, log_question):
+        CaptureOpenAI.last_kwargs = None
+
+        response = main.ask(
+            main.AskRequest(
+                property_id="farmasi",
+                question=(
+                    "Quiero bajar de peso, tengo actividad ligera, peso 180 libras "
+                    "y quiero una recomendacion Farmasi."
+                ),
+                language="es",
+            )
+        )
+
+        self.assertNotIn("tours", response)
+        self.assertNotIn("No hay tours", response["answer"])
+        self.assertIn("selectores guiados", response["answer"])
+        self.assertIn("Recomendar con AVI", response["answer"])
+        self.assertIsNone(CaptureOpenAI.last_kwargs)
+
+    @patch.object(main, "log_question")
+    @patch.object(main, "OpenAI", CaptureOpenAI)
+    def test_farmasi_guided_profile_never_triggers_tours(self, log_question):
+        CaptureOpenAI.last_kwargs = None
+        context = {
+            "type": "wellness_profile",
+            "action_type": "farmasi_recommendation",
+            "topic": "weight_support",
+            "profile": {
+                "goal": "weight_support",
+                "age_range": "25_34",
+                "current_weight": "151_180_lb",
+                "target": "lose_10_20_lb",
+                "activity_level": "light",
+                "diet_style": "balanced",
+                "exercise_willingness": "yes",
+                "budget": "35_60",
+                "safety_notes": "no_known_conditions",
+            },
+            "options": [
+                {
+                    "name": "Nutriplus L-Carnitine Shot",
+                    "availability": "in_stock",
+                }
+            ],
+        }
+
+        response = main.ask(
+            main.AskRequest(
+                property_id="farmasi",
+                question=(
+                    "Perfil para recomendacion de productos Farmasi. Objetivo de bienestar: "
+                    "weight_support. Rango de edad: 25_34. Rango de peso: 151_180_lb. "
+                    "Resultado deseado: lose_10_20_lb. Nivel de movimiento: light. "
+                    "Estilo de alimentacion: balanced. Disposicion para ejercicio: yes. "
+                    "Presupuesto mensual: 35_60. Notas de seguridad: no_known_conditions."
+                ),
+                language="es",
+                conversation_context=context,
+            )
+        )
+
+        self.assertNotIn("No hay tours", response["answer"])
+        self.assertIsNotNone(CaptureOpenAI.last_kwargs)
+        messages = CaptureOpenAI.last_kwargs["messages"]
+        self.assertIn("Farmasi personalized wellness", messages[1]["content"])
+        self.assertIn("Nutriplus L-Carnitine Shot", messages[1]["content"])
+
+    @patch.object(main, "log_question")
+    @patch.object(main, "OpenAI", GenericUnknownOpenAI)
+    def test_farmasi_generic_unknown_uses_farmasi_fallback(self, log_question):
+        response = main.ask(
+            main.AskRequest(
+                property_id="farmasi",
+                question="Tienen un producto para algo que no esta en el catalogo?",
+                language="es",
+            )
+        )
+
+        self.assertIn("catalogo Farmasi", response["answer"])
+        self.assertIn("asesor Farmasi", response["answer"])
+        self.assertNotIn("recepcion", response["answer"].lower())
+        self.assertNotIn("recepción", response["answer"].lower())
 
     def test_transport_uses_entity_configuration(self):
         response = main.ask(

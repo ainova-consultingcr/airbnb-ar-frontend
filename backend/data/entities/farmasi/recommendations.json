@@ -1,0 +1,26 @@
+{
+  "weight_support": [
+    "Nutriplus L-Carnitine Shot",
+    "Nutriplus L-Carnitine Orange & Passion Fruit",
+    "Delish Instant Coffee and Chicory Blend Sticks",
+    "Nutriplus Shake products only if availability changes from out_of_stock"
+  ],
+  "workout_support": [
+    "Nutriplus+ Creatine",
+    "Nutriplus+ Pre-Workout",
+    "Nutriplus L-Carnitine Shot"
+  ],
+  "skin_hair_nails": [
+    "Nutriplus Collagen Tablets",
+    "Nutriplus Beauty Shot Collagen",
+    "Nutriplus Vitamin C Effervescent Tablets"
+  ],
+  "wellness": [
+    "Nutriplus Aloe Glow Mango",
+    "Nutriplus Serenity Lemon Tea",
+    "Nutriplus Vitamin C Effervescent Tablets"
+  ],
+  "official_catalog_source": [
+    "https://www.farmasius.com/products.xml"
+  ]
+}

@@ -113,6 +113,14 @@ def get_property(property_id: str = "hotel_demo"):
                 "workshops": data.get("workshops", [])
             }
 
+        if data.get("type") == "wellness_sales_assistant":
+            services = data.get("ui", {}).get("services", {})
+            response["wellness"] = {
+                "recommendation_flow": services.get("recommendation_flow", {}),
+                "catalog": data.get("catalog", []),
+                "recommendations": data.get("recommendations", {})
+            }
+
         return response
 
     except FileNotFoundError:
@@ -307,6 +315,27 @@ NO_INFO_MESSAGES = {
     "es": "No tengo esa información, por favor consulta con el encargado de recepción.",
     "en": "I don't have that information. Please contact the host."
 }
+
+ENTITY_NO_INFO_MESSAGES = {
+    "wellness_sales_assistant": {
+        "es": (
+            "No tengo esa informacion en el catalogo Farmasi. "
+            "Puedo ayudarte con productos disponibles, forma de uso general "
+            "o conectar tu consulta con un asesor Farmasi."
+        ),
+        "en": (
+            "I don't have that information in the Farmasi catalog. "
+            "I can help with available products, general usage guidance, "
+            "or connect your question with a Farmasi advisor."
+        )
+    }
+}
+
+
+def get_no_info_message(entity: dict, lang_key: str) -> str:
+    entity_type = entity.get("type", "")
+    entity_messages = ENTITY_NO_INFO_MESSAGES.get(entity_type, {})
+    return entity_messages.get(lang_key) or NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
 
 
 import unicodedata
@@ -529,6 +558,36 @@ def build_conversation_context_text(conversation_context: dict, lang_key: str) -
         )
         return "\n".join(lines)
 
+    if context_type == "wellness_profile":
+        profile = conversation_context.get("profile", {})
+        options = conversation_context.get("options", [])
+        lines = [
+            "ACTIVE CONVERSATION CONTEXT:",
+            "The customer is continuing a Farmasi personalized wellness recommendation flow.",
+            f"Goal: {profile.get('goal') or 'not specified'}",
+            f"Age range: {profile.get('age_range') or 'not specified'}",
+            f"Current weight: {profile.get('current_weight') or 'not specified'}",
+            f"Target: {profile.get('target') or 'not specified'}",
+            f"Activity level: {profile.get('activity_level') or 'not specified'}",
+            f"Diet style: {profile.get('diet_style') or 'not specified'}",
+            f"Exercise willingness: {profile.get('exercise_willingness') or 'not specified'}",
+            f"Budget: {profile.get('budget') or 'not specified'}",
+            f"Safety notes: {profile.get('safety_notes') or 'not specified'}",
+        ]
+        if options:
+            option_names = [
+                option.get("name") or option.get("sku") or "option"
+                for option in options[:5]
+            ]
+            lines.append("Relevant Farmasi products: " + ", ".join(option_names))
+        lines.append(
+            "If the customer's new message is short, affirmative or ambiguous, "
+            "interpret it as a continuation of this Farmasi profile. Do not diagnose. "
+            "Recommend only using official catalog information. Do not show prices or product URLs. "
+            "Include simple usage guidance from the catalog when available."
+        )
+        return "\n".join(lines)
+
     if context_type != "auto_parts_search":
         return ""
 
@@ -682,7 +741,7 @@ def ask(req: AskRequest):
  lang = (req.language or "es").lower()
  lang_key = "en" if lang.startswith("en") else "es"
  use_conversation_context = (
-     req.conversation_context.get("type") in ["auto_parts_search", "hardware_search"]
+     req.conversation_context.get("type") in ["auto_parts_search", "hardware_search", "wellness_profile"]
      or is_short_followup_reply(req.question)
  )
  conversation_context_text = (
@@ -726,7 +785,12 @@ def ask(req: AskRequest):
     
     #services = entity.get("ui", {}).get("services", {})
     #restaurants = services.get("restaurants", [])
-    if req.question.lower() == "otros restaurantes":
+    entity_type = entity.get("type", "")
+    hotel_like_entity = entity_type in ["hotel", "airbnb", "tourism", "tourism_assistant"]
+    if entity_type == "wellness_sales_assistant":
+        intent = "general"
+
+    if hotel_like_entity and req.question.lower() == "otros restaurantes":
      external_restaurants = [
         r for r in restaurants
         if not r.get("has_own_restaurant")
@@ -741,7 +805,7 @@ def ask(req: AskRequest):
         "answer": MESSAGES["other_restaurants"][lang_key],
         "restaurant_options": restaurant_options
      }    
-    if intent == "food":
+    if hotel_like_entity and intent == "food":
      if not restaurants:
         return {
             "answer": "No hay restaurantes disponibles en este momento.",
@@ -762,7 +826,7 @@ def ask(req: AskRequest):
         "restaurant_options": restaurant_options,
         "suggestions": entity.get("ui", {}).get("suggestions", {})
     }
-    if intent == "tours":
+    if hotel_like_entity and intent == "tours":
 
      services = entity.get("ui", {}).get("services", {})
      tours = services.get("tours", [])
@@ -797,12 +861,12 @@ def ask(req: AskRequest):
         "cta_options": options
      }
 
-    if intent == "tourist_places":
+    if hotel_like_entity and intent == "tourist_places":
      tourist_places = services.get("tourist_places", [])
 
      if not tourist_places:
         return {
-            "answer": NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"]),
+            "answer": get_no_info_message(entity, lang_key),
             "suggestions": entity.get("ui", {}).get("suggestions", {})
         }
 
@@ -818,7 +882,7 @@ def ask(req: AskRequest):
         "suggestions": entity.get("ui", {}).get("suggestions", {})
      }
 
-    if intent == "nearby_businesses":
+    if hotel_like_entity and intent == "nearby_businesses":
      nearby_businesses = services.get("nearby_businesses", [])
      normalized_question = normalize_text(effective_question)
      type_keywords = {
@@ -841,7 +905,7 @@ def ask(req: AskRequest):
 
      if not nearby_businesses:
         return {
-            "answer": NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"]),
+            "answer": get_no_info_message(entity, lang_key),
             "suggestions": entity.get("ui", {}).get("suggestions", {})
         }
 
@@ -888,7 +952,7 @@ def ask(req: AskRequest):
          transport = entity.get("ui", {}).get("services", {}).get("transport")
          if not transport:
              return {
-                 "answer": NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"]),
+                 "answer": get_no_info_message(entity, lang_key),
                  "suggestions": entity.get("ui", {}).get("suggestions", {})
              }
 
@@ -954,7 +1018,7 @@ def ask(req: AskRequest):
 
     is_generic = any(p in answer_text for p in LOW_QUALITY_PATTERNS)
     if not answer or is_generic:
-            answer = NO_INFO_MESSAGES.get(lang_key, NO_INFO_MESSAGES["es"])
+            answer = get_no_info_message(entity, lang_key)
            
     log_question(req.property_id, req.language, req.question, answer,is_generic)
     print("LOGGING QUESTION:", req.question)

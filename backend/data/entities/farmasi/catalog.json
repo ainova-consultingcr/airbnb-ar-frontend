@@ -1,0 +1,212 @@
+[
+    {
+        "sku":  "1001597",
+        "name":  "Nutriplus L-Carnitine Shot",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "weight_support",
+                          "energy",
+                          "workout_support"
+                      ],
+        "official_summary":  "Farmasi describes this product as supporting weight loss, body fat reduction, energy metabolism and physical performance. The official listing says it includes Green Tea Extract and Vitamin B6 and is caffeine-free.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1001597_400.png",
+        "how_to_use":  "Use according to the product label as a daily wellness or performance shot. Confirm safety first if the customer has medical conditions, takes medication, is pregnant or breastfeeding, or has sensitivity to ingredients."
+    },
+    {
+        "sku":  "1002586",
+        "name":  "Nutriplus L-Carnitine Orange \u0026 Passion Fruit",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "weight_support",
+                          "energy",
+                          "active_lifestyle"
+                      ],
+        "official_summary":  "Farmasi presents this 450 mL L-Carnitine option as a tropical companion for energy and weight control routines.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1002586_400_1.png",
+        "how_to_use":  "Use according to the product label as a liquid companion for active lifestyle or weight-support routines. Confirm safety first when there are medical conditions, medications, pregnancy, breastfeeding or sensitivities."
+    },
+    {
+        "sku":  "1000697",
+        "name":  "Nutriplus Shake-Vanilla",
+        "brand":  "Nutriplus",
+        "category":  "Meal replacement",
+        "availability":  "out_of_stock",
+        "goal_tags":  [
+                          "weight_support",
+                          "meal_replacement",
+                          "protein"
+                      ],
+        "official_summary":  "Farmasi describes Nutriplus Meal Replacement Shake as designed to aid and maintain weight loss by replacing 1 to 2 meals per day. The listing mentions 20 g protein, 27 vitamins and minerals, fiber and prebiotics.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000697_400.png",
+        "how_to_use":  "Use according to the product label as a meal replacement. The official description presents it as replacing 1 to 2 meals per day; mention that this item is currently out_of_stock."
+    },
+    {
+        "sku":  "1000698",
+        "name":  "Nutriplus Shake-Strawberry",
+        "brand":  "Nutriplus",
+        "category":  "Meal replacement",
+        "availability":  "out_of_stock",
+        "goal_tags":  [
+                          "weight_support",
+                          "meal_replacement",
+                          "protein"
+                      ],
+        "official_summary":  "Farmasi describes Nutriplus Meal Replacement Shake as designed to aid and maintain weight loss by replacing 1 to 2 meals per day. The listing mentions 20 g protein, 27 vitamins and minerals, fiber and prebiotics.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000698_400.png",
+        "how_to_use":  "Use according to the product label as a meal replacement. The official description presents it as replacing 1 to 2 meals per day; mention that this item is currently out_of_stock."
+    },
+    {
+        "sku":  "1000699",
+        "name":  "Nutriplus Shake- Chocolate",
+        "brand":  "Nutriplus",
+        "category":  "Meal replacement",
+        "availability":  "out_of_stock",
+        "goal_tags":  [
+                          "weight_support",
+                          "meal_replacement",
+                          "protein"
+                      ],
+        "official_summary":  "Farmasi describes Nutriplus Meal Replacement Shake as designed to aid and maintain weight loss by replacing 1 to 2 meals per day. The listing mentions 20 g protein, 27 vitamins and minerals, fiber and prebiotics.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000699_400.png",
+        "how_to_use":  "Use according to the product label as a meal replacement. The official description presents it as replacing 1 to 2 meals per day; mention that this item is currently out_of_stock."
+    },
+    {
+        "sku":  "1002722",
+        "name":  "Nutriplus+ Creatine",
+        "brand":  "Nutriplus+",
+        "category":  "Nutrition \u003e Nutriplus+",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "workout_support",
+                          "strength",
+                          "performance"
+                      ],
+        "official_summary":  "Farmasi describes this creatine as delivering 5 g creatine monohydrate per serving to support muscle strength, endurance, power and performance. The listing also mentions Vitamin B6.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1002722_400.png",
+        "how_to_use":  "Use according to the product label as workout support. The official description mentions 5 g creatine monohydrate per serving; suggest hydration and pairing it with a training routine."
+    },
+    {
+        "sku":  "1002730",
+        "name":  "Nutriplus+ Pre-Workout",
+        "brand":  "Nutriplus+",
+        "category":  "Nutrition \u003e Nutriplus+",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "workout_support",
+                          "energy",
+                          "focus"
+                      ],
+        "official_summary":  "Farmasi describes this pre-workout as crafted to boost endurance, enhance blood flow and sharpen mental focus for training sessions.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1002730_400_1.png",
+        "how_to_use":  "Use according to the product label before training. Confirm caffeine or stimulant sensitivity and recommend professional guidance when the customer has medical conditions or takes medication."
+    },
+    {
+        "sku":  "1000904",
+        "name":  "Nutriplus Collagen Tablets",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "skin_hair_nails",
+                          "collagen"
+                      ],
+        "official_summary":  "Farmasi describes these tablets as supporting healthy skin, hair and nails. The listing says each serving provides Type I and III collagen and Vitamin C.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000904_400.png",
+        "how_to_use":  "Use according to the product label as collagen support for skin, hair and nails. Keep the guidance general and avoid medical claims."
+    },
+    {
+        "sku":  "1000849",
+        "name":  "Nutriplus Beauty Shot Collagen",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "skin_hair_nails",
+                          "collagen",
+                          "beauty"
+                      ],
+        "official_summary":  "Farmasi presents Beauty Shot Collagen as a collagen supplement for healthier-looking skin, with Type I and III collagen, hyaluronic acid, Vitamins C, E, B5, B6 and Biotin.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000849_400.png",
+        "how_to_use":  "Use according to the product label as a collagen beauty supplement. It can be positioned as support for a skin-care routine, without promising medical or guaranteed results."
+    },
+    {
+        "sku":  "1000847",
+        "name":  "Nutriplus Vitamin C Effervescent Tablets",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "immune_support",
+                          "energy",
+                          "wellness"
+                      ],
+        "official_summary":  "Farmasi lists each tablet as providing Vitamin C, Vitamin D and Zinc and describes it as supporting immunity, energy and overall well-being.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000847_400.png",
+        "how_to_use":  "Use according to the product label as an effervescent supplement. The usual format is to dissolve the tablet as directed on the package."
+    },
+    {
+        "sku":  "1002693",
+        "name":  "Delish Mushroom Coffee",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "coffee",
+                          "focus",
+                          "digestive_support",
+                          "immune_support"
+                      ],
+        "official_summary":  "Farmasi describes this product as instant coffee blended with 10 concentrated functional mushrooms, chicory and BENEO inulin for digestive support, mental clarity and immune support.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1002693_400_1.png",
+        "how_to_use":  "Prepare according to the product label as an instant coffee beverage. Ask about caffeine sensitivity before recommending it."
+    },
+    {
+        "sku":  "9000699",
+        "name":  "Delish Instant Coffee and Chicory Blend Sticks",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "coffee",
+                          "weight_support",
+                          "gut_health"
+                      ],
+        "official_summary":  "Farmasi describes these sticks as instant coffee with chicory root. The listing mentions minerals, antioxidants, inulin, weight control and gut health support, with less caffeine than regular coffee.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/9000699_400.png",
+        "how_to_use":  "Use according to the product label as instant coffee sticks. Mention that the official description says it has less caffeine than regular coffee, but still ask about caffeine sensitivity."
+    },
+    {
+        "sku":  "1000704",
+        "name":  "Nutriplus Aloe Glow Mango",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "wellness",
+                          "plant_based",
+                          "balanced_lifestyle"
+                      ],
+        "official_summary":  "Farmasi describes Aloe Glow Mango as a liquid dietary supplement with purified aloe vera juice, mango flavor and chamomile extract for a mindful, balanced lifestyle.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000704_400_1.png",
+        "how_to_use":  "Use according to the product label as a liquid dietary supplement for a balanced lifestyle. Keep the recommendation general and safety-aware."
+    },
+    {
+        "sku":  "1000708",
+        "name":  "Nutriplus Serenity Lemon Tea",
+        "brand":  "Nutriplus",
+        "category":  "Nutrition \u003e Nutriplus",
+        "availability":  "in_stock",
+        "goal_tags":  [
+                          "relaxation",
+                          "tea",
+                          "sugar_free"
+                      ],
+        "official_summary":  "Farmasi describes Serenity Lemon Tea as a caffeine-free and sugar-free herbal blend that can be enjoyed hot or iced.",
+        "image_url":  "https://content-google-feed.farmasi.com/us-product/1000708_400.png",
+        "how_to_use":  "Prepare according to the product label as an herbal tea. The official listing says it can be enjoyed hot or iced and is caffeine-free and sugar-free."
+    }
+]
