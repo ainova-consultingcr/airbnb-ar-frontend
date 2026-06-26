@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 
   <meta name="theme-color" content="#071018">
-  <title>AVI | Asistente del huÃƒÆ’Ã‚Â©sped</title>
+  <title>AVI | Asistente del hu&eacute;sped</title>
 
   <style>
     html, body {
@@ -2055,7 +2055,7 @@ function showLoader() {
   if (responseLabel) {
     responseLabel.textContent = CURRENT_LANG.startsWith("en")
       ? "AVI is checking"
-      : "AVI estÃƒÆ’Ã‚Â¡ consultando";
+      : "AVI est\u00e1 consultando";
   }
   if (status) {
     status.textContent = CURRENT_LANG.startsWith("en")
@@ -2349,7 +2349,7 @@ function showTouristPlaces(places) {
     if (place.info_url) {
       const infoButton = document.createElement("button");
       infoButton.className = "place-link primary";
-      infoButton.textContent = langKey === "en" ? "Official info" : "InformaciÃƒÆ’Ã‚Â³n";
+      infoButton.textContent = langKey === "en" ? "Official info" : "Informaci\u00f3n";
       infoButton.onclick = () => openExternalUrl(place.info_url);
       links.appendChild(infoButton);
     }
