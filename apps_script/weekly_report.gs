@@ -130,10 +130,21 @@ function buildWeeklyReport_(spreadsheet, propertyId) {
   const now = new Date();
   const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const propertyConfig = AVI_CONFIG.properties[propertyId] || {};
+  const normalizedPropertyId = normalizeKey_(propertyId);
   const questions = readSheetObjects_(spreadsheet, AVI_CONFIG.sheets.questions)
-    .filter((row) => row.property === propertyId && asDate_(row.timestamp) >= weekStart);
+    .filter((row) => {
+      const timestamp = asDate_(row.timestamp);
+      const question = String(row.question || "").trim().toLowerCase();
+      return normalizeKey_(row.property) === normalizedPropertyId &&
+        timestamp >= weekStart && timestamp <= now &&
+        question && question !== "init";
+    });
   const events = readSheetObjects_(spreadsheet, AVI_CONFIG.sheets.events)
-    .filter((row) => row.property === propertyId && asDate_(row.timestamp) >= weekStart);
+    .filter((row) => {
+      const timestamp = asDate_(row.timestamp);
+      return normalizeKey_(row.property) === normalizedPropertyId &&
+        timestamp >= weekStart && timestamp <= now;
+    });
 
   const unknownQuestions = questions.filter((row) => normalizeBoolean_(row.unknown));
   const answeredCount = Math.max(questions.length - unknownQuestions.length, 0);
@@ -322,6 +333,10 @@ function asDate_(value) {
   if (value instanceof Date) return value;
   const parsed = new Date(value);
   return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+}
+
+function normalizeKey_(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 function normalizeBoolean_(value) {
