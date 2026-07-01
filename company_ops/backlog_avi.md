@@ -21,6 +21,7 @@
 - Refinar flujos de restaurantes, transporte, turismo y comercios cercanos.
 - Crear version de reporte semanal para administradores.
 - Medir oportunidades para comercios recomendados.
+- Implementar distribución justa de visibilidad entre proveedores elegibles; ver `distribucion_justa_proveedores.md`.
 
 ## Repuestos
 
