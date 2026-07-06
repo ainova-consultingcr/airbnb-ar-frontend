@@ -12,20 +12,27 @@ const AVI_CONFIG = {
   properties: {
     hotel_demo: {
       name: "TuHotel",
+      spreadsheetId: "", // Google Sheet exclusivo de esta propiedad.
       reportRecipients: ["hotel@example.com"],
       replyTo: ""
     }
   },
   sheets: {
     questions: "QUESTIONS",
-    events: "EVENTS"
+    events: "EVENTS",
+    requests: "Solicitudes"
   }
 };
 
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents || "{}");
-    const spreadsheet = getAviSpreadsheet_();
+    const propertyId = payload.property || payload.property_id || AVI_CONFIG.defaultPropertyId;
+    const spreadsheet = getPropertySpreadsheet_(propertyId);
+
+    if (payload.type === "service_request") {
+      return jsonResponse_(handleServiceRequest_(spreadsheet, payload));
+    }
 
     if (payload.type === "event" || payload.event_type) {
       appendEvent_(spreadsheet, payload);
@@ -41,12 +48,12 @@ function doPost(e) {
 }
 
 function sendWeeklyAviReports() {
-  const spreadsheet = getAviSpreadsheet_();
   const propertyIds = Object.keys(AVI_CONFIG.properties);
 
   propertyIds.forEach((propertyId) => {
     const propertyConfig = AVI_CONFIG.properties[propertyId];
-    const report = buildWeeklyReport_(spreadsheet, propertyId);
+    const propertySpreadsheet = getPropertySpreadsheet_(propertyId);
+    const report = buildWeeklyReport_(propertySpreadsheet, propertyId);
     const html = renderWeeklyReportHtml_(report);
     const recipients = propertyConfig.reportRecipients || [];
 
@@ -146,6 +153,15 @@ function buildWeeklyReport_(spreadsheet, propertyId) {
         timestamp >= weekStart && timestamp <= now;
     });
 
+  const serviceRequests = readServiceRequests_(spreadsheet).filter((row) => {
+    const timestamp = asDate_(row.created_at);
+    return timestamp >= weekStart && timestamp <= now;
+  });
+  const deliveredRequests = serviceRequests.filter((row) => row.Estado === "Entregada");
+  const confirmedRequests = serviceRequests.filter((row) => row["Confirmación huésped"] === "Confirmada");
+  const ratings = serviceRequests.map((row) => Number(row["Calificación"])).filter((value) => value > 0);
+  const resolutionMinutes = deliveredRequests.map((row) => Math.max(0, Math.round((asDate_(row.delivered_at) - asDate_(row.created_at)) / 60000))).filter(isFinite);
+
   const unknownQuestions = questions.filter((row) => normalizeBoolean_(row.unknown));
   const answeredCount = Math.max(questions.length - unknownQuestions.length, 0);
   const answerRate = questions.length ? Math.round((answeredCount / questions.length) * 100) : 0;
@@ -163,6 +179,14 @@ function buildWeeklyReport_(spreadsheet, propertyId) {
     answerRate,
     totalEvents: events.length,
     leadCount: leadEvents.length,
+    requestTotal: serviceRequests.length,
+    requestPending: serviceRequests.filter((row) => row.Estado === "Pendiente").length,
+    requestInProgress: serviceRequests.filter((row) => row.Estado === "En proceso").length,
+    requestDelivered: deliveredRequests.length,
+    requestConfirmedRate: deliveredRequests.length ? Math.round(confirmedRequests.length / deliveredRequests.length * 100) : 0,
+    requestAverageMinutes: resolutionMinutes.length ? Math.round(resolutionMinutes.reduce((a,b) => a+b, 0) / resolutionMinutes.length) : 0,
+    requestAverageRating: ratings.length ? (ratings.reduce((a,b) => a+b, 0) / ratings.length).toFixed(1) : "—",
+    requestCategories: topCounts_(serviceRequests.map((row) => row["Categoría"] || "Sin categoría"), 6),
     topQuestions: topCounts_(questions.map((row) => row.question), 8),
     languages: topCounts_(questions.map((row) => row.language || "sin idioma"), 6),
     eventCategories: topCounts_(events.map((row) => row.category || "sin categoría"), 6),
@@ -188,6 +212,7 @@ function renderWeeklyReportHtml_(report) {
         ${metricCard_("Sin información", report.unknownCount)}
         ${metricCard_("Eventos", report.totalEvents)}
         ${metricCard_("Leads", report.leadCount)}
+        ${metricCard_("Solicitudes", report.requestTotal)}
       </div>
 
       <div style="padding:24px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:#0f1b2d;margin-bottom:16px;text-align:center">
@@ -200,6 +225,7 @@ function renderWeeklyReportHtml_(report) {
       ${section_("Idiomas usados", barList_(report.languages))}
       ${section_("Oportunidades por categoría", barList_(report.eventCategories))}
       ${section_("Información faltante", unorderedList_(report.unknownQuestions))}
+      ${serviceRequestReportHtml_(report)}
       ${section_("Recomendaciones accionables", unorderedList_(report.recommendations))}
 
       <p style="text-align:center;color:#7d8aa2;font-size:12px;margin-top:20px">

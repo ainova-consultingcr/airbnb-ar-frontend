@@ -2648,6 +2648,8 @@ async function askAI() {
   ) {
     activeConversationContext = null;
   }
+  const requestCard = document.getElementById("serviceRequestCard");
+  if (requestCard) requestCard.style.display = "none";
   const currentRenderToken = ++responseRenderToken;
 
   try {
@@ -2667,7 +2669,9 @@ async function askAI() {
           question: question,
           //language: CURRENT_LANG
           language: CURRENT_LANG.startsWith("en") ? "en" : "es",
-          conversation_context: requestContext
+          conversation_context: requestContext,
+          room_id: CURRENT_ROOM || null,
+          guest_session_id: GUEST_SESSION_ID
         })
       }
     );
@@ -2695,6 +2699,9 @@ async function askAI() {
     //console.log("RAW RESPONSE:", text);
     const data = await res.json();
     console.log("DATA COMPLETA:", data);
+    if (data.service_request) {
+      startServiceRequestPolling(data.service_request);
+    }
     if (data.reset_context) {
       activeConversationContext = null;
     }
@@ -2744,6 +2751,10 @@ if (!answer) {
       : "No pude preparar una respuesta. Intenta nuevamente.",
     false
   );
+  return;
+}
+if (data.service_request) {
+  input.value = "";
   return;
 }
 showARAnswer(answer, true);
@@ -2798,6 +2809,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   applyInputBranding();
   renderSuggestionsFromBackend();
   showSuggestions();
+  restoreServiceRequest();
 });
 
 
@@ -2840,6 +2852,7 @@ if (type === "restaurant") {
 
 </script>
 
+  <script src="service_requests.js"></script>
   <script src="provider_analytics.js"></script>
 </body>
 </html>

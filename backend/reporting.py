@@ -88,6 +88,7 @@ def build_report(records: list[dict[str, Any]], property_id: str | None = None) 
 
     questions = [record for record in records if record.get("question")]
     events = [record for record in records if record.get("type") == "event" or record.get("event_type")]
+    service_requests = [record for record in records if record.get("type") == "service_request" or record.get("request_id")]
     unknown_questions = [record for record in questions if _truthy(record.get("unknown"))]
 
     total_questions = len(questions)
@@ -104,6 +105,11 @@ def build_report(records: list[dict[str, Any]], property_id: str | None = None) 
     question_counter = Counter(_clean(record.get("question")) for record in questions)
     language_counter = Counter(_clean(record.get("language") or "sin idioma") for record in questions)
     category_counter = Counter(_clean(event.get("category") or "sin categoría") for event in events)
+    request_statuses = Counter(_clean(item.get("status") or "Pendiente") for item in service_requests)
+    request_categories = Counter(_clean(item.get("category") or "Sin categoría") for item in service_requests)
+    delivered_requests = [item for item in service_requests if _clean(item.get("status")) in {"Entregada", "Confirmada"}]
+    confirmed_requests = [item for item in service_requests if _clean(item.get("guest_confirmation")) == "Confirmada"]
+    ratings = [float(item["rating"]) for item in service_requests if str(item.get("rating") or "").replace(".", "", 1).isdigit()]
 
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
@@ -114,6 +120,13 @@ def build_report(records: list[dict[str, Any]], property_id: str | None = None) 
         "answer_rate": answer_rate,
         "total_events": len(events),
         "lead_count": len(lead_events),
+        "request_total": len(service_requests),
+        "request_pending": request_statuses.get("Pendiente", 0),
+        "request_in_progress": request_statuses.get("En proceso", 0),
+        "request_delivered": len(delivered_requests),
+        "request_confirmed_rate": round(len(confirmed_requests) / len(delivered_requests) * 100) if delivered_requests else 0,
+        "request_average_rating": round(sum(ratings) / len(ratings), 1) if ratings else "—",
+        "request_categories": request_categories.most_common(8),
         "top_questions": question_counter.most_common(8),
         "languages": language_counter.most_common(),
         "event_categories": category_counter.most_common(),

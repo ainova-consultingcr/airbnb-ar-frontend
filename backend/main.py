@@ -12,8 +12,13 @@ import urllib.request
 from fastapi.responses import JSONResponse
 from datetime import datetime, timezone
 import uuid
+from service_requests import (
+    classify_service_request, confirm_service_request, create_service_request,
+    get_service_request, is_accommodation_entity,
+)
 
-GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbzm1z2UQV0j8ySZr4N7LoeQuqAdHyRKNOJgpnIjGj4D3n1Krph198v0O30mACG-Wu3qpA/exec"
+load_dotenv()
+GOOGLE_SHEET_WEBHOOK = os.getenv("GOOGLE_SHEET_WEBHOOK", "https://script.google.com/macros/s/AKfycbzm1z2UQV0j8ySZr4N7LoeQuqAdHyRKNOJgpnIjGj4D3n1Krph198v0O30mACG-Wu3qpA/exec")
 
 app = FastAPI()
 
@@ -24,6 +29,12 @@ class LeadEventRequest(BaseModel):
     lead_id: Optional[str] = None
     event_type: str
     metadata: dict = Field(default_factory=dict)
+
+class ServiceRequestConfirmation(BaseModel):
+    property_id: str
+    guest_session_id: str
+    received: bool
+    rating: Optional[int] = Field(default=None, ge=1, le=5)
     
 def generate_lead_id(prefix="AVI"):
     return f"{prefix}-{str(uuid.uuid4())[:8].upper()}"
@@ -91,6 +102,13 @@ def get_property(property_id: str = "hotel_demo"):
             #"services": data.get("services", {}),
             "contact": data.get("contact", {})
         }
+
+        if is_accommodation_entity(data):
+            response["service_requests"] = {
+                "enabled": data.get("service_requests", {}).get("enabled", True),
+                "room_label": data.get("service_requests", {}).get("room_label", "Habitaci?n"),
+                "poll_seconds": 15,
+            }
 
         if data.get("type") == "auto_parts_store":
             services = data.get("ui", {}).get("services", {})
@@ -310,6 +328,8 @@ class AskRequest(BaseModel):
     question: str
     language: Optional[str] = "es"
     conversation_context: dict = Field(default_factory=dict)
+    room_id: Optional[str] = None
+    guest_session_id: Optional[str] = None
 
 NO_INFO_MESSAGES = {
     "es": "No tengo esa información, por favor consulta con el encargado de recepción.",
@@ -755,6 +775,32 @@ def ask(req: AskRequest):
  try:
     # 1) Cargar entidad
     entity = load_property_data(req.property_id)
+    request_classification = classify_service_request(req.question) if is_accommodation_entity(entity) else None
+    if request_classification:
+        if not req.room_id or not req.guest_session_id:
+            return {
+                "answer": ("Please scan the QR in your room before making a service request."
+                           if lang_key == "en" else
+                           "Escanea el QR de tu habitaci?n para registrar la solicitud correctamente."),
+                "requires_room": True,
+            }
+        try:
+            service_request = create_service_request(
+                GOOGLE_SHEET_WEBHOOK, property_id=req.property_id, room_id=req.room_id,
+                guest_session_id=req.guest_session_id, description=req.question,
+                category=request_classification["category"],
+                priority=request_classification["priority"],
+            )
+        except Exception as error:
+            raise HTTPException(status_code=502, detail=f"No se pudo registrar la solicitud: {error}")
+        answer = (
+            f"Request {service_request['id']} registered for room {req.room_id}. "
+            "We will notify you when it is delivered."
+            if lang_key == "en" else
+            f"Listo. Registr? la solicitud {service_request['id']} para la habitaci?n "
+            f"{req.room_id}. Te avisar? cuando sea atendida."
+        )
+        return {"answer": answer, "service_request": service_request}
     services = entity.get("ui", {}).get("services", {})
     restaurants = services.get("restaurants", [])
     suggestions = entity.get("ui", {}).get("suggestions", {})
@@ -1035,6 +1081,32 @@ def ask(req: AskRequest):
     raise
  except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/service-requests/{request_id}")
+def service_request_status(request_id: str, property_id: str, guest_session_id: str):
+    try:
+        return get_service_request(
+            GOOGLE_SHEET_WEBHOOK, property_id=property_id, request_id=request_id,
+            guest_session_id=guest_session_id,
+        )
+    except LookupError:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=f"No se pudo consultar la solicitud: {error}")
+
+
+@app.post("/service-requests/{request_id}/confirm")
+def service_request_confirmation(request_id: str, req: ServiceRequestConfirmation):
+    try:
+        return confirm_service_request(
+            GOOGLE_SHEET_WEBHOOK, property_id=req.property_id, request_id=request_id,
+            guest_session_id=req.guest_session_id, received=req.received, rating=req.rating,
+        )
+    except LookupError:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=f"No se pudo actualizar la solicitud: {error}")
+
 
 @app.post("/track-lead")
 def track_lead(req: LeadEventRequest):

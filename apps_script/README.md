@@ -29,3 +29,11 @@ The script includes `doPost(e)`, compatible with the current AVI backend payload
 - Events and leads are saved in `EVENTS`.
 
 If your current Apps Script already has a `doPost(e)`, merge carefully instead of creating a duplicate `doPost`.
+
+## Solicitudes de huéspedes
+
+Copia también el archivo service_requests.gs en el mismo proyecto de Apps Script.
+Cada entrada de AVI_CONFIG.properties debe incluir spreadsheetId con el Google Sheet de esa propiedad.
+La pestaña Solicitudes se crea automáticamente al recibir la primera solicitud.
+
+URL para cada QR: https://TU_DOMINIO/index.html?entity=hotel_sol&habitacion=204
