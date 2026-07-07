@@ -69,6 +69,7 @@ function setupServiceRequestDashboard_(spreadsheet) {
 
 function appendServiceRequest_(spreadsheet, payload) {
   let sheet = setupServiceRequestDashboard_(spreadsheet);
+  removeBasicFilter_(sheet);
   const created = payload.timestamp ? new Date(payload.timestamp) : new Date();
   const row = REQUEST_HEADER_ROW + 1;
 
@@ -91,7 +92,36 @@ function appendServiceRequest_(spreadsheet, payload) {
   );
   setElapsedFormula_(sheet, row);
   setupServiceRequestDashboard_(spreadsheet);
-  return requestObject_(sheet.getRange(row, 1, 1, 18).getValues()[0]);
+  sortServiceRequestsNewestFirst_(sheet);
+  const finalRow = findRequestRow_(sheet, payload.request_id, payload.guest_session_id) || row;
+  return requestObject_(sheet.getRange(finalRow, 1, 1, 18).getValues()[0]);
+}
+
+function sortServiceRequestsNewestFirst_(sheet) {
+  removeBasicFilter_(sheet);
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= REQUEST_HEADER_ROW + 1) return;
+  sheet.getRange(REQUEST_HEADER_ROW + 1, 1, lastRow - REQUEST_HEADER_ROW, 18)
+    .sort([{ column: 11, ascending: false }]);
+}
+
+function removeBasicFilter_(sheet) {
+  const filter = sheet.getFilter();
+  if (filter) filter.remove();
+}
+
+function testServiceRequestInsertAtTop() {
+  const spreadsheet = getPropertySpreadsheet_(AVI_CONFIG.defaultPropertyId);
+  return appendServiceRequest_(spreadsheet, {
+    request_id: "AVI-TEST-" + Utilities.formatDate(new Date(), AVI_CONFIG.timezone, "HHmmss"),
+    property: AVI_CONFIG.defaultPropertyId,
+    room_id: "204",
+    description: "PRUEBA ORDEN ARRIBA - eliminar esta fila",
+    category: "Amenidades",
+    priority: "Normal",
+    guest_session_id: "manual-test-" + Date.now(),
+    timestamp: new Date().toISOString()
+  });
 }
 
 function setElapsedFormula_(sheet, row) {
