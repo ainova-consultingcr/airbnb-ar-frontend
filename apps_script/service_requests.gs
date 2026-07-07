@@ -43,7 +43,8 @@ function setupServiceRequestDashboard_(spreadsheet) {
     ).setFontColor("#46616f").setBackground("#f8fbfc");
   }
 
-  sheet.getRange(REQUEST_HEADER_ROW, 1, 1, REQUEST_HEADERS.length).setValues([REQUEST_HEADERS])
+  sheet.getRange(REQUEST_HEADER_ROW, 1, 1, REQUEST_HEADERS.length).clearDataValidations()
+    .setValues([REQUEST_HEADERS])
     .setBackground("#07858b").setFontColor("#ffffff").setFontWeight("bold");
   [130, 90, 90, 95, 270, 130, 120, 140, 230, 120].forEach(
     (width, index) => sheet.setColumnWidth(index + 1, width)
@@ -67,9 +68,15 @@ function setupServiceRequestDashboard_(spreadsheet) {
 }
 
 function appendServiceRequest_(spreadsheet, payload) {
-  const sheet = setupServiceRequestDashboard_(spreadsheet);
+  let sheet = setupServiceRequestDashboard_(spreadsheet);
   const created = payload.timestamp ? new Date(payload.timestamp) : new Date();
-  const row = Math.max(sheet.getLastRow() + 1, REQUEST_HEADER_ROW + 1);
+  const row = REQUEST_HEADER_ROW + 1;
+
+  sheet.insertRowsAfter(REQUEST_HEADER_ROW, 1);
+  if (sheet.getMaxRows() > row) {
+    sheet.getRange(row + 1, 1, 1, 18).copyTo(sheet.getRange(row, 1, 1, 18), { formatOnly: true });
+  }
+
   sheet.getRange(row, 1, 1, 18).setValues([[
     payload.request_id, created, created, payload.room_id, payload.description,
     payload.category || "Recepción", "Pendiente", "", "", "", created, created,
@@ -77,7 +84,13 @@ function appendServiceRequest_(spreadsheet, payload) {
   ]]);
   sheet.getRange(row, 2).setNumberFormat("dd/MM/yyyy");
   sheet.getRange(row, 3).setNumberFormat("h:mm a");
+  sheet.getRange(row, 7).setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(["Pendiente", "En proceso", "Entregada", "Cancelada"], true)
+      .setAllowInvalid(false).build()
+  );
   setElapsedFormula_(sheet, row);
+  setupServiceRequestDashboard_(spreadsheet);
   return requestObject_(sheet.getRange(row, 1, 1, 18).getValues()[0]);
 }
 

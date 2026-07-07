@@ -42,7 +42,28 @@ function renderServiceRequest(request) {
       actions.appendChild(button);
     });
   }
+  if (request.status === "Cancelada") {
+    const acknowledgeButton = document.createElement("button");
+    acknowledgeButton.textContent = CURRENT_LANG.startsWith("en") ? "Understood" : "Entendido";
+    acknowledgeButton.style.cssText = "flex:1;padding:10px;border:0;border-radius:11px;font-weight:800;background:#9ca3af;color:#111827";
+    acknowledgeButton.onclick = dismissServiceRequest;
+    actions.appendChild(acknowledgeButton);
+  }
   document.getElementById("serviceRequestCard").style.display = "block";
+}
+function dismissServiceRequest() {
+  localStorage.removeItem(activeRequestKey());
+  activeServiceRequest = null;
+  clearInterval(serviceRequestPollTimer);
+  serviceRequestPollTimer = null;
+  const card = document.getElementById("serviceRequestCard");
+  if (card) card.style.display = "none";
+  if (typeof showSuggestions === "function") showSuggestions();
+  if (typeof showARAnswer === "function") {
+    const fallbackWelcome = CURRENT_LANG.startsWith("en") ? "How else can I help you?" : "¿En qué más puedo ayudarte?";
+    const welcomeMessage = typeof localizedValue === "function" ? localizedValue(PROPERTY_CONFIG?.welcome, fallbackWelcome) : fallbackWelcome;
+    showARAnswer(welcomeMessage, false);
+  }
 }
 async function pollServiceRequest() {
   const id = activeServiceRequest?.id || localStorage.getItem(activeRequestKey());
@@ -73,7 +94,12 @@ async function confirmGuestReceipt(received) {
     body: JSON.stringify({property_id: CURRENT_PROPERTY, guest_session_id: GUEST_SESSION_ID, received})
   });
   if (!response.ok) return;
-  renderServiceRequest(await response.json());
+  const updatedRequest = await response.json();
+  if (received) {
+    dismissServiceRequest();
+  } else {
+    renderServiceRequest(updatedRequest);
+  }
 }
 function restoreServiceRequest() {
   ensureServiceRequestCard();

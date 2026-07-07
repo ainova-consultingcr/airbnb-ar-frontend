@@ -432,6 +432,86 @@
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
     }
 
+    .service-request-help {
+      display: grid;
+      gap: 12px;
+      max-height: min(62vh, 520px);
+      overflow-y: auto;
+      padding: 16px;
+      border: 1px solid var(--avi-border);
+      border-radius: 22px;
+      color: #fff;
+      background: rgba(15, 23, 42, 0.94);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+      -webkit-overflow-scrolling: touch;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .service-request-help h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .service-request-help p {
+      margin: 0;
+      color: var(--avi-muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .service-request-help-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .service-request-help-row {
+      padding: 10px 11px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .service-request-help-row strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .service-request-example-list {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .service-request-example-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .service-request-example {
+      flex: 0 0 auto;
+      max-width: 82vw;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .service-request-help-actions {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr;
+    }
     .place-list {
       display: flex;
       align-items: stretch;
@@ -467,6 +547,23 @@
       scroll-snap-align: start;
       backface-visibility: hidden;
       transform: translateZ(0);
+    }
+
+    /* Evita el pintado parcial de tarjetas altas durante el scroll en iOS. */
+    .tourist-place-list,
+    .business-place-list {
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      will-change: scroll-position;
+    }
+
+    .tourist-card,
+    .business-card {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
 
     .place-category {
@@ -2117,6 +2214,8 @@ function renderSuggestions() {
 
     container.appendChild(btn);
   });
+
+  appendServiceRequestHelpSuggestion(container);
 }
 
 function renderSuggestionsFromBackend() {
@@ -2144,6 +2243,146 @@ function renderSuggestionsFromBackend() {
 
     container.appendChild(btn);
   });
+
+  appendServiceRequestHelpSuggestion(container);
+}
+function serviceRequestHelpContent() {
+  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+  if (langKey === "en") {
+    return {
+      button: "What can I request?",
+      title: "How to make a request",
+      intro: "Write a clear operational request so AVI can send it to the hotel team. For example: “I need an extra towel”.",
+      intent: "Use phrases like: I need, I would like to request, can you bring, I am missing, it is not working, or it is damaged.",
+      examplesTitle: "Examples you can use",
+      close: "Got it",
+      examples: ["I need an extra towel", "The hot water is not working", "I am missing toilet paper"],
+      categories: [
+        ["Amenities", "Towels, soap, shampoo, toilet paper, iron, hair dryer, pillows and blankets."],
+        ["Bed linen", "Sheets, pillowcases and bed linen change."],
+        ["Drinks", "Water, bottles, ice and other beverages."],
+        ["Cleaning", "Room cleaning, trash pickup or additional cleaning."],
+        ["Maintenance", "Air conditioning, hot water, television, electricity, lock, toilet, shower, leaks or damaged equipment."],
+        ["Front desk", "Keys, access cards, luggage and general requests."]
+      ]
+    };
+  }
+
+  return {
+    button: "¿Qué puedo solicitar?",
+    title: "Cómo hacer una solicitud",
+    intro: "Escribe una solicitud operativa clara para que AVI pueda enviarla al equipo del alojamiento. Por ejemplo: “Necesito una toalla extra”.",
+    intent: "Usa frases como: necesito, quisiera pedir, pueden traer, me hace falta, no funciona o está dañado.",
+    examplesTitle: "Ejemplos que puedes usar",
+    close: "Entendido",
+    examples: ["Necesito una toalla extra", "El agua caliente no funciona", "Me hace falta papel higiénico"],
+    categories: [
+      ["Amenidades", "Toallas, jabón, champú, papel higiénico, plancha, secadora, almohadas y cobijas."],
+      ["Ropa de cama", "Sábanas, fundas y cambio de ropa de cama."],
+      ["Bebidas", "Agua, botellas, hielo y otras bebidas."],
+      ["Limpieza", "Aseo de la habitación, basura o limpieza adicional."],
+      ["Mantenimiento", "Aire acondicionado, agua caliente, televisión, electricidad, cerradura, inodoro, ducha, fugas o equipos dañados."],
+      ["Recepción", "Llaves, tarjetas de acceso, equipaje y solicitudes generales."]
+    ]
+  };
+}
+
+function shouldShowServiceRequestHelp() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomFromUrl = urlParams.get("habitacion") || urlParams.get("room") || urlParams.get("room_id");
+  const room = (typeof CURRENT_ROOM !== "undefined" && CURRENT_ROOM) || roomFromUrl;
+  const entity = String((typeof CURRENT_PROPERTY !== "undefined" && CURRENT_PROPERTY) || "").toLowerCase();
+  const type = String(PROPERTY_CONFIG?.type || PROPERTY_CONFIG?.entity_type || PROPERTY_CONFIG?.category || "").toLowerCase();
+  const serviceRequestsEnabled = PROPERTY_CONFIG?.service_requests?.enabled === true;
+
+  return Boolean(room || serviceRequestsEnabled || entity.includes("hotel") || entity.includes("airbnb") || type.includes("hotel") || type.includes("airbnb"));
+}
+
+function appendServiceRequestHelpSuggestion(container) {
+  if (!container || !shouldShowServiceRequestHelp()) return;
+
+  const content = serviceRequestHelpContent();
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "suggestion-btn service-help-suggestion";
+  btn.textContent = content.button;
+  btn.onclick = showServiceRequestHelp;
+  container.insertBefore(btn, container.firstChild);
+}
+
+function fillServiceRequestExample(text) {
+  const input = document.getElementById("questionInput");
+  if (!input) return;
+  input.value = text;
+  input.focus();
+}
+
+function showServiceRequestHelp() {
+  clearCTAs();
+  hideSuggestions();
+
+  const actionArea = document.getElementById("actionArea");
+  if (!actionArea) return;
+
+  const content = serviceRequestHelpContent();
+  const card = document.createElement("section");
+  card.className = "service-request-help";
+  card.setAttribute("aria-label", content.title);
+
+  const title = document.createElement("h3");
+  title.textContent = content.title;
+
+  const intro = document.createElement("p");
+  intro.textContent = content.intro;
+
+  const grid = document.createElement("div");
+  grid.className = "service-request-help-grid";
+
+  content.categories.forEach(([name, description]) => {
+    const row = document.createElement("div");
+    row.className = "service-request-help-row";
+
+    const strong = document.createElement("strong");
+    strong.textContent = name;
+
+    const span = document.createElement("span");
+    span.textContent = description;
+
+    row.append(strong, span);
+    grid.appendChild(row);
+  });
+
+  const intent = document.createElement("p");
+  intent.textContent = content.intent;
+
+  const examplesTitle = document.createElement("p");
+  examplesTitle.textContent = content.examplesTitle;
+
+  const examples = document.createElement("div");
+  examples.className = "service-request-example-list";
+  content.examples.forEach((example) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "service-request-example";
+    btn.textContent = example;
+    btn.onclick = () => fillServiceRequestExample(example);
+    examples.appendChild(btn);
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "service-request-help-actions";
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "avi-action secondary";
+  closeBtn.textContent = content.close;
+  closeBtn.onclick = () => {
+    clearCTAs();
+    showSuggestions();
+  };
+  actions.appendChild(closeBtn);
+
+  card.append(title, intro, grid, intent, examplesTitle, examples, actions);
+  actionArea.appendChild(card);
 }
 function showThinking() {
   if (!PROPERTY_CONFIG) return;
@@ -2320,12 +2559,12 @@ function showTouristPlaces(places) {
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
-  list.className = "place-list";
+  list.className = "place-list tourist-place-list";
   const fragment = document.createDocumentFragment();
 
   places.forEach((place) => {
     const card = document.createElement("article");
-    card.className = "place-card";
+    card.className = "place-card tourist-card";
 
     const category = document.createElement("div");
     category.className = "place-category";
@@ -2471,7 +2710,7 @@ function showNearbyBusinesses(businesses) {
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const list = document.createElement("div");
-  list.className = "place-list";
+  list.className = "place-list business-place-list";
   const fragment = document.createDocumentFragment();
 
   businesses.forEach((business) => {
