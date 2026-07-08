@@ -2467,7 +2467,7 @@ function showRestaurantList() {
     console.log("Restaurante:", r.name);
   });
 
-  // luego podÃƒÆ’Ã‚Â©s convertir esto en botones
+  // luego puedes convertir esto en botones
 }
 function handleCTAAction(type) {
 
@@ -2494,7 +2494,7 @@ function showReservationForm(item) {
     <input id="resTime" type="time" />
     <input id="resPeople" type="number" placeholder="Personas" />
 
-    ${item.menu ? `<a href="${item.menu}" target="_blank">Ver menÃƒÆ’Ã‚Âº</a>` : ""}
+    ${item.menu ? `<a href="${item.menu}" target="_blank">Ver menú</a>` : ""}
 
     <button id="sendRes">Reservar</button>
   `;
@@ -2512,7 +2512,7 @@ function sendReservation(item) {
   const people = document.getElementById("resPeople").value;
 
   const msg = `Hola, quiero reservar en ${item.name}
-  CÃƒÆ’Ã‚Â³digo AVI: ${item.lead_id}
+  Código AVI: ${item.lead_id}
 
     Nombre: ${name}
     Fecha: ${date}
@@ -2547,7 +2547,7 @@ function openExternalUrl(url) {
     if (parsed.protocol !== "https:") return;
     window.open(parsed.href, "_blank", "noopener,noreferrer");
   } catch (error) {
-    console.warn("URL invÃƒÆ’Ã‚Â¡lida:", url);
+    console.warn("URL inválida:", url);
   }
 }
 
@@ -2623,7 +2623,7 @@ function reserveRestaurant(restaurant) {
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   const message = langKey === "en"
     ? `Hello, I would like to book a table at ${restaurant.name}. AVI code: ${restaurant.lead_id || "N/A"}`
-    : `Hola, quiero reservar una mesa en ${restaurant.name}. CÃƒÆ’Ã‚Â³digo AVI: ${restaurant.lead_id || "N/A"}`;
+    : `Hola, quiero reservar una mesa en ${restaurant.name}. Código AVI: ${restaurant.lead_id || "N/A"}`;
 
   trackLeadEvent(
     "reservation_started",
@@ -2689,7 +2689,7 @@ function showRestaurants(restaurants) {
     if (restaurant.menu_url) {
       const menuButton = document.createElement("button");
       menuButton.className = "place-link";
-      menuButton.textContent = langKey === "en" ? "View menu" : "Ver menÃƒÆ’Ã‚Âº";
+      menuButton.textContent = langKey === "en" ? "View menu" : "Ver menú";
       menuButton.onclick = () => openExternalUrl(restaurant.menu_url);
       links.appendChild(menuButton);
     }
