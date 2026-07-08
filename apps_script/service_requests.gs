@@ -28,20 +28,12 @@ function setupServiceRequestDashboard_(spreadsheet) {
     sheet.getRange("A2:C4").merge().setValue("DASHBOARD DE SOLICITUDES")
       .setFontSize(16).setFontWeight("bold").setVerticalAlignment("middle")
       .setBackground("#e6f4f4").setFontColor("#075985");
-    const cards = [
-      ["D2:E4", '=COUNTA(A13:A)', "#e8f1fb"],
-      ["F2:G4", '=COUNTIF(G13:G,"Pendiente")', "#fff2cc"],
-      ["H2:I4", '=COUNTIF(G13:G,"En proceso")', "#d9eaf7"],
-      ["J2:K4", '=COUNTIF(G13:G,"Entregada")', "#d9ead3"],
-      ["L2:M4", '=COUNTIF(G13:G,"Cancelada")', "#f4cccc"]
-    ];
-    cards.forEach((card) => sheet.getRange(card[0]).merge().setFormula(card[1])
-      .setFontSize(18).setFontWeight("bold").setHorizontalAlignment("center")
-      .setVerticalAlignment("middle").setBackground(card[2]));
     sheet.getRange("A6:M6").merge().setValue(
       "Recepción actualiza Estado, Asignado a y Comentario. AVI notifica al huésped."
     ).setFontColor("#46616f").setBackground("#f8fbfc");
   }
+
+  setupServiceRequestCounterCards_(sheet);
 
   sheet.getRange(REQUEST_HEADER_ROW, 1, 1, REQUEST_HEADERS.length).clearDataValidations()
     .setValues([REQUEST_HEADERS])
@@ -65,6 +57,23 @@ function setupServiceRequestDashboard_(spreadsheet) {
   sheet.hideColumns(11, 4);
   sheet.hideColumns(17, 2);
   return sheet;
+}
+
+function setupServiceRequestCounterCards_(sheet) {
+  const cards = [
+    ["D2:E4", '=COUNTA(INDIRECT("A13:A"))&CHAR(10)&"Total solicitudes"', "#e8f1fb"],
+    ["F2:G4", '=COUNTIF(INDIRECT("G13:G"),"Pendiente")&CHAR(10)&"Pendientes"', "#fff2cc"],
+    ["H2:I4", '=COUNTIF(INDIRECT("G13:G"),"En proceso")&CHAR(10)&"En proceso"', "#d9eaf7"],
+    ["J2:K4", '=COUNTIF(INDIRECT("G13:G"),"Entregada")&CHAR(10)&"Entregadas"', "#d9ead3"],
+    ["L2:M4", '=COUNTIF(INDIRECT("G13:G"),"Cancelada")&CHAR(10)&"Canceladas"', "#f4cccc"]
+  ];
+  cards.forEach((card) => {
+    const range = sheet.getRange(card[0]);
+    if (!range.isPartOfMerge()) range.merge();
+    range.setFormula(card[1])
+      .setFontSize(14).setFontWeight("bold").setHorizontalAlignment("center")
+      .setVerticalAlignment("middle").setWrap(true).setBackground(card[2]);
+  });
 }
 
 function appendServiceRequest_(spreadsheet, payload) {
