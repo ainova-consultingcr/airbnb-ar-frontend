@@ -11,6 +11,7 @@ if (!GUEST_SESSION_ID) {
 }
 let activeServiceRequest = null;
 let serviceRequestPollTimer = null;
+const SERVICE_REQUEST_POLL_INTERVAL_MS = 30000;
 const activeRequestKey = () => "avi_active_request_" + CURRENT_PROPERTY + "_" + CURRENT_ROOM;
 
 function ensureServiceRequestCard() {
@@ -74,6 +75,8 @@ async function pollServiceRequest() {
     if (!response.ok) return;
     const prior = activeServiceRequest?.status;
     const request = await response.json();
+    const currentId = activeServiceRequest?.id || localStorage.getItem(activeRequestKey());
+    if (String(currentId || "") !== String(id)) return;
     const card = document.getElementById("serviceRequestCard");
     if (!activeServiceRequest || request.status !== prior || card?.style.display !== "none") {
       renderServiceRequest(request);
@@ -85,7 +88,7 @@ async function pollServiceRequest() {
 function startServiceRequestPolling(request) {
   renderServiceRequest(request);
   clearInterval(serviceRequestPollTimer);
-  serviceRequestPollTimer = setInterval(pollServiceRequest, 15000);
+  serviceRequestPollTimer = setInterval(pollServiceRequest, SERVICE_REQUEST_POLL_INTERVAL_MS);
 }
 async function confirmGuestReceipt(received) {
   if (!activeServiceRequest) return;
@@ -103,8 +106,10 @@ async function confirmGuestReceipt(received) {
 }
 function restoreServiceRequest() {
   ensureServiceRequestCard();
+  clearInterval(serviceRequestPollTimer);
+  serviceRequestPollTimer = null;
   if (CURRENT_ROOM && localStorage.getItem(activeRequestKey())) {
     pollServiceRequest();
-    serviceRequestPollTimer = setInterval(pollServiceRequest, 15000);
+    serviceRequestPollTimer = setInterval(pollServiceRequest, SERVICE_REQUEST_POLL_INTERVAL_MS);
   }
 }

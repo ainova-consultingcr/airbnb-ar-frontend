@@ -2928,8 +2928,9 @@ async function askAI() {
       const errors = PROPERTY_CONFIG?.ui?.errors || {};
       const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
 
+  const baseServerError = errors.server?.[langKey] || "Server error";
   showARAnswer(
-  errors.server?.[langKey] || "Server error",
+  IS_LOCAL_DEVELOPMENT && detail ? `${baseServerError}${detail}` : baseServerError,
   false
 );
       return;

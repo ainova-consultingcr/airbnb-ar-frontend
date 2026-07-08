@@ -66,7 +66,7 @@ def classify_service_request(question: str) -> dict[str, str] | None:
     return {"category": category, "priority": priority}
 
 
-def sheet_command(webhook_url: str, payload: dict[str, Any], timeout: int = 6) -> dict[str, Any]:
+def sheet_command(webhook_url: str, payload: dict[str, Any], timeout: int = 60) -> dict[str, Any]:
     if not webhook_url:
         raise RuntimeError("GOOGLE_SHEET_WEBHOOK is not configured")
     request = urllib.request.Request(
