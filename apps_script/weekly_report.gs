@@ -62,7 +62,7 @@ function sendWeeklyAviReports() {
     MailApp.sendEmail({
       to: recipients.join(","),
       replyTo: propertyConfig.replyTo || undefined,
-      subject: `Reporte semanal AVI - ${propertyConfig.name}`,
+      subject: `Reporte semanal de solicitudes AVI - ${propertyConfig.name}`,
       htmlBody: html,
       name: "AVI Intelligence"
     });
@@ -137,62 +137,57 @@ function buildWeeklyReport_(spreadsheet, propertyId) {
   const now = new Date();
   const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const propertyConfig = AVI_CONFIG.properties[propertyId] || {};
-  const normalizedPropertyId = normalizeKey_(propertyId);
-  const questions = readSheetObjects_(spreadsheet, AVI_CONFIG.sheets.questions)
-    .filter((row) => {
-      const timestamp = asDate_(row.timestamp);
-      const question = String(row.question || "").trim().toLowerCase();
-      return normalizeKey_(row.property) === normalizedPropertyId &&
-        timestamp >= weekStart && timestamp <= now &&
-        question && question !== "init";
-    });
-  const events = readSheetObjects_(spreadsheet, AVI_CONFIG.sheets.events)
-    .filter((row) => {
-      const timestamp = asDate_(row.timestamp);
-      return normalizeKey_(row.property) === normalizedPropertyId &&
-        timestamp >= weekStart && timestamp <= now;
-    });
 
   const serviceRequests = readServiceRequests_(spreadsheet).filter((row) => {
     const timestamp = asDate_(row.created_at);
     return timestamp >= weekStart && timestamp <= now;
   });
+
+  const pendingRequests = serviceRequests.filter((row) => row.Estado === "Pendiente");
+  const inProgressRequests = serviceRequests.filter((row) => row.Estado === "En proceso");
   const deliveredRequests = serviceRequests.filter((row) => row.Estado === "Entregada");
+  const cancelledRequests = serviceRequests.filter((row) => row.Estado === "Cancelada");
   const confirmedRequests = serviceRequests.filter((row) => row["Confirmación huésped"] === "Confirmada");
+  const notReceivedRequests = serviceRequests.filter((row) => row["Confirmación huésped"] === "No recibida");
+  const reopenedRequests = serviceRequests.filter((row) => Number(row.Reaperturas || 0) > 0);
   const ratings = serviceRequests.map((row) => Number(row["Calificación"])).filter((value) => value > 0);
-  const resolutionMinutes = deliveredRequests.map((row) => Math.max(0, Math.round((asDate_(row.delivered_at) - asDate_(row.created_at)) / 60000))).filter(isFinite);
+  const resolutionMinutes = deliveredRequests
+    .map((row) => Math.max(0, Math.round((asDate_(row.delivered_at) - asDate_(row.created_at)) / 60000)))
+    .filter(isFinite);
 
-  const unknownQuestions = questions.filter((row) => normalizeBoolean_(row.unknown));
-  const answeredCount = Math.max(questions.length - unknownQuestions.length, 0);
-  const answerRate = questions.length ? Math.round((answeredCount / questions.length) * 100) : 0;
-  const leadEvents = events.filter((row) => row.lead_id || String(row.event_type).includes("reservation"));
+  const openRequests = pendingRequests.concat(inProgressRequests)
+    .sort((a, b) => asDate_(a.created_at) - asDate_(b.created_at))
+    .slice(0, 10);
+  const followUpRequests = notReceivedRequests.concat(reopenedRequests)
+    .filter((row, index, rows) => rows.findIndex((item) => item.ID === row.ID) === index)
+    .sort((a, b) => asDate_(b.updated_at) - asDate_(a.updated_at))
+    .slice(0, 10);
 
-  return {
+  const report = {
     propertyId,
     propertyName: propertyConfig.name || propertyId,
     generatedAt: formatDate_(now),
     periodStart: formatDate_(weekStart),
     periodEnd: formatDate_(now),
-    totalQuestions: questions.length,
-    answeredCount,
-    unknownCount: unknownQuestions.length,
-    answerRate,
-    totalEvents: events.length,
-    leadCount: leadEvents.length,
     requestTotal: serviceRequests.length,
-    requestPending: serviceRequests.filter((row) => row.Estado === "Pendiente").length,
-    requestInProgress: serviceRequests.filter((row) => row.Estado === "En proceso").length,
+    requestPending: pendingRequests.length,
+    requestInProgress: inProgressRequests.length,
     requestDelivered: deliveredRequests.length,
+    requestCancelled: cancelledRequests.length,
     requestConfirmedRate: deliveredRequests.length ? Math.round(confirmedRequests.length / deliveredRequests.length * 100) : 0,
-    requestAverageMinutes: resolutionMinutes.length ? Math.round(resolutionMinutes.reduce((a,b) => a+b, 0) / resolutionMinutes.length) : 0,
-    requestAverageRating: ratings.length ? (ratings.reduce((a,b) => a+b, 0) / ratings.length).toFixed(1) : "—",
-    requestCategories: topCounts_(serviceRequests.map((row) => row["Categoría"] || "Sin categoría"), 6),
-    topQuestions: topCounts_(questions.map((row) => row.question), 8),
-    languages: topCounts_(questions.map((row) => row.language || "sin idioma"), 6),
-    eventCategories: topCounts_(events.map((row) => row.category || "sin categoría"), 6),
-    unknownQuestions: unknownQuestions.map((row) => row.question).filter(Boolean).slice(0, 8),
-    recommendations: buildRecommendations_(questions.length, unknownQuestions.length, leadEvents.length, events)
+    requestAverageMinutes: resolutionMinutes.length ? Math.round(resolutionMinutes.reduce((a, b) => a + b, 0) / resolutionMinutes.length) : 0,
+    requestAverageRating: ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "—",
+    requestCategories: topCounts_(serviceRequests.map((row) => row["Categoría"] || "Sin categoría"), 8),
+    requestRooms: topCounts_(serviceRequests.map((row) => row["Habitación"] || "Sin habitación"), 8),
+    requestStatuses: topCounts_(serviceRequests.map((row) => row.Estado || "Sin estado"), 6),
+    openRequests,
+    followUpRequests,
+    notReceivedCount: notReceivedRequests.length,
+    reopenedCount: reopenedRequests.length,
+    ratingCount: ratings.length
   };
+  report.recommendations = buildOperationalRecommendations_(serviceRequests, report);
+  return report;
 }
 
 function renderWeeklyReportHtml_(report) {
@@ -200,41 +195,37 @@ function renderWeeklyReportHtml_(report) {
   <div style="margin:0;padding:0;background:#07111f;color:#f8fafc;font-family:Arial,Helvetica,sans-serif">
     <div style="max-width:920px;margin:0 auto;padding:28px 18px">
       <div style="padding:28px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:#0f1b2d">
-        <div style="color:#86c45c;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase">AVI Intelligence Report</div>
-        <h1 style="margin:10px 0 8px;font-size:38px;line-height:1;color:#fff">Reporte semanal del asistente</h1>
+        <div style="color:#86c45c;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase">AVI · Solicitudes operativas</div>
+        <h1 style="margin:10px 0 8px;font-size:36px;line-height:1;color:#fff">Reporte semanal de solicitudes</h1>
         <p style="margin:0;color:#a8b3c7;font-size:15px;line-height:1.6">
           ${escapeHtml_(report.propertyName)} · ${escapeHtml_(report.periodStart)} - ${escapeHtml_(report.periodEnd)}
         </p>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0">
-        ${metricCard_("Consultas", report.totalQuestions)}
-        ${metricCard_("Sin información", report.unknownCount)}
-        ${metricCard_("Eventos", report.totalEvents)}
-        ${metricCard_("Leads", report.leadCount)}
-        ${metricCard_("Solicitudes", report.requestTotal)}
+        ${metricCard_("Total solicitudes", report.requestTotal)}
+        ${metricCard_("Pendientes", report.requestPending)}
+        ${metricCard_("En proceso", report.requestInProgress)}
+        ${metricCard_("Entregadas", report.requestDelivered)}
+        ${metricCard_("Canceladas", report.requestCancelled)}
+        ${metricCard_("Confirmación huésped", report.requestConfirmedRate + "%")}
+        ${metricCard_("Tiempo promedio", report.requestAverageMinutes + " min")}
+        ${metricCard_("Calificación", report.requestAverageRating)}
       </div>
 
-      <div style="padding:24px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:#0f1b2d;margin-bottom:16px;text-align:center">
-        <div style="color:#86c45c;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase">Tasa de respuesta</div>
-        <div style="font-size:64px;font-weight:900;color:#86c45c;line-height:1">${report.answerRate}%</div>
-        <p style="margin:10px 0 0;color:#a8b3c7">${report.answeredCount} de ${report.totalQuestions} consultas fueron respondidas sin marcarse como información faltante.</p>
-      </div>
-
-      ${section_("Preguntas más frecuentes", orderedList_(report.topQuestions))}
-      ${section_("Idiomas usados", barList_(report.languages))}
-      ${section_("Oportunidades por categoría", barList_(report.eventCategories))}
-      ${section_("Información faltante", unorderedList_(report.unknownQuestions))}
-      ${serviceRequestReportHtml_(report)}
-      ${section_("Recomendaciones accionables", unorderedList_(report.recommendations))}
+      ${section_("Estado de solicitudes", barList_(report.requestStatuses))}
+      ${section_("Categorías más solicitadas", barList_(report.requestCategories))}
+      ${section_("Habitaciones con más solicitudes", barList_(report.requestRooms))}
+      ${section_("Solicitudes abiertas", requestTable_(report.openRequests))}
+      ${section_("Solicitudes con seguimiento requerido", requestTable_(report.followUpRequests))}
+      ${section_("Recomendaciones operativas", unorderedList_(report.recommendations))}
 
       <p style="text-align:center;color:#7d8aa2;font-size:12px;margin-top:20px">
-        Generado automáticamente por AVI el ${escapeHtml_(report.generatedAt)}.
+        Generado automáticamente por AVI el ${escapeHtml_(report.generatedAt)}. Este reporte incluye únicamente solicitudes operativas registradas por los huéspedes.
       </p>
     </div>
   </div>`;
 }
-
 function metricCard_(label, value) {
   return `
     <div style="padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:#101d31">
@@ -285,26 +276,72 @@ function empty_() {
   return `<p style="margin:0;color:#a8b3c7;font-style:italic">Sin datos todavía.</p>`;
 }
 
-function buildRecommendations_(totalQuestions, unknownCount, leadCount, events) {
-  const recommendations = [];
-  const topCategory = topCounts_(events.map((row) => row.category || ""), 1)[0];
-
-  if (unknownCount) {
-    recommendations.push("Agregar o mejorar respuestas para las preguntas sin información. Es la mejora más rápida para elevar la satisfacción del huésped.");
-  }
-  if (leadCount) {
-    recommendations.push("Dar seguimiento diario a los leads generados por AVI para convertir reservas de restaurantes, transporte o tours.");
-  }
-  if (topCategory) {
-    recommendations.push(`Revisar la categoría con mayor interacción: ${topCategory.label}. Puede indicar una oportunidad comercial o una necesidad frecuente.`);
-  }
-  if (!totalQuestions) {
-    recommendations.push("Aún no hay suficientes consultas. Mantén visible el QR y explica brevemente a los huéspedes para qué sirve AVI.");
-  }
-  recommendations.push("Revisar este reporte semanalmente durante el piloto para ajustar contenido, alianzas y servicios recomendados.");
-  return recommendations;
+function requestTable_(items) {
+  if (!items.length) return empty_();
+  const rows = items.map((item) => `
+    <tr>
+      <td style="padding:9px;border-bottom:1px solid rgba(255,255,255,.08);color:#dbe4f0">${escapeHtml_(item.ID || "")}</td>
+      <td style="padding:9px;border-bottom:1px solid rgba(255,255,255,.08);color:#dbe4f0">${escapeHtml_(item["Habitación"] || "")}</td>
+      <td style="padding:9px;border-bottom:1px solid rgba(255,255,255,.08);color:#dbe4f0">${escapeHtml_(item.Solicitud || "")}</td>
+      <td style="padding:9px;border-bottom:1px solid rgba(255,255,255,.08);color:#dbe4f0">${escapeHtml_(item["Categoría"] || "")}</td>
+      <td style="padding:9px;border-bottom:1px solid rgba(255,255,255,.08);color:#dbe4f0">${escapeHtml_(item.Estado || "")}</td>
+    </tr>`).join("");
+  return `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr>
+          <th style="padding:9px;text-align:left;color:#a8b3c7;border-bottom:1px solid rgba(255,255,255,.16)">ID</th>
+          <th style="padding:9px;text-align:left;color:#a8b3c7;border-bottom:1px solid rgba(255,255,255,.16)">Habitación</th>
+          <th style="padding:9px;text-align:left;color:#a8b3c7;border-bottom:1px solid rgba(255,255,255,.16)">Solicitud</th>
+          <th style="padding:9px;text-align:left;color:#a8b3c7;border-bottom:1px solid rgba(255,255,255,.16)">Categoría</th>
+          <th style="padding:9px;text-align:left;color:#a8b3c7;border-bottom:1px solid rgba(255,255,255,.16)">Estado</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
+function buildOperationalRecommendations_(serviceRequests, report) {
+  const recommendations = [];
+  const topCategory = report.requestCategories[0];
+  const topRoom = report.requestRooms[0];
+
+  if (!serviceRequests.length) {
+    return ["No hubo solicitudes operativas en el periodo. Mantén visible el QR y recuerda al huésped que puede pedir amenidades, limpieza o reportar mantenimiento desde AVI."];
+  }
+
+  if (report.requestPending || report.requestInProgress) {
+    recommendations.push(`Hay ${report.requestPending + report.requestInProgress} solicitudes abiertas. Revisar el dashboard al inicio y cierre de cada turno para evitar arrastres entre huéspedes.`);
+  }
+  if (report.requestAverageMinutes > 20) {
+    recommendations.push(`El tiempo promedio de atención es de ${report.requestAverageMinutes} minutos. Definir una meta operativa por categoría y escalar automáticamente las solicitudes que superen ese tiempo.`);
+  }
+  if (topCategory && topCategory.count >= 2) {
+    recommendations.push(`La categoría más frecuente fue ${topCategory.label} (${topCategory.count}). Revisar inventario, responsables y tiempos de respuesta de esa área.`);
+  }
+  if (topCategory && topCategory.label === "Mantenimiento") {
+    recommendations.push("Hay recurrencia de mantenimiento. Programar revisión preventiva de habitaciones/equipos antes del siguiente pico de check-in.");
+  }
+  if (topCategory && ["Amenidades", "Ropa de cama", "Bebidas", "Limpieza"].includes(topCategory.label)) {
+    recommendations.push(`Reforzar el stock y la preparación de ${topCategory.label.toLowerCase()} en housekeeping para reducir solicitudes repetidas durante la estancia.`);
+  }
+  if (topRoom && topRoom.count >= 2) {
+    recommendations.push(`La habitación ${topRoom.label} concentró ${topRoom.count} solicitudes. Revisar si hay una causa operativa específica en esa unidad.`);
+  }
+  if (report.notReceivedCount) {
+    recommendations.push(`${report.notReceivedCount} solicitud(es) fueron marcadas por el huésped como no recibidas. Confirmar entrega físicamente antes de cerrar en el dashboard.`);
+  }
+  if (report.reopenedCount) {
+    recommendations.push(`${report.reopenedCount} solicitud(es) fueron reabiertas. Revisar el proceso de cierre para evitar marcar como entregado antes de completar el servicio.`);
+  }
+  if (!report.ratingCount && report.requestDelivered) {
+    recommendations.push("No hay calificaciones registradas para solicitudes entregadas. Pedir al equipo que invite al huésped a confirmar la recepción desde AVI.");
+  }
+  if (!recommendations.length) {
+    recommendations.push("La operación de solicitudes se ve estable esta semana. Mantener el seguimiento diario y revisar tendencias por categoría cada lunes.");
+  }
+  return recommendations;
+}
 function getAviSpreadsheet_() {
   if (AVI_CONFIG.spreadsheetId) {
     return SpreadsheetApp.openById(AVI_CONFIG.spreadsheetId);
