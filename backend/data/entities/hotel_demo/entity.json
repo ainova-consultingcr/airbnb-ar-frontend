@@ -74,10 +74,41 @@
       ]
     },
     "services": {
-      "transport": {
-        "price": 80,
-        "whatsapp": "50686380783"
-      },
+      "transport": [
+        {
+          "name": "Transporte privado aeropuerto",
+          "price": 80,
+          "whatsapp": "50686380783",
+          "button_es": "Privado aeropuerto - $80",
+          "button_en": "Private airport ride - $80",
+          "message": {
+            "es": "Hola, quiero reservar transporte privado hacia o desde el aeropuerto. Código AVI: TRANSPORTE-PRIVADO",
+            "en": "Hello, I would like to book private airport transportation. AVI code: TRANSPORT-PRIVATE"
+          }
+        },
+        {
+          "name": "Taxi local",
+          "price": 65,
+          "whatsapp": "50686380783",
+          "button_es": "Taxi local - $65",
+          "button_en": "Local taxi - $65",
+          "message": {
+            "es": "Hola, quiero reservar un taxi local hacia o desde el aeropuerto. Código AVI: TRANSPORTE-TAXI",
+            "en": "Hello, I would like to book a local taxi to or from the airport. AVI code: TRANSPORT-TAXI"
+          }
+        },
+        {
+          "name": "Van o shuttle",
+          "price": 95,
+          "whatsapp": "50686380783",
+          "button_es": "Van / shuttle - $95",
+          "button_en": "Van / shuttle - $95",
+          "message": {
+            "es": "Hola, quiero reservar van o shuttle hacia o desde el aeropuerto. Código AVI: TRANSPORTE-SHUTTLE",
+            "en": "Hello, I would like to book a van or shuttle to or from the airport. AVI code: TRANSPORT-SHUTTLE"
+          }
+        }
+      ],
       "restaurants": [
         {
           "has_own_restaurant": true,

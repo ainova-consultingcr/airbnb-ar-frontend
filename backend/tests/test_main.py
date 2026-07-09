@@ -198,7 +198,8 @@ class MainTests(unittest.TestCase):
             )
         )
 
-        self.assertIn("$80", response["answer"])
+        self.assertIn("$65", response["answer"])
+        self.assertEqual(len(response["cta_options"]), 3)
         self.assertEqual(response["cta_options"][0]["type"], "transport")
         self.assertEqual(
             response["cta_options"][0]["data"]["whatsapp"], "50686380783"

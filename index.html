@@ -3053,11 +3053,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
+function openWhatsApp(phone, message) {
+  const cleanPhone = String(phone || "").replace(/\D/g, "");
+  if (!cleanPhone) return;
+  const text = encodeURIComponent(message || "Hola, quiero recibir información.");
+  openExternalUrl(`https://wa.me/${cleanPhone}?text=${text}`);
+}
+
 function handleCTA(type, data) {
 
    console.log("HANDLE CTA:", type, data);
   if (type === "transport") {
-    openWhatsApp(data.whatsapp, "Quiero transporte");
+    const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
+    const serviceName = data?.name || (langKey === "en" ? "airport transportation" : "transporte al aeropuerto");
+    const priceText = data?.price ? ` ${langKey === "en" ? "Approximate price" : "Precio aproximado"}: $${data.price}.` : "";
+    const message = data?.message?.[langKey] || (
+      langKey === "en"
+        ? `Hello, I would like to book ${serviceName}.${priceText}`
+        : `Hola, quiero reservar ${serviceName}.${priceText}`
+    );
+    openWhatsApp(data?.whatsapp, message);
   }
 
   if (type === "external_restaurants") {

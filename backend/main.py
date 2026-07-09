@@ -994,6 +994,56 @@ def ask(req: AskRequest):
     question_lower = effective_question.lower()
 
     if any(word in question_lower for word in ["transporte", "aeropuerto", "airport", "ride", "taxi"]):
+         transport_config = entity.get("ui", {}).get("services", {}).get("transport")
+         if not transport_config:
+             return {
+                 "answer": get_no_info_message(entity, lang_key),
+                 "suggestions": entity.get("ui", {}).get("suggestions", {})
+             }
+
+         transport_options = transport_config if isinstance(transport_config, list) else [transport_config]
+         transport_options = [option for option in transport_options if isinstance(option, dict)]
+         if not transport_options:
+             return {
+                 "answer": get_no_info_message(entity, lang_key),
+                 "suggestions": entity.get("ui", {}).get("suggestions", {})
+             }
+
+         prices = [option.get("price") for option in transport_options if option.get("price") is not None]
+         price_text = f"${min(prices)}" if prices else None
+         if lang_key == "en":
+             transport_message = "We can help you book transportation to or from the airport."
+             if price_text:
+                 transport_message += f" Price from: {price_text}."
+             transport_message += " Choose one of these options:"
+         else:
+             transport_message = "Podemos ayudarte a reservar transporte hacia o desde el aeropuerto."
+             if price_text:
+                 transport_message += f" Precio desde: {price_text}."
+             transport_message += " Elige una de estas opciones:"
+
+         cta_options = []
+         for option in transport_options:
+             option_name = option.get("name") or option.get("title") or (
+                 "Airport transportation" if lang_key == "en" else "Transporte aeropuerto"
+             )
+             option_price = option.get("price")
+             price_suffix = f" - ${option_price}" if option_price is not None else ""
+             cta_options.append({
+                 "type": "transport",
+                 "text": {
+                     "es": option.get("button_es") or f"{option_name}{price_suffix}",
+                     "en": option.get("button_en") or f"{option_name}{price_suffix}"
+                 },
+                 "data": option
+             })
+
+         return {
+          "answer": transport_message,
+          "cta_options": cta_options
+        }
+
+    if False and any(word in question_lower for word in ["transporte", "aeropuerto", "airport", "ride", "taxi"]):
 
          transport = entity.get("ui", {}).get("services", {}).get("transport")
          if not transport:
