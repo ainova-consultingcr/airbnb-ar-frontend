@@ -1,0 +1,117 @@
+﻿    #guidedPartsSearch,
+    #guidedHardwareSearch,
+    #guidedWellnessSearch {
+      display: none;
+      gap: 9px;
+      padding: 12px;
+      border: 1px solid var(--avi-border);
+      border-radius: 20px;
+      background: rgba(7, 12, 24, 0.9);
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+      pointer-events: auto;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    #guidedWellnessSearch {
+      position: fixed;
+      top: calc(max(14px, env(safe-area-inset-top)) + 132px);
+      right: 12px;
+      bottom: calc(var(--safe-bottom) + 78px);
+      left: 12px;
+      z-index: 28;
+      overflow-y: auto;
+      pointer-events: auto;
+    }
+
+    #guidedPartsSearch.visible,
+    #guidedHardwareSearch.visible,
+    #guidedWellnessSearch.visible {
+      display: grid;
+    }
+
+    #guidedWellnessSearch.guided-highlight {
+      border-color: color-mix(in srgb, var(--avi-accent) 70%, white);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--avi-accent) 24%, transparent);
+    }
+
+    .guided-title {
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 14px;
+      font-weight: 780;
+    }
+
+    .guided-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .guided-select {
+      width: 100%;
+      min-width: 0;
+      height: 42px;
+      padding: 0 10px;
+      border: 1px solid var(--avi-border);
+      border-radius: 13px;
+      color: #fff;
+      outline: 0;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .guided-select option {
+      color: #111827;
+    }
+
+    #guidedPartChips,
+    #guidedHardwareChips,
+    #guidedWellnessChips {
+      display: flex;
+      gap: 7px;
+      min-height: 38px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    #guidedPartChips::-webkit-scrollbar,
+    #guidedHardwareChips::-webkit-scrollbar,
+    #guidedWellnessChips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .part-chip {
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid var(--avi-border);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      font-weight: 720;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .part-chip.selected {
+      border-color: transparent;
+      color: var(--avi-accent-text);
+      background: var(--avi-accent);
+    }
+
+    #guidedSearchBtn,
+    #guidedHardwareSearchBtn,
+    #guidedWellnessSearchBtn {
+      min-height: 44px;
+      border: 0;
+      border-radius: 14px;
+      color: var(--avi-accent-text);
+      font-size: 14px;
+      font-weight: 820;
+      background: var(--avi-accent);
+    }
+
+    #guidedSearchBtn:disabled,
+    #guidedHardwareSearchBtn:disabled,
+    #guidedWellnessSearchBtn:disabled {
+      opacity: 0.55;
+    }
+

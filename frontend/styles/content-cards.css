@@ -1,0 +1,186 @@
+﻿    .service-request-help {
+      display: grid;
+      gap: 12px;
+      max-height: min(62vh, 520px);
+      overflow-y: auto;
+      padding: 16px;
+      border: 1px solid var(--avi-border);
+      border-radius: 22px;
+      color: #fff;
+      background: rgba(15, 23, 42, 0.94);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+      -webkit-overflow-scrolling: touch;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .service-request-help h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .service-request-help p {
+      margin: 0;
+      color: var(--avi-muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .service-request-help-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .service-request-help-row {
+      padding: 10px 11px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .service-request-help-row strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .service-request-example-list {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .service-request-example-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .service-request-example {
+      flex: 0 0 auto;
+      max-width: 82vw;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .service-request-help-actions {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr;
+    }
+    .place-list {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      box-sizing: border-box;
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
+      padding: 1px 2px 5px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      scroll-snap-type: x proximity;
+    }
+
+    .place-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .place-card {
+      box-sizing: border-box;
+      width: min(82vw, 330px);
+      min-width: min(82vw, 330px);
+      flex: 0 0 auto;
+      padding: 15px;
+      border: 1px solid var(--avi-border);
+      border-radius: 19px;
+      color: #fff;
+      background: rgba(15, 23, 42, 0.92);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+      scroll-snap-align: start;
+      backface-visibility: hidden;
+      transform: translateZ(0);
+    }
+
+    /* Evita el pintado parcial de tarjetas altas durante el scroll en iOS. */
+    .tourist-place-list,
+    .business-place-list {
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      will-change: scroll-position;
+    }
+
+    .tourist-card,
+    .business-card {
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+    }
+
+    .place-category {
+      color: var(--avi-accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .place-name {
+      margin: 5px 0 7px;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .place-summary {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .place-source {
+      display: block;
+      margin-top: 9px;
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 11px;
+    }
+
+    .place-links {
+      display: flex;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .place-link {
+      min-height: 38px;
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--avi-border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 750;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .place-link.primary {
+      border-color: transparent;
+      color: var(--avi-accent-text);
+      background: var(--avi-accent);
+    }
+

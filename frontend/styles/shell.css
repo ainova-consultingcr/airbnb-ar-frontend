@@ -1,0 +1,262 @@
+﻿    #appHeader {
+      position: fixed;
+      top: max(14px, env(safe-area-inset-top));
+      left: 16px;
+      right: 16px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 52px;
+      padding: 8px 12px;
+      border: 1px solid var(--avi-border);
+      border-radius: 18px;
+      background: rgba(7, 12, 24, 0.64);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .avi-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      place-items: center;
+      border-radius: 12px;
+      color: var(--avi-accent-text);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0.04em;
+      background: var(--avi-accent);
+    }
+
+    .avi-header-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    #propertyName {
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 750;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #assistantStatus {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+      color: var(--avi-muted);
+      font-size: 12px;
+    }
+
+    #assistantStatus::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      content: "";
+      background: var(--avi-accent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--avi-accent) 17%, transparent);
+    }
+
+    #responseCard {
+      position: fixed;
+      top: calc(max(14px, env(safe-area-inset-top)) + 68px);
+      left: 16px;
+      right: 16px;
+      z-index: 15;
+      display: flex;
+      gap: 12px;
+      max-height: calc(100dvh - 330px);
+      padding: 16px;
+      overflow: hidden;
+      border: 1px solid var(--avi-border);
+      border-radius: 24px;
+      background: var(--avi-panel);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+      pointer-events: none;
+      backdrop-filter: blur(22px) saturate(125%);
+      -webkit-backdrop-filter: blur(22px) saturate(125%);
+      transition: opacity 180ms ease, transform 220ms ease;
+    }
+
+    #responseCard.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .response-avatar {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--avi-accent) 42%, transparent);
+      border-radius: 13px;
+      color: var(--avi-accent);
+      font-size: 17px;
+      background: color-mix(in srgb, var(--avi-accent) 13%, transparent);
+    }
+
+    .response-body {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #responseLabel {
+      display: block;
+      margin: 1px 0 7px;
+      color: var(--avi-accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #responseText {
+      max-height: calc(100dvh - 405px);
+      padding-right: 4px;
+      overflow-y: auto;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: clamp(16px, 4.2vw, 19px);
+      font-weight: 460;
+      line-height: 1.48;
+      white-space: pre-line;
+      scrollbar-width: thin;
+    }
+
+    #responseLoading {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+    }
+
+    #responseLoading.visible {
+      display: flex;
+    }
+
+    .loading-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--avi-accent);
+      animation: loadingPulse 900ms ease-in-out infinite alternate;
+    }
+
+    .loading-dot:nth-child(2) {
+      animation-delay: 160ms;
+    }
+
+    .loading-dot:nth-child(3) {
+      animation-delay: 320ms;
+    }
+
+    @keyframes loadingPulse {
+      from { opacity: 0.35; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(-2px); }
+    }
+
+    #bottomDock {
+      position: fixed;
+      right: 12px;
+      bottom: var(--safe-bottom);
+      left: 12px;
+      z-index: 30;
+      display: grid;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    #experienceViews {
+      display: contents;
+    }
+
+    #suggestions {
+      position: static;
+      display: none;
+      gap: 8px;
+      width: 100%;
+      max-width: none;
+      padding: 0 2px 2px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      transform: none;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      pointer-events: auto;
+      scroll-snap-type: x proximity;
+    }
+
+    #suggestions::-webkit-scrollbar {
+      display: none;
+    }
+
+    .suggestion-btn {
+      min-height: 42px;
+      flex: 0 0 auto;
+      max-width: 82vw;
+      padding: 10px 15px;
+      overflow: hidden;
+      border: 1px solid var(--avi-border);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 13px;
+      font-weight: 620;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      background: rgba(15, 23, 42, 0.82);
+      box-shadow: 0 9px 24px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      scroll-snap-align: start;
+      user-select: none;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .suggestion-btn:active {
+      transform: scale(0.97);
+    }
+
+    #actionArea {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    #ctaContainer {
+      display: grid;
+      gap: 8px;
+    }
+
+    .avi-action {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 16px;
+      color: var(--avi-accent-text);
+      font-size: 15px;
+      font-weight: 780;
+      background: var(--avi-accent);
+      box-shadow: 0 10px 28px color-mix(in srgb, var(--avi-accent) 24%, transparent);
+    }
+
+    .avi-action.secondary {
+      border: 1px solid var(--avi-border);
+      color: #fff;
+      background: rgba(15, 23, 42, 0.88);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    }
+

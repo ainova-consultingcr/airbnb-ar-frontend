@@ -1,0 +1,50 @@
+﻿    #ui {
+      position: static;
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      padding: 7px;
+      transform: none;
+      border: 1px solid var(--avi-border);
+      border-radius: 21px;
+      background: rgba(7, 12, 24, 0.88);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+      pointer-events: auto;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    #ui #questionInput {
+      width: auto;
+      min-width: 0;
+      height: 50px;
+      flex: 1;
+      padding: 0 14px;
+      border: 0;
+      outline: 0;
+      border-radius: 15px;
+      color: #fff;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    #questionInput::placeholder {
+      color: rgba(255, 255, 255, 0.52);
+    }
+
+    #ui #sendBtn {
+      min-width: 76px;
+      height: 50px;
+      padding: 0 15px;
+      border: 0;
+      border-radius: 15px;
+      color: var(--avi-accent-text);
+      font-size: 14px;
+      font-weight: 820;
+      background: var(--avi-accent);
+    }
+
+    #sendBtn:disabled {
+      opacity: 0.72;
+    }
+

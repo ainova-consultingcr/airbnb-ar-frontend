@@ -1,0 +1,32 @@
+﻿    @media (min-width: 680px) {
+      #appHeader,
+      #responseCard,
+      #bottomDock {
+        width: min(520px, calc(100vw - 32px));
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      #responseCard {
+        transform: translateX(-50%) translateY(-8px) scale(0.98);
+      }
+
+      #responseCard.visible {
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+
+    @media (max-height: 650px) {
+      #responseCard {
+        max-height: calc(100dvh - 260px);
+      }
+
+      #responseText {
+        max-height: calc(100dvh - 330px);
+      }
+
+      #suggestions {
+        display: none !important;
+      }
+    }
