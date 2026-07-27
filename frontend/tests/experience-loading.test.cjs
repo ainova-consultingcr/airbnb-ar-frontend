@@ -12,6 +12,8 @@ const loaderPath = path.join(
   "experience-views.js"
 );
 const loaderSource = fs.readFileSync(loaderPath, "utf8");
+const assetVersion = "20260727-1";
+const versioned = (resourcePath) => `${resourcePath}?v=${assetVersion}`;
 
 function createBrowserHarness() {
   const scripts = [];
@@ -73,35 +75,35 @@ test("Autopartes carga únicamente su panel, su lógica y el demo de taller", as
   await browser.load("auto_parts_store");
 
   assert.deepEqual(browser.scripts, [
-    "frontend/experiences/hospitality/hospitality.js",
-    "frontend/experiences/auto-parts/auto-parts.js",
-    "frontend/experiences/auto-parts/workshop-demo.js"
+    versioned("frontend/experiences/hospitality/hospitality.js"),
+    versioned("frontend/experiences/auto-parts/auto-parts.js"),
+    versioned("frontend/experiences/auto-parts/workshop-demo.js")
   ]);
   assert.deepEqual(browser.panels, [
-    "frontend/experiences/auto-parts/panel.html"
+    versioned("frontend/experiences/auto-parts/panel.html")
   ]);
-  assert.match(browser.host.innerHTML, /auto-parts\/panel\.html/);
+  assert.match(browser.host.innerHTML, /auto-parts\/panel\.html\?v=20260727-1/);
 });
 
 test("Ferretería y Farmasi cargan solamente sus recursos específicos", async () => {
   const hardware = createBrowserHarness();
   await hardware.load("hardware_store");
   assert.deepEqual(hardware.scripts, [
-    "frontend/experiences/hospitality/hospitality.js",
-    "frontend/experiences/hardware/hardware.js"
+    versioned("frontend/experiences/hospitality/hospitality.js"),
+    versioned("frontend/experiences/hardware/hardware.js")
   ]);
   assert.deepEqual(hardware.panels, [
-    "frontend/experiences/hardware/panel.html"
+    versioned("frontend/experiences/hardware/panel.html")
   ]);
 
   const farmasi = createBrowserHarness();
   await farmasi.load("wellness_sales_assistant");
   assert.deepEqual(farmasi.scripts, [
-    "frontend/experiences/hospitality/hospitality.js",
-    "frontend/experiences/farmasi/farmasi.js"
+    versioned("frontend/experiences/hospitality/hospitality.js"),
+    versioned("frontend/experiences/farmasi/farmasi.js")
   ]);
   assert.deepEqual(farmasi.panels, [
-    "frontend/experiences/farmasi/panel.html"
+    versioned("frontend/experiences/farmasi/panel.html")
   ]);
 });
 
@@ -111,8 +113,8 @@ test("Hotel, Airbnb y Turismo cargan turismo sin panel comercial", async () => {
     await browser.load(entityType);
 
     assert.deepEqual(browser.scripts, [
-      "frontend/experiences/hospitality/hospitality.js",
-      "frontend/experiences/tourism/tourism.js"
+      versioned("frontend/experiences/hospitality/hospitality.js"),
+      versioned("frontend/experiences/tourism/tourism.js")
     ]);
     assert.deepEqual(browser.panels, []);
     assert.equal(browser.host.innerHTML, "");
@@ -125,7 +127,7 @@ test("Una entidad desconocida conserva solo las acciones compartidas", async () 
   await browser.load("unknown_entity");
 
   assert.deepEqual(browser.scripts, [
-    "frontend/experiences/hospitality/hospitality.js"
+    versioned("frontend/experiences/hospitality/hospitality.js")
   ]);
   assert.deepEqual(browser.panels, []);
 });

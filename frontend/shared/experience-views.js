@@ -1,4 +1,5 @@
 // Loads only the HTML and JavaScript required by the active AVI entity.
+const EXPERIENCE_ASSET_VERSION = "20260727-1";
 const EXPERIENCE_CONFIG = {
   auto_parts_store: {
     panel: "frontend/experiences/auto-parts/panel.html",
@@ -31,7 +32,8 @@ const EXPERIENCE_CONFIG = {
 
 function loadExperienceScript(path) {
   return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${path}"]`);
+    const versionedPath = `${path}?v=${EXPERIENCE_ASSET_VERSION}`;
+    const existing = document.querySelector(`script[src="${versionedPath}"]`);
     if (existing) {
       if (existing.dataset.loaded === "true") resolve();
       else existing.addEventListener("load", resolve, { once: true });
@@ -39,7 +41,7 @@ function loadExperienceScript(path) {
     }
 
     const script = document.createElement("script");
-    script.src = path;
+    script.src = versionedPath;
     script.onload = () => {
       script.dataset.loaded = "true";
       resolve();
@@ -53,7 +55,8 @@ async function loadExperiencePanel(path) {
   const host = document.getElementById("experienceViews");
   if (!host || !path) return;
 
-  const response = await fetch(path);
+  const versionedPath = `${path}?v=${EXPERIENCE_ASSET_VERSION}`;
+  const response = await fetch(versionedPath);
   if (!response.ok) {
     throw new Error(`No se pudo cargar ${path}: ${response.status}`);
   }
