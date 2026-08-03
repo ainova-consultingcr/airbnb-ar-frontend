@@ -128,6 +128,12 @@ if (data.service_request) {
   return;
 }
 showARAnswer(answer, true);
+if (
+  PROPERTY_CONFIG?.type === "wellness_sales_assistant"
+  && typeof showFarmasiRecommendations === "function"
+) {
+  showFarmasiRecommendations(question);
+}
 if (data.cta) {
   setTimeout(() => {
     showCTA(data.cta);

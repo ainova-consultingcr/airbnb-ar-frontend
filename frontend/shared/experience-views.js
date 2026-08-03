@@ -1,5 +1,5 @@
 // Loads only the HTML and JavaScript required by the active AVI entity.
-const EXPERIENCE_ASSET_VERSION = "20260727-1";
+const EXPERIENCE_ASSET_VERSION = "20260727-5";
 const EXPERIENCE_CONFIG = {
   auto_parts_store: {
     panel: "frontend/experiences/auto-parts/panel.html",
@@ -14,6 +14,10 @@ const EXPERIENCE_CONFIG = {
   },
   wellness_sales_assistant: {
     panel: "frontend/experiences/farmasi/panel.html",
+    styles: [
+      "frontend/experiences/farmasi/farmasi-commerce.css",
+      "frontend/experiences/farmasi/farmasi-interactions.css"
+    ],
     scripts: ["frontend/experiences/farmasi/farmasi.js"]
   },
   hotel: {
@@ -51,6 +55,15 @@ function loadExperienceScript(path) {
   });
 }
 
+function loadExperienceStyle(path) {
+  const versionedPath = `${path}?v=${EXPERIENCE_ASSET_VERSION}`;
+  if (document.querySelector(`link[href="${versionedPath}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = versionedPath;
+  document.head.appendChild(link);
+}
+
 async function loadExperiencePanel(path) {
   const host = document.getElementById("experienceViews");
   if (!host || !path) return;
@@ -68,6 +81,7 @@ async function loadExperience(entityType) {
 
   try {
     await loadExperienceScript("frontend/experiences/hospitality/hospitality.js");
+    for (const path of config.styles || []) loadExperienceStyle(path);
     await loadExperiencePanel(config.panel);
 
     for (const path of config.scripts || []) {

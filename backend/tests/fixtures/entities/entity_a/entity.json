@@ -1,0 +1,9 @@
+{
+  "id": "entity_a",
+  "enabled_modules": [
+    "faqs",
+    "requests",
+    "catalog",
+    "customers"
+  ]
+}

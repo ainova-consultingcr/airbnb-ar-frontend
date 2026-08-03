@@ -5,11 +5,11 @@
   },
   {
     "question": "Que pasa si quiero bajar de peso?",
-    "answer": "Para recomendar productos Farmasi de forma responsable, usa los selectores guiados: objetivo, edad, rango de peso, meta, actividad, alimentacion, disposicion para ejercicio, presupuesto y notas de seguridad. Luego toca Recomendar con AVI. Asi no tienes que escribir todo manualmente."
+    "answer": "Para apoyar un objetivo de control de peso, AVI puede mostrarte productos Farmasi relacionados disponibles en el catálogo, como opciones Nutriplus para acompañar una rutina activa. Revisa las sugerencias que aparecen abajo y agrega al carrito las que te interesen. La asesora confirmará disponibilidad y total final; esta orientación no sustituye el consejo de un profesional de salud."
   },
   {
     "question": "La informacion de productos es oficial?",
-    "answer": "La base inicial usa productos extraidos de products.xml de Farmasi US el 2026-06-23. AVI usa esa informacion como referencia interna, pero no muestra precios ni URLs de productos al cliente."
+    "answer": "La base inicial usa productos extraídos de products.xml de Farmasi US el 2026-06-23. AVI usa esa información como referencia; los precios mostrados en esta demostración son simulados y quedan sujetos a confirmación de la asesora."
   },
   {
     "question": "Puede AVI recomendar suplementos si tomo medicamentos?",

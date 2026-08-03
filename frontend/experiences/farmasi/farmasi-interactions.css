@@ -1,0 +1,60 @@
+.farmasi-store {
+  pointer-events: auto;
+}
+
+#responseCard .response-body.farmasi-results-visible {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+#responseCard .response-body.farmasi-results-visible #responseText {
+  max-height: none;
+  overflow: visible;
+}
+
+#responseCard .response-body.farmasi-results-visible .farmasi-store {
+  margin: 14px 0 0;
+}
+
+.farmasi-seller-view {
+  position: fixed;
+  top: calc(max(14px, env(safe-area-inset-top)) + 76px);
+  right: 16px;
+  bottom: 18px;
+  left: 16px;
+  z-index: 40;
+  padding: 20px;
+  overflow-y: auto;
+  border: 1px solid rgba(184, 50, 128, .35);
+  border-radius: 22px;
+  background: var(--avi-panel);
+  pointer-events: auto;
+}
+
+body.farmasi-seller-mode #responseCard,
+body.farmasi-seller-mode #bottomDock {
+  display: none !important;
+}
+
+.farmasi-seller-view h2 { margin: 0 0 8px; }
+.farmasi-seller-view form { display: grid; gap: 14px; margin-top: 18px; }
+.farmasi-seller-view label { display: grid; gap: 6px; }
+.farmasi-seller-view input {
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(255,255,255,.08);
+}
+.farmasi-seller-view button { padding: 10px 13px; border: 0; border-radius: 10px; cursor: pointer; }
+#farmasiSellerLoginForm button { background: var(--avi-accent); color: var(--avi-accent-text); font-weight: 700; }
+#farmasiSellerLoginError { min-height: 20px; color: #ffb4b4; }
+
+@media (min-width: 680px) {
+  .farmasi-seller-view {
+    width: min(520px, calc(100vw - 32px));
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}

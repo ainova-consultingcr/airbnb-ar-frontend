@@ -20,7 +20,7 @@ class ServiceRequestTests(unittest.TestCase):
         ))
         self.assertTrue(response["requires_room"])
 
-    @patch.object(main, "create_service_request")
+    @patch("modules.requests.flow.create_service_request")
     def test_hotel_request_uses_room_and_session(self, create):
         create.return_value = {
             "id": "AVI-SOL-TEST", "room_id": "204", "description": "Necesito agua",

@@ -12,7 +12,9 @@ const loaderPath = path.join(
   "experience-views.js"
 );
 const loaderSource = fs.readFileSync(loaderPath, "utf8");
-const assetVersion = "20260727-1";
+const assetVersionMatch = loaderSource.match(/EXPERIENCE_ASSET_VERSION\s*=\s*["']([^"']+)["']/);
+assert.ok(assetVersionMatch, "experience-views.js debe declarar EXPERIENCE_ASSET_VERSION");
+const assetVersion = assetVersionMatch[1];
 const versioned = (resourcePath) => `${resourcePath}?v=${assetVersion}`;
 
 function createBrowserHarness() {
@@ -27,9 +29,15 @@ function createBrowserHarness() {
         queueMicrotask(() => script.onload());
       }
     },
+    head: {
+      appendChild() {
+      }
+    },
     createElement(tagName) {
-      assert.equal(tagName, "script");
-      return { dataset: {}, src: "", onload: null, onerror: null };
+      assert.ok(["script", "link"].includes(tagName));
+      return tagName === "script"
+        ? { dataset: {}, src: "", onload: null, onerror: null }
+        : { rel: "", href: "", onload: null, onerror: null };
     },
     getElementById(id) {
       return id === "experienceViews" ? host : null;
@@ -82,7 +90,7 @@ test("Autopartes carga únicamente su panel, su lógica y el demo de taller", as
   assert.deepEqual(browser.panels, [
     versioned("frontend/experiences/auto-parts/panel.html")
   ]);
-  assert.match(browser.host.innerHTML, /auto-parts\/panel\.html\?v=20260727-1/);
+  assert.ok(browser.host.innerHTML.includes(versioned("frontend/experiences/auto-parts/panel.html")));
 });
 
 test("Ferretería y Farmasi cargan solamente sus recursos específicos", async () => {

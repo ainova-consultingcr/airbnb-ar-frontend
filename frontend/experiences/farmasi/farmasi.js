@@ -4,6 +4,7 @@
 let selectedWellnessSafetyNotes = new Set();
 
 function setupGuidedWellnessSearch() {
+  if (PROPERTY_CONFIG?.type === "wellness_sales_assistant") setupFarmasiCommerce();
   const wrapper = document.getElementById("guidedWellnessSearch");
   if (!wrapper) return;
 
@@ -113,6 +114,223 @@ function setupGuidedWellnessSearch() {
   renderGuidedWellnessChips();
   updateGuidedWellnessSearchButton();
   searchBtn.onclick = submitGuidedWellnessSearch;
+}
+
+const FARMASI_SELLER_SLUG = new URLSearchParams(window.location.search).get("seller") || "ana";
+let FARMASI_SELLER = { id: "", slug: FARMASI_SELLER_SLUG, display_name: "Asesora Farmasi", whatsapp: "" };
+const FARMASI_CUSTOMER_SESSION = localStorage.getItem("avi_farmasi_customer_session")
+  || (crypto.randomUUID?.() || `customer-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+localStorage.setItem("avi_farmasi_customer_session", FARMASI_CUSTOMER_SESSION);
+let farmasiCart = JSON.parse(localStorage.getItem("avi_farmasi_cart") || "{}");
+let farmasiSellerToken = sessionStorage.getItem(`avi_farmasi_seller_token_${FARMASI_SELLER_SLUG}`) || "";
+
+function farmasiMoney(value) { return `$${Number(value || 0).toFixed(2)}`; }
+function saveFarmasiCart() {
+  renderFarmasiCart();
+  try {
+    localStorage.setItem("avi_farmasi_cart", JSON.stringify(farmasiCart));
+  } catch (error) {
+    console.warn("No se pudo guardar el carrito Farmasi localmente:", error);
+  }
+}
+
+function setupFarmasiCommerce() {
+  loadFarmasiSeller();
+  if (new URLSearchParams(window.location.search).get("view") === "seller") {
+    setupFarmasiSellerView();
+    return;
+  }
+  renderFarmasiCart();
+  const productsRoot = document.getElementById("farmasiProducts");
+  if (productsRoot && !productsRoot.dataset.cartHandlerReady) {
+    productsRoot.dataset.cartHandlerReady = "true";
+    productsRoot.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-farmasi-add]");
+      if (button) addFarmasiToCart(button.dataset.farmasiAdd, button);
+    });
+  }
+}
+
+async function loadFarmasiSeller() {
+  const response = await fetch(`${API_BASE_URL}/farmasi/sellers/${encodeURIComponent(FARMASI_SELLER_SLUG)}`);
+  if (!response.ok) {
+    showARAnswer("El enlace de esta asesora no es válido o ya no está activo.", false);
+    return false;
+  }
+  FARMASI_SELLER = await response.json();
+  const propertyName = document.getElementById("propertyName");
+  if (propertyName) propertyName.textContent = FARMASI_SELLER.display_name;
+  return true;
+}
+
+function setupFarmasiSellerView() {
+  document.body.classList.add("farmasi-seller-mode");
+  document.getElementById("responseCard")?.classList.remove("visible");
+  ["suggestions", "actionArea", "ui"].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) element.hidden = true;
+  });
+  const sellerView = document.getElementById("farmasiSellerView");
+  if (!sellerView) return;
+  document.body.appendChild(sellerView);
+  sellerView.hidden = false;
+  document.getElementById("farmasiSellerLoginForm").onsubmit = loginFarmasiSeller;
+  document.getElementById("farmasiSellerLogout").onclick = logoutFarmasiSeller;
+  showFarmasiSellerSession(Boolean(farmasiSellerToken));
+  if (farmasiSellerToken) loadFarmasiOrders();
+}
+
+function showFarmasiSellerSession(authenticated) {
+  const login = document.getElementById("farmasiSellerLogin");
+  const dashboard = document.getElementById("farmasiSellerDashboard");
+  if (login) login.hidden = authenticated;
+  if (dashboard) dashboard.hidden = !authenticated;
+}
+
+async function loginFarmasiSeller(event) {
+  event.preventDefault();
+  if (!FARMASI_SELLER.id && !(await loadFarmasiSeller())) return;
+  const error = document.getElementById("farmasiSellerLoginError");
+  error.textContent = "";
+  const response = await fetch(`${API_BASE_URL}/farmasi/seller/login`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      seller_slug: FARMASI_SELLER_SLUG,
+      username: document.getElementById("farmasiSellerUser").value,
+      password: document.getElementById("farmasiSellerPassword").value
+    })
+  });
+  if (!response.ok) {
+    error.textContent = "Usuario o contraseña incorrectos.";
+    return;
+  }
+  const session = await response.json();
+  farmasiSellerToken = session.access_token;
+  sessionStorage.setItem(`avi_farmasi_seller_token_${FARMASI_SELLER_SLUG}`, farmasiSellerToken);
+  showFarmasiSellerSession(true);
+  loadFarmasiOrders();
+}
+
+async function logoutFarmasiSeller() {
+  if (farmasiSellerToken) {
+    await fetch(`${API_BASE_URL}/farmasi/seller/logout`, {
+      method: "POST",
+      headers: {Authorization: `Bearer ${farmasiSellerToken}`}
+    });
+  }
+  farmasiSellerToken = "";
+  sessionStorage.removeItem(`avi_farmasi_seller_token_${FARMASI_SELLER_SLUG}`);
+  showFarmasiSellerSession(false);
+}
+
+function showFarmasiRecommendations(question = "") {
+  const store = document.getElementById("farmasiStore");
+  if (!store) return;
+  const responseBody = document.querySelector("#responseCard .response-body");
+  if (responseBody && store.parentElement !== responseBody) {
+    responseBody.appendChild(store);
+  }
+  responseBody?.classList.add("farmasi-results-visible");
+  const preset = inferWellnessShortcut(question);
+  const catalog = PROPERTY_CONFIG?.wellness?.catalog || [];
+  const products = preset?.goal ? getFarmasiRelevantProducts(preset.goal) : catalog;
+  renderFarmasiProducts(products);
+  store.hidden = false;
+}
+
+function addFarmasiToCart(sku, button) {
+  const product = (PROPERTY_CONFIG?.wellness?.catalog || [])
+    .find(item => String(item.sku) === String(sku));
+  if (!product) return;
+  if (!farmasiCart || typeof farmasiCart !== "object" || Array.isArray(farmasiCart)) farmasiCart = {};
+  farmasiCart[product.sku] = {
+    sku: product.sku,
+    name: product.name,
+    price: product.demo_price,
+    quantity: (farmasiCart[product.sku]?.quantity || 0) + 1
+  };
+  if (button) button.textContent = "Agregado ✓";
+  saveFarmasiCart();
+}
+
+function renderFarmasiProducts(products) {
+  const root = document.getElementById("farmasiProducts");
+  if (!root) return;
+  root.innerHTML = products.filter(p => p.availability === "in_stock").slice(0, 6).map(p => `
+    <article class="farmasi-product">
+      <img src="${p.image_url}" alt="${p.name}">
+      <h4>${p.name}</h4><div class="farmasi-price">${farmasiMoney(p.demo_price)}</div>
+      <button type="button" data-farmasi-add="${p.sku}">Agregar</button>
+    </article>`).join("");
+}
+
+function renderFarmasiCart() {
+  const root = document.getElementById("farmasiCart");
+  if (!root) return;
+  const items = Object.values(farmasiCart);
+  const badge = document.getElementById("farmasiCartBadge");
+  const count = items.reduce((sum, item) => sum + item.quantity, 0);
+  if (badge) badge.textContent = `${count} producto${count === 1 ? "" : "s"}`;
+  if (!items.length) { root.innerHTML = '<div class="farmasi-demo-note">Tu carrito temporal está vacío.</div>'; return; }
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  root.innerHTML = `<div class="farmasi-cart-head"><strong>Carrito temporal</strong><button id="farmasiClearCart">Vaciar</button></div>
+    ${items.map(item => `<div class="farmasi-cart-row"><span>${item.name}</span><span>x${item.quantity}</span><button data-farmasi-remove="${item.sku}">−</button></div>`).join("")}
+    <div class="farmasi-cart-total">Total estimado: ${farmasiMoney(total)}</div>
+    <button id="farmasiCheckout" class="farmasi-checkout">Solicitar pedido por WhatsApp</button>
+    <div class="farmasi-demo-note">La solicitud no es una venta confirmada. La asesora verificará disponibilidad y total final.</div>`;
+  root.querySelectorAll("[data-farmasi-remove]").forEach(button => button.onclick = () => {
+    const item = farmasiCart[button.dataset.farmasiRemove];
+    if (--item.quantity <= 0) delete farmasiCart[button.dataset.farmasiRemove];
+    saveFarmasiCart();
+  });
+  document.getElementById("farmasiClearCart").onclick = () => { farmasiCart = {}; saveFarmasiCart(); };
+  document.getElementById("farmasiCheckout").onclick = requestFarmasiOrder;
+}
+
+async function requestFarmasiOrder() {
+  const items = Object.values(farmasiCart);
+  if (!items.length) return;
+  const whatsappWindow = window.open("", "_blank");
+  try {
+    if (!FARMASI_SELLER.id && !(await loadFarmasiSeller())) throw new Error("seller_not_found");
+    const response = await fetch(`${API_BASE_URL}/farmasi/order-requests`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ property_id: CURRENT_PROPERTY, seller_id: FARMASI_SELLER.id, customer_session_id: FARMASI_CUSTOMER_SESSION, items }) });
+    if (!response.ok) throw new Error("request_failed");
+    const order = await response.json();
+    const lines = items.map(item => `• ${item.quantity} x ${item.name}`).join("\n");
+    const text = `Hola ${FARMASI_SELLER.display_name}, deseo solicitar este pedido:\n${lines}\nTotal estimado: ${farmasiMoney(order.estimated_total)}\nCódigo: ${order.code}\n\nEntiendo que está pendiente de confirmación.`;
+    const whatsappUrl = `https://wa.me/${FARMASI_SELLER.whatsapp}?text=${encodeURIComponent(text)}`;
+    if (whatsappWindow) {
+      whatsappWindow.opener = null;
+      whatsappWindow.location.href = whatsappUrl;
+    } else {
+      window.location.href = whatsappUrl;
+    }
+    farmasiCart = {}; saveFarmasiCart();
+    showARAnswer(`Solicitud ${order.code} creada. Se abrió WhatsApp para continuar con la asesora.`, false);
+  } catch (_) {
+    whatsappWindow?.close();
+    showARAnswer("No fue posible crear la solicitud. Intenta nuevamente.", false);
+  }
+}
+
+async function loadFarmasiOrders() {
+  const panel = document.getElementById("farmasiSellerPanel");
+  const response = await fetch(`${API_BASE_URL}/farmasi/order-requests?property_id=${encodeURIComponent(CURRENT_PROPERTY)}&seller_id=${FARMASI_SELLER.id}`, {
+    headers: {Authorization: `Bearer ${farmasiSellerToken}`}
+  });
+  if (response.status === 401) {
+    farmasiSellerToken = "";
+    sessionStorage.removeItem(`avi_farmasi_seller_token_${FARMASI_SELLER_SLUG}`);
+    showFarmasiSellerSession(false);
+    return;
+  }
+  const orders = response.ok ? await response.json() : [];
+  panel.innerHTML = `<strong>Solicitudes recientes</strong>${orders.length ? orders.map(order => `<article class="farmasi-order"><strong>${order.code}</strong><small>${order.items.length} productos · ${farmasiMoney(order.estimated_total)} · ${order.status}</small><div class="farmasi-order-actions"><button data-order="${order.id}" data-status="confirmed">Confirmar</button><button data-order="${order.id}" data-status="cancelled">Cancelar</button></div></article>`).join("") : '<div class="farmasi-demo-note">Aún no hay solicitudes en esta sesión del servidor.</div>'}`;
+  panel.querySelectorAll("[data-order]").forEach(button => button.onclick = async () => {
+    await fetch(`${API_BASE_URL}/farmasi/order-requests/${button.dataset.order}`, { method:"PATCH", headers:{"Content-Type":"application/json", Authorization:`Bearer ${farmasiSellerToken}`}, body:JSON.stringify({status:button.dataset.status}) });
+    loadFarmasiOrders();
+  });
 }
 
 function renderGuidedWellnessChips() {
@@ -257,21 +475,5 @@ function focusGuidedWellnessForm(message = "") {
 }
 
 function handleWellnessShortcut(text) {
-  if (PROPERTY_CONFIG?.type !== "wellness_sales_assistant") return false;
-
-  const preset = inferWellnessShortcut(text);
-  const goalSelect = document.getElementById("wellnessGoalSelect");
-  const budgetSelect = document.getElementById("wellnessBudgetSelect");
-
-  if (preset?.goal && goalSelect) goalSelect.value = preset.goal;
-  if (preset?.budget && budgetSelect) budgetSelect.value = preset.budget;
-  updateGuidedWellnessSearchButton();
-
-  const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
-  focusGuidedWellnessForm(
-    langKey === "en"
-      ? "Good. I preselected what I could. Complete the remaining selectors so I can recommend Farmasi products responsibly."
-      : "Listo. Preseleccione lo que pude. Completa los demas selectores para recomendar productos Farmasi de forma responsable."
-  );
-  return true;
+  return false;
 }

@@ -1,6 +1,9 @@
 import json
 import os
 import re
+from core.modules import apply_module_configuration
+from modules.catalog.service import build_catalog_context
+from modules.faqs.service import build_faq_context
 
 BASE_DIR = os.path.dirname(__file__)
 ENTITIES_DIR = os.path.join(BASE_DIR, "data", "entities")
@@ -88,63 +91,7 @@ def build_context(entity: dict) -> str:
             if srv.get("details"):
                 lines.append(f"  Details: {srv.get('details')}")
 
-    catalog = entity.get("catalog", [])
-    hide_commercial_fields = entity.get("type") == "wellness_sales_assistant"
-    if catalog:
-        lines.append("Catalog:")
-        for item in catalog:
-            lines.append(f"- {item.get('name', 'Item')} (SKU: {item.get('sku', 'N/A')})")
-            if item.get("brand"):
-                lines.append(f"  Brand: {item.get('brand')}")
-            if item.get("category"):
-                lines.append(f"  Category: {item.get('category')}")
-            if item.get("price") and not hide_commercial_fields:
-                lines.append(f"  Price: {item.get('price')}")
-            if item.get("availability"):
-                lines.append(f"  Availability: {item.get('availability')}")
-            if item.get("official_summary"):
-                lines.append(f"  Official summary: {item.get('official_summary')}")
-            if item.get("how_to_use"):
-                lines.append(f"  How to use: {item.get('how_to_use')}")
-            if item.get("goal_tags"):
-                lines.append(f"  Goal tags: {', '.join(item.get('goal_tags'))}")
-            if item.get("source_url") and not hide_commercial_fields:
-                lines.append(f"  Official URL: {item.get('source_url')}")
-            fitment = item.get("vehicle_fitment", [])
-            if fitment:
-                fitment_text = []
-                for vehicle in fitment:
-                    fitment_text.append(
-                        f"{vehicle.get('make')} {vehicle.get('model')} "
-                        f"{vehicle.get('year_from')}-{vehicle.get('year_to')}"
-                    )
-                lines.append(f"  Compatible vehicles: {', '.join(fitment_text)}")
-            if item.get("quality_options"):
-                options = [
-                    f"{option.get('type')}: {option.get('details')}"
-                    for option in item.get("quality_options", [])
-                ]
-                lines.append(f"  Quality options: {'; '.join(options)}")
-            if item.get("notes"):
-                lines.append(f"  Notes: {item.get('notes')}")
-            if item.get("related_parts"):
-                lines.append(f"  Related parts: {', '.join(item.get('related_parts'))}")
-
-    offers = entity.get("offers", [])
-    if offers:
-        lines.append("Active offers:")
-        for offer in offers:
-            if offer.get("active") is False:
-                continue
-            title = offer.get("title", {})
-            details = offer.get("details", {})
-            lines.append(f"- {title.get('es') or title.get('en') or offer.get('id')}")
-            if details:
-                lines.append(f"  Details: {details.get('es') or details.get('en')}")
-            if offer.get("categories"):
-                lines.append(f"  Categories: {', '.join(offer.get('categories'))}")
-            if offer.get("valid_until"):
-                lines.append(f"  Valid until: {offer.get('valid_until')}")
+    lines.extend(build_catalog_context(entity))
 
     diy_guides = entity.get("diy_guides", [])
     if diy_guides:
@@ -193,16 +140,7 @@ def build_context(entity: dict) -> str:
                     f"  {suggestion.get('part')}: {reason.get('es') or reason.get('en')}"
                 )
 
-    # --- FAQs ---
-    faqs = entity.get("faqs", [])
-    if faqs:
-        lines.append("FAQs:")
-        for f in faqs:
-            q = f.get("question", "")
-            a = f.get("answer", "")
-            if q and a:
-                lines.append(f"- Q: {q}")
-                lines.append(f"  A: {a}")
+    lines.extend(build_faq_context(entity))
 
     # --- Recommendations ---
     recs = entity.get("recommendations", {})
@@ -295,7 +233,7 @@ def load_property_data(entity_id : str) -> dict:
      entity["wear_suggestions"] = wear_suggestions
     #with open(path, "r", encoding="utf-8") as f:
        #return json.load(f)
-     return entity
+     return apply_module_configuration(entity)
 #def build_context(data):
 #    return f"""
 #Nombre: {data['name']}

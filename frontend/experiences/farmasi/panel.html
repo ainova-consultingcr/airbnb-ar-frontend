@@ -1,15 +1,24 @@
-<section id="guidedWellnessSearch">
-  <div class="guided-title">Recomendación Farmasi paso a paso</div>
-  <div class="guided-grid">
-    <select id="wellnessGoalSelect" class="guided-select"></select>
-    <select id="wellnessAgeSelect" class="guided-select"></select>
-    <select id="wellnessWeightSelect" class="guided-select"></select>
-    <select id="wellnessTargetSelect" class="guided-select"></select>
-    <select id="wellnessActivitySelect" class="guided-select"></select>
-    <select id="wellnessDietSelect" class="guided-select"></select>
-    <select id="wellnessExerciseSelect" class="guided-select"></select>
-    <select id="wellnessBudgetSelect" class="guided-select"></select>
+<section id="farmasiStore" class="farmasi-store" hidden>
+  <div class="farmasi-store-head"><div><strong>Productos sugeridos</strong><div class="farmasi-demo-note">Catálogo y precios simulados para demostración.</div></div><span id="farmasiCartBadge">0 productos</span></div>
+  <div id="farmasiProducts" class="farmasi-products"></div>
+  <div id="farmasiCart" class="farmasi-cart"></div>
+</section>
+<section id="farmasiSellerView" class="farmasi-seller-view" hidden>
+  <div id="farmasiSellerLogin">
+    <h2>Acceso de vendedor</h2>
+    <p>Ingresa tus credenciales para administrar solicitudes.</p>
+    <form id="farmasiSellerLoginForm">
+      <label>Usuario<input id="farmasiSellerUser" autocomplete="username" required></label>
+      <label>Contraseña<input id="farmasiSellerPassword" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Ingresar</button>
+      <div id="farmasiSellerLoginError" role="alert"></div>
+    </form>
   </div>
-  <div id="guidedWellnessChips"></div>
-  <button id="guidedWellnessSearchBtn" type="button">Consultar con AVI</button>
+  <div id="farmasiSellerDashboard" hidden>
+    <div class="farmasi-store-head">
+      <div><h2>Panel del vendedor</h2><span>Solicitudes Farmasi</span></div>
+      <button id="farmasiSellerLogout" type="button">Cerrar sesión</button>
+    </div>
+    <div id="farmasiSellerPanel" class="farmasi-seller-panel"></div>
+  </div>
 </section>

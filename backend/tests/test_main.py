@@ -121,8 +121,8 @@ class MainTests(unittest.TestCase):
 
         self.assertNotIn("tours", response)
         self.assertNotIn("No hay tours", response["answer"])
-        self.assertIn("selectores guiados", response["answer"])
-        self.assertIn("Recomendar con AVI", response["answer"])
+        self.assertIn("control de peso", response["answer"])
+        self.assertIn("carrito", response["answer"])
         self.assertIsNone(CaptureOpenAI.last_kwargs)
 
     @patch.object(main, "log_question")
