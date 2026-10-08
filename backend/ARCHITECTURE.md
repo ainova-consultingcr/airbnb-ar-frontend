@@ -25,8 +25,11 @@ Agregar `enabled_modules` al archivo `entity.json`:
 }
 ```
 
-Los nombres válidos son `faqs`, `requests`, `shopping`, `catalog` y
-`customers`. Los nombres desconocidos se rechazan.
+Los nombres válidos son `faqs`, `requests`, `shopping`, `catalog`,
+`customers`, `work_orders` y `asada_support`. Los nombres desconocidos se
+rechazan. `asada_support` usa la URL HTTPS declarada en
+`asada_support.api_base_url`; puede ajustar la espera al despertar Render con
+`ASADA_MONITOR_TIMEOUT_SECONDS` (5 a 60 segundos).
 
 Para conservar compatibilidad, la ausencia de `enabled_modules` activa todos
 los módulos. Las entidades existentes no requieren migración.

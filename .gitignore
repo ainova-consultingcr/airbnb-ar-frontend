@@ -5,6 +5,10 @@ __pycache__/
 .DS_Store
 Thumbs.db
 *.pyc
+*.db
+*.db-wal
+*.db-shm
 backend/__pycache__/
 frontend/__pycache__/
 __pycache__/
+backend/data/avi_access.sqlite3*

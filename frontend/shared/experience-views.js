@@ -1,5 +1,5 @@
 // Loads only the HTML and JavaScript required by the active AVI entity.
-const EXPERIENCE_ASSET_VERSION = "20260727-5";
+const EXPERIENCE_ASSET_VERSION = "20261008-3";
 const EXPERIENCE_CONFIG = {
   auto_parts_store: {
     panel: "frontend/experiences/auto-parts/panel.html",
@@ -19,6 +19,11 @@ const EXPERIENCE_CONFIG = {
       "frontend/experiences/farmasi/farmasi-interactions.css"
     ],
     scripts: ["frontend/experiences/farmasi/farmasi.js"]
+  },
+  asada: {
+    panel: "frontend/experiences/asada/support-panel.html",
+    styles: ["frontend/experiences/asada/support.css"],
+    scripts: ["frontend/experiences/asada/support.js"]
   },
   hotel: {
     scripts: ["frontend/experiences/tourism/tourism.js"]

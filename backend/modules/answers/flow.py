@@ -45,6 +45,14 @@ def handle_ask(req: AskRequest, *, client_factory, question_logger):
  try:
     # 1) Cargar entidad
     entity = load_property_data(req.property_id)
+    if entity.get("type") == "asada":
+        return {
+            "answer": (
+                "Inicia sesión en AVI para consultar la operación de esta ASADA. "
+                "Si ya ingresaste, actualiza la página para cargar el módulo operativo."
+            ),
+            "suggestions": [],
+        }
     try:
         request_response = handle_service_request(
             entity=entity,

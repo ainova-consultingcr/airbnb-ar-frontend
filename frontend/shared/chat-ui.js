@@ -290,7 +290,12 @@ function renderSuggestionsFromBackend() {
     container.appendChild(btn);
   });
 
-  appendServiceRequestHelpSuggestion(container);
+  window.AVIExperienceExtensions?.run("suggestions:after-render", {
+    container,
+    suggestions: list,
+    language: langKey,
+    property: PROPERTY_CONFIG
+  });
 }
 function showThinking() {
   if (!PROPERTY_CONFIG) return;

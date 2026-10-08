@@ -1,176 +1,23 @@
-(function () {
-  "use strict";
-
-  const STORAGE_KEY = "avi_workshop_demo_v1";
-  const money = new Intl.NumberFormat("es-CR", { style: "currency", currency: "CRC", maximumFractionDigits: 0 });
-  const now = () => new Date().toISOString();
-  const today = () => new Date().toLocaleDateString("es-CR", { day: "2-digit", month: "short", year: "numeric" });
-
-  const seed = {
-    requests: [
-      { id: "SOL-1042", created: "22 jul 2026", customer: "María Rodríguez", phone: "8888-1204", vehicle: "Toyota Corolla 2012", plate: "BCR-417", mileage: "168,400 km", issue: "Ruido al frenar y vibración en el pedal", priority: "Alta", status: "Pendiente" },
-      { id: "SOL-1041", created: "22 jul 2026", customer: "Carlos Méndez", phone: "8702-3310", vehicle: "Hyundai Accent 2017", plate: "CGH-902", mileage: "92,100 km", issue: "Mantenimiento preventivo de 90 mil km", priority: "Normal", status: "Diagnosticando" },
-      { id: "SOL-1040", created: "21 jul 2026", customer: "Ana Solís", phone: "8311-4418", vehicle: "Toyota Hilux 2014", plate: "CL-7712", mileage: "214,800 km", issue: "Golpe en suspensión delantera", priority: "Normal", status: "Convertida" }
-    ],
-    orders: [
-      { id: "OT-2087", requestId: "SOL-1040", customer: "Ana Solís", vehicle: "Toyota Hilux 2014", plate: "CL-7712", technician: "Diego Vargas", status: "En reparación", progress: 65, approved: true, diagnosis: "Amortiguadores delanteros con fuga y bujes fatigados.", labor: [{ description: "Cambio de amortiguadores delanteros", qty: 2, unit: 18500 }], parts: [{ description: "Amortiguador delantero reforzado", sku: "SUS-HIL-05-15-F", qty: 2, unit: 48500 }, { description: "Kit de bujes delanteros", sku: "BUJ-HIL-F", qty: 1, unit: 22000 }] },
-      { id: "OT-2086", requestId: "SOL-1039", customer: "Luis Chaves", vehicle: "Nissan Sentra 2015", plate: "BCP-219", technician: "Sofía Mora", status: "Esperando aprobación", progress: 30, approved: false, diagnosis: "Pastillas delanteras al límite y discos con desgaste irregular.", labor: [{ description: "Servicio de frenos delanteros", qty: 1, unit: 28000 }], parts: [{ description: "Juego de pastillas delanteras", sku: "BRK-SEN-F", qty: 1, unit: 39000 }, { description: "Discos delanteros", sku: "DSC-SEN-F", qty: 2, unit: 42000 }] }
-    ],
-    invoices: [
-      { id: "FAC-3091", orderId: "OT-2084", customer: "Jorge Araya", vehicle: "Honda Civic 2018", issued: "21 jul 2026", subtotal: 85000, tax: 11050, total: 96050, paid: 96050, status: "Pagada", method: "Tarjeta" },
-      { id: "FAC-3090", orderId: "OT-2083", customer: "Laura Brenes", vehicle: "Toyota Yaris 2016", issued: "20 jul 2026", subtotal: 124000, tax: 16120, total: 140120, paid: 70000, status: "Pago parcial", method: "SINPE Móvil" }
-    ]
-  };
-
-  let state;
-  let activeTab = "requests";
-
-  function clone(value) { return JSON.parse(JSON.stringify(value)); }
-  function load() {
-    try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || clone(seed); }
-    catch (_) { state = clone(seed); }
-  }
-  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[c]));
-  }
-  function orderSubtotal(order) {
-    return [...(order.parts || []), ...(order.labor || [])].reduce((sum, item) => sum + Number(item.qty || 0) * Number(item.unit || 0), 0);
-  }
-  function nextId(prefix, collection) {
-    const max = collection.reduce((n, item) => Math.max(n, Number(String(item.id).split("-")[1]) || 0), 0);
-    return `${prefix}-${max + 1}`;
-  }
-  function badge(status) {
-    const key = String(status).toLowerCase().replace(/\s+/g, "-").replace(/[ó]/g, "o");
-    return `<span class="avi-ws-badge ${key}">${escapeHtml(status)}</span>`;
-  }
-
-  function styles() {
-    const style = document.createElement("style");
-    style.textContent = `
-      #aviWorkshopLauncher{position:fixed;right:18px;top:18px;z-index:1000000;border:0;border-radius:999px;background:#f59e0b;color:#201300;font-weight:800;padding:12px 18px;box-shadow:0 10px 30px #0006;cursor:pointer}
-      #aviWorkshop{position:fixed;inset:0;z-index:2000000;background:#07101f;color:#e5e7eb;font-family:Inter,system-ui,sans-serif;display:none;overflow:auto}
-      #aviWorkshop.open{display:block}.avi-ws-shell{max-width:1440px;margin:auto;padding:22px}.avi-ws-top{display:flex;align-items:center;gap:14px;margin-bottom:20px}.avi-ws-logo{width:45px;height:45px;border-radius:14px;background:#f59e0b;color:#1f1300;display:grid;place-items:center;font-weight:900;font-size:20px}.avi-ws-top h1{font-size:20px;margin:0}.avi-ws-top p{margin:2px 0 0;color:#94a3b8;font-size:13px}.avi-ws-close{margin-left:auto;background:#172033;color:#fff;border:1px solid #334155;border-radius:10px;padding:9px 13px;cursor:pointer}
-      .avi-ws-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.avi-ws-kpi{background:#111a2c;border:1px solid #263249;border-radius:14px;padding:16px}.avi-ws-kpi small{color:#94a3b8}.avi-ws-kpi strong{display:block;font-size:26px;margin-top:5px}.avi-ws-kpi em{font-style:normal;color:#fbbf24;font-size:12px}
-      .avi-ws-tabs{display:flex;gap:8px;border-bottom:1px solid #263249;margin-bottom:16px}.avi-ws-tab{border:0;background:transparent;color:#94a3b8;font-weight:700;padding:12px 15px;cursor:pointer;border-bottom:3px solid transparent}.avi-ws-tab.active{color:#fbbf24;border-color:#f59e0b}.avi-ws-toolbar{display:flex;gap:10px;justify-content:space-between;margin-bottom:14px}.avi-ws-toolbar input{min-width:260px;background:#101827;border:1px solid #334155;color:#fff;border-radius:9px;padding:10px}.avi-ws-primary,.avi-ws-action{border:0;border-radius:9px;font-weight:800;cursor:pointer}.avi-ws-primary{background:#f59e0b;color:#201300;padding:10px 14px}.avi-ws-action{background:#263249;color:#fff;padding:7px 10px;font-size:12px}.avi-ws-action.approve{background:#047857}.avi-ws-action.invoice{background:#2563eb}
-      .avi-ws-card{background:#101827;border:1px solid #263249;border-radius:14px;overflow:hidden}.avi-ws-table{width:100%;border-collapse:collapse;font-size:13px}.avi-ws-table th{text-align:left;color:#94a3b8;background:#0d1523;padding:12px}.avi-ws-table td{padding:13px 12px;border-top:1px solid #263249;vertical-align:top}.avi-ws-table b{display:block;color:#fff}.avi-ws-muted{color:#94a3b8;font-size:12px}.avi-ws-badge{display:inline-block;padding:5px 8px;border-radius:999px;background:#334155;font-size:11px;font-weight:800}.avi-ws-badge.pendiente,.avi-ws-badge.esperando-aprobacion{background:#78350f;color:#fde68a}.avi-ws-badge.en-reparacion,.avi-ws-badge.diagnosticando,.avi-ws-badge.pago-parcial{background:#1e3a8a;color:#bfdbfe}.avi-ws-badge.pagada,.avi-ws-badge.convertida,.avi-ws-badge.finalizada{background:#064e3b;color:#a7f3d0}.avi-ws-progress{width:110px;height:7px;background:#334155;border-radius:9px;overflow:hidden;margin-top:6px}.avi-ws-progress i{display:block;height:100%;background:#f59e0b}
-      .avi-ws-modal{position:fixed;inset:0;background:#000a;z-index:2100000;display:none;place-items:center;padding:20px}.avi-ws-modal.open{display:grid}.avi-ws-dialog{width:min(680px,100%);max-height:90vh;overflow:auto;background:#111a2c;border:1px solid #334155;border-radius:16px;padding:22px}.avi-ws-dialog h2{margin:0 0 18px}.avi-ws-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.avi-ws-field{display:flex;flex-direction:column;gap:5px}.avi-ws-field.full{grid-column:1/-1}.avi-ws-field label{font-size:12px;color:#94a3b8}.avi-ws-field input,.avi-ws-field select,.avi-ws-field textarea{background:#0b1220;border:1px solid #334155;color:#fff;border-radius:8px;padding:10px;font:inherit}.avi-ws-field textarea{min-height:80px}.avi-ws-dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.avi-ws-empty{padding:35px;text-align:center;color:#94a3b8}
-      @media(max-width:800px){.avi-ws-kpis{grid-template-columns:1fr 1fr}.avi-ws-card{overflow:auto}.avi-ws-table{min-width:850px}.avi-ws-form{grid-template-columns:1fr}.avi-ws-field.full{grid-column:auto}#aviWorkshopLauncher{top:10px;right:10px}.avi-ws-shell{padding:14px}}
-    `;
-    document.head.appendChild(style);
-  }
-
-  function markup() {
-    document.body.insertAdjacentHTML("beforeend", `
-      <button id="aviWorkshopLauncher" type="button">🔧 Centro de Taller</button>
-      <main id="aviWorkshop" aria-hidden="true">
-        <div class="avi-ws-shell">
-          <header class="avi-ws-top"><div class="avi-ws-logo">AVI</div><div><h1>Centro de Operaciones del Taller</h1><p>Repuestos Ruta 27 · Demo con datos simulados</p></div><button class="avi-ws-close" data-ws="close">Volver a AVI ✕</button></header>
-          <section class="avi-ws-kpis" id="aviWsKpis"></section>
-          <nav class="avi-ws-tabs">
-            <button class="avi-ws-tab active" data-tab="requests">Solicitudes</button>
-            <button class="avi-ws-tab" data-tab="orders">Órdenes de trabajo</button>
-            <button class="avi-ws-tab" data-tab="invoices">Facturación</button>
-          </nav>
-          <section id="aviWsContent"></section>
-        </div>
-      </main>
-      <div class="avi-ws-modal" id="aviWsModal"><div class="avi-ws-dialog" id="aviWsDialog"></div></div>
-    `);
-  }
-
-  function renderKpis() {
-    const pending = state.requests.filter(x => !["Convertida", "Cerrada"].includes(x.status)).length;
-    const active = state.orders.filter(x => x.status !== "Finalizada").length;
-    const receivable = state.invoices.reduce((sum, x) => sum + x.total - x.paid, 0);
-    document.getElementById("aviWsKpis").innerHTML = `
-      <div class="avi-ws-kpi"><small>Solicitudes abiertas</small><strong>${pending}</strong><em>requieren seguimiento</em></div>
-      <div class="avi-ws-kpi"><small>Órdenes activas</small><strong>${active}</strong><em>en proceso del taller</em></div>
-      <div class="avi-ws-kpi"><small>Esperando aprobación</small><strong>${state.orders.filter(x => !x.approved).length}</strong><em>cotizaciones enviadas</em></div>
-      <div class="avi-ws-kpi"><small>Saldo por cobrar</small><strong>${money.format(receivable)}</strong><em>facturación simulada</em></div>`;
-  }
-
-  function toolbar(title, action) {
-    return `<div class="avi-ws-toolbar"><input id="aviWsSearch" placeholder="Buscar cliente, vehículo, placa o número..."><button class="avi-ws-primary" data-ws="${action}">+ ${title}</button></div>`;
-  }
-  function renderRequests() {
-    return toolbar("Nueva solicitud", "new-request") + `<div class="avi-ws-card"><table class="avi-ws-table"><thead><tr><th>Solicitud</th><th>Cliente</th><th>Vehículo</th><th>Necesidad</th><th>Prioridad</th><th>Estado</th><th></th></tr></thead><tbody>${state.requests.map(r => `<tr data-search="${escapeHtml(Object.values(r).join(" ").toLowerCase())}"><td><b>${r.id}</b><span class="avi-ws-muted">${r.created}</span></td><td><b>${escapeHtml(r.customer)}</b><span class="avi-ws-muted">${escapeHtml(r.phone)}</span></td><td><b>${escapeHtml(r.vehicle)}</b><span class="avi-ws-muted">${escapeHtml(r.plate)} · ${escapeHtml(r.mileage)}</span></td><td>${escapeHtml(r.issue)}</td><td>${badge(r.priority)}</td><td>${badge(r.status)}</td><td>${r.status !== "Convertida" ? `<button class="avi-ws-action" data-convert="${r.id}">Crear OT</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`;
-  }
-  function renderOrders() {
-    return toolbar("Nueva orden", "new-order") + `<div class="avi-ws-card"><table class="avi-ws-table"><thead><tr><th>Orden</th><th>Cliente / vehículo</th><th>Diagnóstico</th><th>Técnico</th><th>Avance</th><th>Total estimado</th><th></th></tr></thead><tbody>${state.orders.map(o => `<tr data-search="${escapeHtml(Object.values(o).join(" ").toLowerCase())}"><td><b>${o.id}</b><span class="avi-ws-muted">${o.requestId || "Directa"}</span></td><td><b>${escapeHtml(o.customer)}</b><span class="avi-ws-muted">${escapeHtml(o.vehicle)} · ${escapeHtml(o.plate)}</span></td><td>${escapeHtml(o.diagnosis || "Pendiente de diagnóstico")}</td><td>${escapeHtml(o.technician || "Sin asignar")}</td><td>${badge(o.status)}<div class="avi-ws-progress"><i style="width:${o.progress || 0}%"></i></div></td><td><b>${money.format(orderSubtotal(o) * 1.13)}</b><span class="avi-ws-muted">IVA incluido</span></td><td>${!o.approved ? `<button class="avi-ws-action approve" data-approve="${o.id}">Aprobar</button>` : o.status !== "Finalizada" ? `<button class="avi-ws-action" data-advance="${o.id}">Avanzar</button>` : `<button class="avi-ws-action invoice" data-invoice="${o.id}">Facturar</button>`}</td></tr>`).join("")}</tbody></table></div>`;
-  }
-  function renderInvoices() {
-    return toolbar("Nueva factura", "new-invoice") + `<div class="avi-ws-card"><table class="avi-ws-table"><thead><tr><th>Factura</th><th>Orden</th><th>Cliente</th><th>Emisión</th><th>Total</th><th>Pagado / saldo</th><th>Estado</th><th></th></tr></thead><tbody>${state.invoices.map(f => `<tr data-search="${escapeHtml(Object.values(f).join(" ").toLowerCase())}"><td><b>${f.id}</b></td><td>${f.orderId}</td><td><b>${escapeHtml(f.customer)}</b><span class="avi-ws-muted">${escapeHtml(f.vehicle)}</span></td><td>${f.issued}</td><td><b>${money.format(f.total)}</b><span class="avi-ws-muted">IVA ${money.format(f.tax)}</span></td><td>${money.format(f.paid)}<span class="avi-ws-muted">Saldo ${money.format(f.total - f.paid)}</span></td><td>${badge(f.status)}</td><td>${f.paid < f.total ? `<button class="avi-ws-action approve" data-pay="${f.id}">Registrar pago</button>` : `<button class="avi-ws-action" data-print="${f.id}">Ver comprobante</button>`}</td></tr>`).join("")}</tbody></table></div>`;
-  }
-  function render() {
-    renderKpis();
-    document.getElementById("aviWsContent").innerHTML = activeTab === "requests" ? renderRequests() : activeTab === "orders" ? renderOrders() : renderInvoices();
-  }
-
-  function openModal(html) { document.getElementById("aviWsDialog").innerHTML = html; document.getElementById("aviWsModal").classList.add("open"); }
-  function closeModal() { document.getElementById("aviWsModal").classList.remove("open"); }
-  function requestForm() {
-    openModal(`<h2>Nueva solicitud de servicio</h2><form id="aviWsRequestForm" class="avi-ws-form">
-      <div class="avi-ws-field"><label>Nombre del cliente</label><input name="customer" required value="Roberto Jiménez"></div><div class="avi-ws-field"><label>WhatsApp</label><input name="phone" required value="8890-2451"></div>
-      <div class="avi-ws-field"><label>Vehículo</label><input name="vehicle" required value="Toyota Corolla 2016"></div><div class="avi-ws-field"><label>Placa</label><input name="plate" required value="BFG-625"></div>
-      <div class="avi-ws-field"><label>Kilometraje</label><input name="mileage" value="124,500 km"></div><div class="avi-ws-field"><label>Prioridad</label><select name="priority"><option>Normal</option><option>Alta</option><option>Urgente</option></select></div>
-      <div class="avi-ws-field full"><label>Problema o servicio solicitado</label><textarea name="issue" required>El aire acondicionado dejó de enfriar.</textarea></div>
-      <div class="avi-ws-dialog-actions full"><button type="button" class="avi-ws-action" data-ws="dismiss">Cancelar</button><button class="avi-ws-primary">Registrar solicitud</button></div></form>`);
-  }
-  function convertRequest(id) {
-    const r = state.requests.find(x => x.id === id); if (!r) return;
-    r.status = "Convertida";
-    state.orders.unshift({ id: nextId("OT", state.orders), requestId: r.id, customer: r.customer, vehicle: r.vehicle, plate: r.plate, technician: "Sin asignar", status: "Diagnóstico", progress: 10, approved: false, diagnosis: "Pendiente de inspección técnica.", labor: [{ description: "Diagnóstico general", qty: 1, unit: 18000 }], parts: [] });
-    save(); activeTab = "orders"; syncTabs(); render();
-  }
-  function invoiceOrder(id) {
-    const o = state.orders.find(x => x.id === id); if (!o) return;
-    if (state.invoices.some(x => x.orderId === id)) { activeTab = "invoices"; syncTabs(); render(); return; }
-    const subtotal = orderSubtotal(o), tax = Math.round(subtotal * .13);
-    state.invoices.unshift({ id: nextId("FAC", state.invoices), orderId: o.id, customer: o.customer, vehicle: o.vehicle, issued: today(), subtotal, tax, total: subtotal + tax, paid: 0, status: "Pendiente", method: "" });
-    save(); activeTab = "invoices"; syncTabs(); render();
-  }
-  function syncTabs() { document.querySelectorAll(".avi-ws-tab").forEach(x => x.classList.toggle("active", x.dataset.tab === activeTab)); }
-  function receipt(id) {
-    const f = state.invoices.find(x => x.id === id); if (!f) return;
-    openModal(`<h2>Comprobante ${f.id}</h2><p><b>Repuestos Ruta 27</b><br><span class="avi-ws-muted">Factura demostrativa · No es comprobante fiscal</span></p><hr><p>Cliente: ${escapeHtml(f.customer)}<br>Vehículo: ${escapeHtml(f.vehicle)}<br>Orden: ${f.orderId}</p><h2>${money.format(f.total)}</h2><p>Subtotal: ${money.format(f.subtotal)}<br>IVA (13%): ${money.format(f.tax)}<br>Pagado: ${money.format(f.paid)}</p><div class="avi-ws-dialog-actions"><button class="avi-ws-primary" data-ws="dismiss">Cerrar</button></div>`);
-  }
-
-  function events() {
-    document.addEventListener("click", e => {
-      const t = e.target.closest("button"); if (!t) return;
-      if (t.id === "aviWorkshopLauncher") { document.getElementById("aviWorkshop").classList.add("open"); render(); }
-      if (t.dataset.ws === "close") document.getElementById("aviWorkshop").classList.remove("open");
-      if (t.dataset.ws === "dismiss") closeModal();
-      if (t.dataset.ws === "new-request") requestForm();
-      if (t.dataset.ws === "new-order") { activeTab = "requests"; syncTabs(); render(); requestForm(); }
-      if (t.dataset.ws === "new-invoice") { activeTab = "orders"; syncTabs(); render(); }
-      if (t.dataset.tab) { activeTab = t.dataset.tab; syncTabs(); render(); }
-      if (t.dataset.convert) convertRequest(t.dataset.convert);
-      if (t.dataset.approve) { const o = state.orders.find(x => x.id === t.dataset.approve); o.approved = true; o.status = "Aprobada"; o.progress = 40; save(); render(); }
-      if (t.dataset.advance) { const o = state.orders.find(x => x.id === t.dataset.advance); if (o.progress < 80) { o.progress = 85; o.status = "Control de calidad"; } else { o.progress = 100; o.status = "Finalizada"; } save(); render(); }
-      if (t.dataset.invoice) invoiceOrder(t.dataset.invoice);
-      if (t.dataset.pay) { const f = state.invoices.find(x => x.id === t.dataset.pay); f.paid = f.total; f.status = "Pagada"; f.method = "SINPE Móvil"; save(); render(); receipt(f.id); }
-      if (t.dataset.print) receipt(t.dataset.print);
-    });
-    document.addEventListener("input", e => {
-      if (e.target.id !== "aviWsSearch") return;
-      const q = e.target.value.toLowerCase(); document.querySelectorAll("#aviWsContent tbody tr").forEach(row => row.hidden = !row.dataset.search.includes(q));
-    });
-    document.addEventListener("submit", e => {
-      if (e.target.id !== "aviWsRequestForm") return; e.preventDefault();
-      const d = Object.fromEntries(new FormData(e.target));
-      state.requests.unshift({ id: nextId("SOL", state.requests), created: today(), customer: d.customer, phone: d.phone, vehicle: d.vehicle, plate: d.plate, mileage: d.mileage, issue: d.issue, priority: d.priority, status: "Pendiente", createdAt: now() });
-      save(); closeModal(); activeTab = "requests"; syncTabs(); render();
-    });
-  }
-
-  function init() {
-    const config = typeof PROPERTY_CONFIG !== "undefined" ? PROPERTY_CONFIG : window.PROPERTY_CONFIG;
-    if (config?.type !== "auto_parts_store") return false;
-    load(); styles(); markup(); events(); render(); return true;
-  }
-  let attempts = 0;
-  const timer = setInterval(() => { attempts += 1; if (init() || attempts > 50) clearInterval(timer); }, 200);
+(function(){"use strict";
+const q=new URLSearchParams(location.search),slug=q.get("workshop")||"ruta27",advisor=q.get("view")==="workshop",trackKey=`avi_wo_track_${slug}`,sessionKey=`avi_wo_session_${slug}`,roleKey=`avi_wo_role_${slug}`;let token=sessionStorage.getItem(sessionKey)||"",staffRole=sessionStorage.getItem(roleKey)||"",workshopConfig=null;
+const api=(p,o={})=>fetch(`${API_BASE_URL}/workshops/${encodeURIComponent(slug)}${p}`,o),json={"Content-Type":"application/json"},auth=()=>({...json,Authorization:`Bearer ${token}`}),esc=v=>String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])),money=v=>new Intl.NumberFormat("es-CR",{style:"currency",currency:"CRC"}).format(Number(v||0));
+const names={received:"Recibida",scheduled:"Inspección reservada",converted:"Convertida",diagnosis:"Diagnóstico",awaiting_approval:"Esperando aprobación",approved:"Aprobada",rejected:"Rechazada",in_progress:"En reparación",quality_check:"Control de calidad",ready:"Lista",delivered:"Entregada",cancelled:"Cancelada"};
+function setup(){let s=document.createElement("style");s.textContent=`.wo-btn{position:fixed;right:18px;top:18px;z-index:1000000;border:0;border-radius:30px;background:#f59e0b;color:#201300;font-weight:800;padding:12px 18px}.wo{position:fixed;inset:0;z-index:2000000;background:#07101f;color:#e5e7eb;overflow:auto;font-family:Inter,system-ui}.wo[hidden]{display:none}.wo-shell{max-width:1050px;margin:auto;padding:24px}.wo-head{display:flex;align-items:center;gap:10px}.wo-head button{margin-left:auto}.wo-card,.wo-row{background:#101827;border:1px solid #263249;border-radius:14px;padding:18px;margin:12px 0}.wo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.wo label{display:grid;gap:5px;font-size:12px}.wo input,.wo textarea,.wo select{background:#0b1220;border:1px solid #334155;color:#fff;border-radius:8px;padding:10px}.wo textarea{min-height:80px}.full{grid-column:1/-1}.wo button{border:0;border-radius:9px;padding:10px 13px;font-weight:750}.primary{background:#f59e0b;color:#201300}.muted{color:#94a3b8;font-size:13px}.badge{background:#1e3a8a;color:#bfdbfe;border-radius:20px;padding:5px 9px;font-size:11px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.wo-human-contact{margin-top:22px;padding-top:16px;border-top:1px solid #334155}.wo-human-contact h4{margin:0 0 6px;font-size:14px}.wo-human-contact .muted{margin:0 0 10px}.wo-whatsapp{background:#172033;color:#dbeafe;border:1px solid #475569!important}.error{color:#fca5a5}@media(max-width:700px){.wo-grid{grid-template-columns:1fr}.full{grid-column:auto}}`;document.head.appendChild(s);document.body.insertAdjacentHTML("beforeend",`<button id="woOpen" class="wo-btn">${advisor?"Panel del taller":"Solicitar servicio"}</button><main id="wo" class="wo" hidden><div class="wo-shell"><header class="wo-head"><div><h1>${advisor?"Operación del taller":"Solicitud de servicio"}</h1><span class="muted">Repuestos Ruta 27 · operación persistente</span></div><button id="woClose">Volver a AVI ✕</button></header><section id="woContent"></section></div></main>`)}
+function whatsappButton(code,separated=false){if(!workshopConfig?.whatsapp?.enabled)return "";let button=`<button class="wo-whatsapp" data-whatsapp-code="${esc(code||"")}">Hablar con un asesor por WhatsApp</button>`,help=`<p class="muted">Ayuda opcional. El presupuesto y su aprobación permanecen en AVI.</p>`;return separated?`<section class="wo-human-contact"><h4>¿Necesitas ayuda?</h4>${help}${button}</section>`:`${button}${help}`}
+function openAdvisorWhatsApp(code){let phone=workshopConfig?.whatsapp?.number;if(!phone)return;let reference=code?` sobre la solicitud ${code}`:"";openWhatsApp(phone,`Hola, necesito ayuda${reference}.`)}
+async function loadWorkshop(){if(workshopConfig)return workshopConfig;let r=await api("");if(r.ok)workshopConfig=await r.json();return workshopConfig}
+async function customer(){await loadWorkshop();let saved=JSON.parse(localStorage.getItem(trackKey)||"null");content().innerHTML=`<div class="wo-card"><h2>Solicita una inspección</h2><p class="muted">Describe el problema. Si la agenda está conectada, AVI te mostrará horarios después de registrar la solicitud.</p><form id="woRequest" class="wo-grid"><label>Nombre<input name="customer_name" required></label><label>Teléfono/WhatsApp<input name="phone" required></label><label>Marca<input name="vehicle_make" required></label><label>Modelo<input name="vehicle_model" required></label><label>Año<input name="vehicle_year" type="number" min="1950" max="2100" required></label><label>Placa<input name="plate"></label><label>Kilometraje<input name="mileage" type="number" min="0"></label><label>Fecha preferida<input name="preferred_date" type="date"></label><label class="full">Problema<textarea name="problem" required></textarea></label><label class="full"><span><input name="consent_to_contact" type="checkbox" required> Autorizo al taller a contactarme sobre esta solicitud.</span></label><div class="full"><button class="primary">Crear solicitud y ver horarios</button></div><div id="woError" class="error full"></div></form></div>${saved?`<button id="woTrack" class="primary">Ver seguimiento ${esc(saved.code)}</button>`:""}${whatsappButton(saved?.code)}`}
+async function sendRequest(f){let d=Object.fromEntries(new FormData(f));d.vehicle_year=+d.vehicle_year;d.mileage=d.mileage?+d.mileage:null;d.consent_to_contact=!!d.consent_to_contact;d.vin=null;let r=await api("/service-requests",{method:"POST",headers:json,body:JSON.stringify(d)}),b=await r.json();if(!r.ok)return byId("woError").textContent=b.detail||"No se pudo registrar";localStorage.setItem(trackKey,JSON.stringify(b));tracking(b)}
+async function inspectionBlock(d,saved){if(d.request.inspection_start)return `<div class="wo-card"><h3>Inspección reservada</h3><p>${esc(new Date(d.request.inspection_start).toLocaleString("es-CR"))}</p></div>`;if(!workshopConfig?.inspections?.enabled)return `<div class="wo-card"><h3>Inspección</h3><p class="muted">El taller coordinará contigo el horario de inspección.</p></div>`;let r=await api("/inspection-slots?days=7"),availability=await r.json();if(!availability.available||!availability.slots?.length)return `<div class="wo-card"><h3>Inspección</h3><p class="muted">${esc(availability.fallback||"El taller coordinará contigo el horario.")}</p></div>`;return `<div class="wo-card"><h3>Elige un horario de inspección</h3><p class="muted">La inspección permite que el mecánico prepare el diagnóstico y presupuesto.</p><div class="actions">${availability.slots.slice(0,8).map(x=>`<button data-inspection-start="${esc(x.start)}" data-inspection-end="${esc(x.end)}">${esc(new Date(x.start).toLocaleString("es-CR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}</button>`).join("")}</div><div id="woInspectionError" class="error"></div></div>`}
+async function tracking(saved=JSON.parse(localStorage.getItem(trackKey)||"null")){if(!saved)return customer();await loadWorkshop();let r=await api(`/service-requests/${saved.id}/tracking?token=${encodeURIComponent(saved.tracking_token)}`);if(!r.ok)return customer();let d=await r.json(),o=d.work_order,schedule=await inspectionBlock(d,saved);content().innerHTML=`<div class="wo-card"><h2>${esc(saved.code)}</h2><span class="badge">${esc(names[o?.status||d.request.status]||o?.status||d.request.status)}</span><p>${esc(d.request.vehicle_make)} ${esc(d.request.vehicle_model)} ${d.request.vehicle_year}</p><p>${esc(d.request.problem)}</p>${o?`<h3>Diagnóstico del mecánico</h3><p>${esc(o.diagnosis||"Pendiente")}</p><h3>Presupuesto del mecánico</h3>${(o.lines||[]).map(x=>`<p>${esc(x.description)} · ${x.quantity} × ${money(x.unit_price)}</p>`).join("")}<strong>Total: ${money(o.total)}</strong>${o.status==="awaiting_approval"?`<div class="actions"><button class="primary" data-decision="approved" data-order="${o.id}">Aprobar</button><button data-decision="rejected" data-order="${o.id}">Rechazar</button></div>`:""}`:`<p class="muted">El mecánico preparará el diagnóstico después de la inspección.</p>`}${whatsappButton(saved.code,true)}</div>${schedule}<div class="wo-card"><h3>Historial</h3>${d.history.map(x=>`<p><b>${esc(names[x.to_status]||x.event)}</b> <span class="muted">${esc(x.created_at)}</span><br>${esc(x.note||"")}</p>`).join("")}</div>`}
+function login(){content().innerHTML=`<div class="wo-card"><h2>Acceso privado</h2><form id="woLogin" class="wo-grid"><label>Usuario<input name="username" required></label><label>Contraseña<input name="password" type="password" required></label><div class="full"><button class="primary">Ingresar</button></div><div id="woError" class="error full"></div></form></div>`}
+async function inbox(){let [r,o]=await Promise.all([api("/advisor/service-requests",{headers:auth()}),api("/advisor/work-orders",{headers:auth()})]);if(r.status===401){token="";staffRole="";sessionStorage.removeItem(sessionKey);sessionStorage.removeItem(roleKey);return login()}let rows=await r.json(),orders=await o.json(),next={approved:"in_progress",in_progress:"quality_check",quality_check:"ready",ready:"delivered"};content().innerHTML=`<div class="actions"><button id="woRefresh">Actualizar</button><button id="woLogout">Cerrar sesión</button></div><h2>Solicitudes</h2>${rows.length?rows.map(x=>`<article class="wo-row"><b>${esc(x.code)} · ${esc(x.customer_name)}</b> <span class="badge">${esc(names[x.status]||x.status)}</span><p>${esc(x.vehicle_make)} ${esc(x.vehicle_model)} ${x.vehicle_year} · ${esc(x.plate||"Sin placa")}</p><p>${esc(x.problem)}</p><span class="muted">${esc(x.phone)} · consentimiento registrado</span>${x.status!=="converted"&&staffRole!=="mechanic"?`<div class="actions"><button class="primary" data-convert="${x.id}">Convertir a OT</button></div>`:""}</article>`).join(""):"<p>No hay solicitudes.</p>"}<h2>Órdenes de trabajo</h2>${orders.length?orders.map(x=>`<article class="wo-row"><b>${esc(x.code)} · ${esc(x.customer_name)}</b> <span class="badge">${esc(names[x.status]||x.status)}</span><p>${esc(x.vehicle_make)} ${esc(x.vehicle_model)} ${x.vehicle_year}</p><p>${esc(x.diagnosis||"Diagnóstico pendiente del mecánico")}</p>${x.status==="diagnosis"?(staffRole==="mechanic"||staffRole==="manager"?`<button class="primary" data-estimate-order="${x.id}" data-estimate-code="${esc(x.code)}">Registrar diagnóstico y presupuesto</button>`:`<span class="muted">Pendiente del mecánico</span>`):next[x.status]&&staffRole!=="mechanic"?`<button class="primary" data-status-order="${x.id}" data-status="${next[x.status]}">Pasar a ${esc(names[next[x.status]])}</button>`:""}</article>`).join(""):"<p>No hay órdenes.</p>"}`}
+async function convert(id){let r=await api(`/advisor/service-requests/${id}/convert`,{method:"POST",headers:auth(),body:JSON.stringify({advisor_note:"Vehículo recibido para diagnóstico"})}),o=await r.json();if(r.ok)estimate(o)}
+function estimate(o){content().innerHTML=`<div class="wo-card"><h2>Diagnóstico y presupuesto ${esc(o.code)}</h2><form id="woEstimate" data-order="${o.id}" class="wo-grid"><label class="full">Diagnóstico<textarea name="diagnosis" required></textarea></label><label>Fecha prometida<input name="promised_date" type="date"></label><label>Tipo<select name="kind"><option value="labor">Mano de obra</option><option value="part">Repuesto</option></select></label><label>Descripción<input name="description" required></label><label>Cantidad<input name="quantity" type="number" value="1" min=".01" step=".01" required></label><label>Precio unitario<input name="unit_price" type="number" min="0" required></label><div class="full"><button class="primary">Enviar para aprobación</button></div><div id="woError" class="error"></div></form></div>`}
+async function sendEstimate(f){let d=Object.fromEntries(new FormData(f)),p={diagnosis:d.diagnosis,promised_date:d.promised_date||null,currency:"CRC",tax_rate:.13,lines:[{kind:d.kind,description:d.description,sku:null,quantity:+d.quantity,unit_price:+d.unit_price}]},r=await api(`/advisor/work-orders/${f.dataset.order}/estimate`,{method:"POST",headers:auth(),body:JSON.stringify(p)});r.ok?inbox():byId("woError").textContent=(await r.json()).detail}
+async function decide(b){let s=JSON.parse(localStorage.getItem(trackKey));await api(`/work-orders/${b.dataset.order}/decision?token=${encodeURIComponent(s.tracking_token)}`,{method:"POST",headers:json,body:JSON.stringify({decision:b.dataset.decision,comment:null})});tracking(s)}
+async function reserveInspection(b){let s=JSON.parse(localStorage.getItem(trackKey)),r=await api(`/service-requests/${s.id}/inspection?token=${encodeURIComponent(s.tracking_token)}`,{method:"POST",headers:json,body:JSON.stringify({start:b.dataset.inspectionStart,end:b.dataset.inspectionEnd})});if(r.ok)return tracking(s);let error=byId("woInspectionError");if(error)error.textContent=(await r.json()).detail||"No se pudo reservar. El taller coordinará contigo."}
+async function changeStatus(b){await api(`/advisor/work-orders/${b.dataset.statusOrder}/status`,{method:"POST",headers:auth(),body:JSON.stringify({status:b.dataset.status,public_note:`Estado actualizado a ${names[b.dataset.status]}`})});inbox()}
+const byId=id=>document.getElementById(id),content=()=>byId("woContent");function events(){document.addEventListener("click",e=>{let b=e.target.closest("button");if(!b)return;if(b.id==="woOpen"){byId("wo").hidden=false;advisor?(token?inbox():login()):customer()}if(b.id==="woClose")byId("wo").hidden=true;if(b.id==="woTrack")tracking();if(b.id==="woRefresh")inbox();if(b.id==="woLogout"){token="";staffRole="";sessionStorage.removeItem(sessionKey);sessionStorage.removeItem(roleKey);login()}if(b.dataset.whatsappCode!==undefined)openAdvisorWhatsApp(b.dataset.whatsappCode);if(b.dataset.inspectionStart)reserveInspection(b);if(b.dataset.convert)convert(b.dataset.convert);if(b.dataset.decision)decide(b);if(b.dataset.estimateOrder)estimate({id:b.dataset.estimateOrder,code:b.dataset.estimateCode});if(b.dataset.statusOrder)changeStatus(b)});document.addEventListener("submit",async e=>{if(e.target.id==="woRequest"){e.preventDefault();sendRequest(e.target)}if(e.target.id==="woLogin"){e.preventDefault();let d=Object.fromEntries(new FormData(e.target)),r=await api("/advisor/login",{method:"POST",headers:json,body:JSON.stringify(d)});if(r.ok){let session=await r.json();token=session.access_token;staffRole=session.role;sessionStorage.setItem(sessionKey,token);sessionStorage.setItem(roleKey,staffRole);inbox()}else byId("woError").textContent="Credenciales incorrectas"}if(e.target.id==="woEstimate"){e.preventDefault();sendEstimate(e.target)}})}
+function init(){let c=window.PROPERTY_CONFIG||PROPERTY_CONFIG;if(c?.type!=="auto_parts_store")return false;setup();events();if(advisor){byId("wo").hidden=false;token?inbox():login()}return true}let n=0,t=setInterval(()=>{if(init()||++n>50)clearInterval(t)},200);
 })();

@@ -42,6 +42,8 @@ from modules.shopping.schemas import (
     ShoppingRequest as FarmasiOrderRequest,
     ShoppingStatus as FarmasiOrderStatus,
 )
+from modules.work_orders import router as work_orders_router
+from modules.asada_support import router as asada_support_router
 
 
 OPENAI_MODEL = "gpt-4.1-mini"
@@ -54,6 +56,8 @@ app.include_router(requests_router)
 app.include_router(shopping_router)
 app.include_router(analytics_router)
 app.include_router(entities_router)
+app.include_router(work_orders_router)
+app.include_router(asada_support_router)
 
 
 def find_faq(question: str, entity: dict):

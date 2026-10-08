@@ -103,6 +103,24 @@ class MainTests(unittest.TestCase):
         self.assertNotIn("Price:", context)
         self.assertIn("must not diagnose", context)
 
+    def test_asada_entity_exposes_only_avi_support_configuration(self):
+        response = main.get_property("asada_demo")
+
+        self.assertEqual(response["id"], "asada_demo")
+        self.assertEqual(response["type"], "asada")
+        self.assertTrue(response["asada"]["support_enabled"])
+        self.assertNotIn("api_base_url", response["asada"])
+        self.assertNotIn("app_url", response["asada"])
+
+    def test_asada_general_ask_never_uses_hotel_reception_fallback(self):
+        response = main.ask(main.AskRequest(
+            property_id="asada_demo",
+            question="¿Cuál sector tiene más averías?",
+            language="es",
+        ))
+        self.assertIn("Inicia sesión en AVI", response["answer"])
+        self.assertNotIn("recepción", response["answer"].lower())
+
     @patch.object(main, "log_question")
     @patch.object(main, "OpenAI", CaptureOpenAI)
     def test_farmasi_activity_question_does_not_trigger_tours(self, log_question):

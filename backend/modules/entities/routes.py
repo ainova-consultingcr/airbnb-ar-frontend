@@ -64,6 +64,12 @@ def get_property(property_id: str = "hotel_demo"):
                 "recommendations": data.get("recommendations", {})
             }
 
+        if data.get("type") == "asada":
+            response["asada"] = {
+                "support_enabled": True,
+                "refresh_seconds": data.get("asada_support", {}).get("refresh_seconds", 15),
+            }
+
         return response
 
     except FileNotFoundError:

@@ -1,0 +1,30 @@
+<section id="asadaSupportPanel" class="asada-support-panel" aria-label="Soporte AVI para ASADA">
+  <div class="asada-panel-header">
+    <div><strong>AVI · Soporte operativo</strong><span>Información según tu perfil y ASADA</span></div>
+    <button id="aviAsadaLogout" type="button" hidden>Salir</button>
+  </div>
+  <form id="aviAsadaLogin" class="asada-login">
+    <input name="full_name" autocomplete="name" placeholder="Nombre completo" hidden>
+    <input name="setup_key" type="password" autocomplete="off" placeholder="Clave inicial de AVI" hidden>
+    <input name="username" autocomplete="username" placeholder="Usuario AVI" required minlength="3">
+    <input name="password" type="password" autocomplete="current-password" placeholder="Contraseña" required minlength="8">
+    <button type="submit">Ingresar</button>
+  </form>
+  <div id="aviAsadaSession" hidden>
+    <div class="asada-session-bar"><span id="aviAsadaUser"></span><button id="aviAsadaRefresh" type="button">Actualizar información</button></div>
+    <div id="aviAsadaSummary" class="asada-summary" hidden></div>
+    <div id="aviAsadaAnomalies" class="asada-nodes"></div>
+    <section id="aviAsadaUsers" class="asada-users" hidden>
+      <strong>Usuarios de AVI</strong>
+      <form id="aviAsadaUserForm">
+        <input name="full_name" placeholder="Nombre completo" required>
+        <input name="username" placeholder="Usuario" required minlength="3">
+        <select name="role"><option value="OPERADOR">Operador</option><option value="FONTANERO">Fontanero</option><option value="ADMIN">Administrador</option></select>
+        <input name="password" type="password" placeholder="Contraseña temporal" required minlength="8">
+        <button type="submit">Crear usuario</button>
+      </form>
+      <div id="aviAsadaUserList"></div>
+    </section>
+  </div>
+  <p id="aviAsadaMessage" class="asada-message" role="status"></p>
+</section>

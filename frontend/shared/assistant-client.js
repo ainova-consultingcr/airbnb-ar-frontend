@@ -35,6 +35,17 @@ async function askAI() {
 
     showLoader();
 
+    const experienceResults = window.AVIExperienceExtensions
+      ? await Promise.all(window.AVIExperienceExtensions.run("assistant:ask", { question }))
+      : [];
+    const experienceAnswer = experienceResults.find(result => result?.handled);
+    if (experienceAnswer) {
+      hideLoader();
+      showARAnswer(experienceAnswer.answer, true);
+      input.value = "";
+      return;
+    }
+
     const res = await fetch(
      `${API_BASE_URL}/ask`,
       {

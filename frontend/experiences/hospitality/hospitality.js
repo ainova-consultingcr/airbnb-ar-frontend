@@ -65,6 +65,12 @@ function appendServiceRequestHelpSuggestion(container) {
   container.insertBefore(btn, container.firstChild);
 }
 
+window.AVIExperienceExtensions?.register(
+  "suggestions:after-render",
+  "hospitality.service-request-help",
+  ({ container }) => appendServiceRequestHelpSuggestion(container)
+);
+
 function fillServiceRequestExample(text) {
   const input = document.getElementById("questionInput");
   if (!input) return;

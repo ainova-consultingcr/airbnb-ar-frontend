@@ -64,6 +64,7 @@ frontend/
 | `auto_parts_store` | Panel de repuestos, búsqueda guiada y demo de taller |
 | `hardware_store` | Panel y búsqueda guiada de ferretería |
 | `wellness_sales_assistant` | Panel y recomendación guiada de Farmasi |
+| `asada` | Soporte operativo con usuarios propios de AVI y datos consultados desde la API de ASADA Monitor |
 | `hotel` | Turismo y servicios cercanos |
 | `airbnb` | Turismo y servicios cercanos |
 | `lodging` | Turismo y servicios cercanos |
@@ -95,6 +96,38 @@ const EXPERIENCE_CONFIG = {
   }
 };
 ```
+
+## Extensiones de experiencia
+
+El código compartido no debe llamar funciones pertenecientes a Hospitality,
+Farmasi u otra experiencia. Para contribuir a un punto del flujo compartido,
+la experiencia registra un handler en `shared/experience-extensions.js`:
+
+```js
+window.AVIExperienceExtensions?.register(
+  "suggestions:after-render",
+  "mi-experiencia.ayuda-contextual",
+  ({ container, language, property }) => {
+    // Agregar UI específica de la experiencia.
+  }
+);
+```
+
+El núcleo emite el hook sin conocer las experiencias registradas:
+
+```js
+window.AVIExperienceExtensions?.run("suggestions:after-render", context);
+```
+
+Reglas del contrato:
+
+1. Usar nombres de hook descriptivos con formato `área:evento`.
+2. Usar un identificador único con formato `experiencia.extensión`.
+3. Registrar nuevamente el mismo identificador reemplaza el handler anterior;
+   esto evita duplicados cuando un script se recarga.
+4. Un error de una extensión se registra en consola y no bloquea las demás.
+5. El handler recibe contexto explícito y no debe depender de funciones privadas
+   de otro módulo.
 
 Las funciones que se invoquen desde módulos compartidos deben comprobarse con
 `typeof funcion === "function"` cuando sean opcionales. Los archivos se cargan

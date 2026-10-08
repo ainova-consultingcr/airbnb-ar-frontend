@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 
 
-AVAILABLE_MODULES = frozenset({"faqs", "requests", "shopping", "catalog", "customers"})
+AVAILABLE_MODULES = frozenset({
+    "faqs", "requests", "shopping", "catalog", "customers", "work_orders",
+    "asada_support",
+})
 
 
 class ModuleConfigurationError(ValueError):

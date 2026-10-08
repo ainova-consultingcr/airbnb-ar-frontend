@@ -1,0 +1,14 @@
+[
+  {
+    "question": "¿Cómo interpreto la presión?",
+    "answer": "La presión se muestra en psi para cada nodo. Un valor bajo debe evaluarse con los límites configurados para el sector y junto con el caudal."
+  },
+  {
+    "question": "¿Qué significa posible fuga?",
+    "answer": "Es una alerta inicial cuando coinciden presión baja y caudal alto. Requiere revisión operativa; no confirma por sí sola una fuga."
+  },
+  {
+    "question": "¿Cuándo aparece un nodo offline?",
+    "answer": "Un nodo aparece offline cuando no recibe lecturas recientes dentro del tiempo configurado por ASADA Monitor."
+  }
+]

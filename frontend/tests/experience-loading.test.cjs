@@ -20,6 +20,7 @@ const versioned = (resourcePath) => `${resourcePath}?v=${assetVersion}`;
 function createBrowserHarness() {
   const scripts = [];
   const panels = [];
+  const styles = [];
   const host = { innerHTML: "" };
 
   const document = {
@@ -30,7 +31,8 @@ function createBrowserHarness() {
       }
     },
     head: {
-      appendChild() {
+      appendChild(link) {
+        styles.push(link.href);
       }
     },
     createElement(tagName) {
@@ -70,6 +72,7 @@ function createBrowserHarness() {
   return {
     scripts,
     panels,
+    styles,
     host,
     load(entityType) {
       return vm.runInContext(`loadExperience(${JSON.stringify(entityType)})`, context);
@@ -129,6 +132,34 @@ test("Hotel, Airbnb y Turismo cargan turismo sin panel comercial", async () => {
   }
 });
 
+test("ASADA carga únicamente su panel, estilos y cliente de monitoreo", async () => {
+  const browser = createBrowserHarness();
+  await browser.load("asada");
+
+  assert.deepEqual(browser.scripts, [
+    versioned("frontend/experiences/hospitality/hospitality.js"),
+    versioned("frontend/experiences/asada/support.js")
+  ]);
+  assert.deepEqual(browser.panels, [
+    versioned("frontend/experiences/asada/support-panel.html")
+  ]);
+  assert.deepEqual(browser.styles, [
+    versioned("frontend/experiences/asada/support.css")
+  ]);
+  assert.ok(browser.host.innerHTML.includes("frontend/experiences/asada/support-panel.html"));
+
+  const asadaStyles = fs.readFileSync(
+    path.join(projectRoot, "frontend", "experiences", "asada", "support.css"),
+    "utf8"
+  );
+  assert.match(asadaStyles, /\.asada-support-panel \[hidden\]\{display:none!important\}/);
+  const asadaPanel = fs.readFileSync(
+    path.join(projectRoot, "frontend", "experiences", "asada", "support-panel.html"),
+    "utf8"
+  );
+  assert.doesNotMatch(asadaPanel, /aviAsadaQuestion/);
+});
+
 test("Una entidad desconocida conserva solo las acciones compartidas", async () => {
   const browser = createBrowserHarness();
 
@@ -148,7 +179,8 @@ test("index.html no carga de forma fija los módulos opcionales", () => {
     "frontend/experiences/auto-parts/auto-parts.js",
     "frontend/experiences/auto-parts/workshop-demo.js",
     "frontend/experiences/hardware/hardware.js",
-    "frontend/experiences/farmasi/farmasi.js"
+    "frontend/experiences/farmasi/farmasi.js",
+    "frontend/experiences/asada/support.js"
   ];
 
   for (const scriptPath of optionalScripts) {

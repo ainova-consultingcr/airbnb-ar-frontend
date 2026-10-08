@@ -1,0 +1,63 @@
+{
+  "id": "asada_demo",
+  "name": "ASADA Demo",
+  "type": "asada",
+  "status": "active",
+  "enabled_modules": ["faqs", "asada_support"],
+  "location": {
+    "country": "Costa Rica",
+    "province": "Guanacaste",
+    "city": "Santa Cruz",
+    "address": "Configuración demostrativa"
+  },
+  "branding": {
+    "primary_color": "#147d72",
+    "welcome": {
+      "es": "Bienvenido a ASADA Demo\n\nSoy AVI, el asistente para consultar el estado de la red de agua. Inicia sesión en el panel de monitoreo para revisar presión, caudal y alertas.",
+      "en": "Welcome to ASADA Demo\n\nI am AVI, the assistant for checking the water network. Sign in to the monitoring panel to review pressure, flow and alerts."
+    }
+  },
+  "asada_support": {
+    "api_base_url": "https://asada-monitor-api.onrender.com",
+    "api_base_url_env": "ASADA_DEMO_API_BASE_URL",
+    "service_key_env": "ASADA_DEMO_SERVICE_KEY",
+    "refresh_seconds": 15
+  },
+  "contact": {
+    "host_name": "Administración ASADA",
+    "whatsapp": ""
+  },
+  "messages": {
+    "thinking": {
+      "es": "AVI está revisando la información disponible de la ASADA...",
+      "en": "AVI is reviewing the available ASADA information..."
+    }
+  },
+  "theme": {
+    "panel": "#082f2b",
+    "button": "#2dd4bf",
+    "buttonText": "#052e2b",
+    "spinner": "#2dd4bf"
+  },
+  "ui": {
+    "send_button": {"es": "Consultar", "en": "Ask"},
+    "input_placeholder": {
+      "es": "Ej: ¿qué significa posible fuga?",
+      "en": "Ex: what does possible leak mean?"
+    },
+    "suggestions": {
+      "es": [
+        "¿Cómo interpreto la presión?",
+        "¿Qué significa posible fuga?",
+        "¿Cuándo aparece un nodo offline?",
+        "¿Cuál es el estado actual de la red?"
+      ],
+      "en": [
+        "How do I interpret pressure?",
+        "What does possible leak mean?",
+        "When does a node appear offline?",
+        "What is the current network status?"
+      ]
+    }
+  }
+}
