@@ -158,6 +158,14 @@ test("ASADA carga únicamente su panel, estilos y cliente de monitoreo", async (
     "utf8"
   );
   assert.doesNotMatch(asadaPanel, /aviAsadaQuestion/);
+  assert.match(asadaPanel, /aviAsadaNotifications/);
+  const asadaScript = fs.readFileSync(
+    path.join(projectRoot, "frontend", "experiences", "asada", "support.js"),
+    "utf8"
+  );
+  assert.match(asadaScript, /handleCriticalAlerts/);
+  assert.match(asadaScript, /serviceWorker\.register\("avi-sw\.js"\)/);
+  assert.ok(fs.existsSync(path.join(projectRoot, "avi-sw.js")));
 });
 
 test("Una entidad desconocida conserva solo las acciones compartidas", async () => {
