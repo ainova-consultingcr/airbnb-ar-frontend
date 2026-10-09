@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import json
 import os
 import sqlite3
 
@@ -10,6 +11,8 @@ from .auth import (connect, create_session, hash_password, now, public_user,
                    require_role, require_user, verify_password)
 from .monitor import admin_summary, anomaly_context, answer_question, fetch_monitor
 from .schemas import Login, Setup, SupportQuestion, UserCreate
+from .schemas import AlertEvent, PushSubscription
+from .push import public_config, remove_subscription, save_subscription, send_event
 
 
 router = APIRouter(prefix="/asadas/{entity_id}/support", tags=["AVI ASADA support"])
@@ -93,6 +96,64 @@ def create_user(entity_id: str, payload: UserCreate, authorization: str | None =
     except sqlite3.IntegrityError:
         raise HTTPException(409, "El usuario ya existe en esta ASADA")
     return public_user(row)
+
+
+@router.get("/push/config")
+def push_config(entity_id: str, authorization: str | None = Header(default=None)):
+    user = require_user(entity_id, authorization)
+    require_role(user, "FONTANERO")
+    return public_config()
+
+
+@router.post("/push/subscriptions", status_code=201)
+def subscribe_push(entity_id: str, payload: PushSubscription,
+                   authorization: str | None = Header(default=None)):
+    user = require_user(entity_id, authorization)
+    require_role(user, "FONTANERO")
+    save_subscription(user["id"], payload)
+    return {"subscribed": True}
+
+
+@router.delete("/push/subscriptions", status_code=204)
+def unsubscribe_push(entity_id: str, payload: PushSubscription,
+                     authorization: str | None = Header(default=None)):
+    user = require_user(entity_id, authorization)
+    require_role(user, "FONTANERO")
+    remove_subscription(user["id"], payload.endpoint)
+
+
+@router.post("/events", status_code=202)
+def receive_event(entity_id: str, payload: AlertEvent,
+                  x_event_key: str | None = Header(default=None)):
+    entity = enabled_entity(entity_id)
+    expected = os.getenv("ASADA_EVENT_SERVICE_KEY", "")
+    if not expected or not x_event_key or not hmac.compare_digest(expected, x_event_key):
+        raise HTTPException(401, "Credencial de eventos inválida")
+    event = payload.model_dump()
+    stamp = now().isoformat()
+    with connect() as db:
+        existing = db.execute("SELECT * FROM avi_alert_events WHERE entity_id=? AND source_order_id=?",
+                              (entity_id, payload.source_order_id)).fetchone()
+        if existing and existing["status"] == "DELIVERED":
+            return {"accepted": True, "duplicate": True,
+                    "delivered": existing["delivered_count"]}
+        if existing:
+            db.execute("UPDATE avi_alert_events SET payload_json=?,status='PROCESSING',updated_at=? WHERE id=?",
+                       (json.dumps(event, ensure_ascii=False), stamp, existing["id"]))
+        else:
+            db.execute("""INSERT INTO avi_alert_events(entity_id,source_order_id,payload_json,status,created_at,updated_at)
+                          VALUES(?,?,?,'PROCESSING',?,?)""",
+                       (entity_id, payload.source_order_id, json.dumps(event, ensure_ascii=False), stamp, stamp))
+    result = send_event(entity["id"], event)
+    status = "DELIVERED" if result["delivered"] else "FAILED"
+    with connect() as db:
+        db.execute("""UPDATE avi_alert_events SET status=?,delivered_count=?,failed_count=?,updated_at=?
+                      WHERE entity_id=? AND source_order_id=?""",
+                   (status, result["delivered"], result["failed"], now().isoformat(),
+                    entity_id, payload.source_order_id))
+    if not result["delivered"]:
+        raise HTTPException(503, "No hay dispositivos disponibles para recibir la alerta")
+    return {"accepted": True, **result}
 
 
 def monitor_data(entity, user):

@@ -148,6 +148,23 @@ Pop-Location
 La suite frontend verifica la selección de recursos de todas las entidades y
 confirma que los módulos opcionales no regresen a `index.html`.
 
+## Alertas push de ASADA
+
+El fontanero debe iniciar sesión una vez desde cada celular y pulsar **Activar
+avisos**. El navegador registra una suscripción Web Push asociada a su cuenta.
+Después, una orden crítica creada por ASADA Monitor puede mostrar el aviso aun
+cuando AVI no esté abierto.
+
+El backend requiere `AVI_PUSH_VAPID_PUBLIC_KEY`,
+`AVI_PUSH_VAPID_PRIVATE_KEY`, `AVI_PUSH_VAPID_SUBJECT` y
+`ASADA_EVENT_SERVICE_KEY`. La clave privada y la credencial de eventos nunca se
+publican en GitHub. ASADA Monitor debe usar la misma credencial al llamar el
+endpoint técnico `/asadas/{entity_id}/support/events`.
+
+Las suscripciones se guardan actualmente en SQLite. En Render gratuito se
+pueden perder al reiniciar o desplegar el servicio; para producción se requiere
+un disco persistente o la futura migración de esta tabla a PostgreSQL.
+
 ## Reglas de mantenimiento
 
 - Mantener `index.html` limitado a estructura y dependencias compartidas.

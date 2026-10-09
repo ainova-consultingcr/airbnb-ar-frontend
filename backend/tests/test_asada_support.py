@@ -122,6 +122,36 @@ class AsadaSupportTests(unittest.TestCase):
         self.assertIn("1 nodo", answers[2])
         self.assertIn("3 nodo", answers[3])
 
+    def test_fontanero_registers_push_and_event_is_idempotent(self):
+        admin = self.create_admin()
+        routes.create_user("asada_demo", UserCreate(
+            username="font1", full_name="Fontanero Uno",
+            password="Clave-font-2026", role="FONTANERO",
+        ), f"Bearer {admin['access_token']}")
+        plumber = routes.login("asada_demo", Login(username="font1", password="Clave-font-2026"))
+        subscription = routes.PushSubscription(endpoint="https://push.example/device-1", keys={
+            "p256dh":"a" * 64, "auth":"b" * 16,
+        })
+        with patch.dict("os.environ", {
+            "AVI_PUSH_VAPID_PUBLIC_KEY":"public-key",
+            "AVI_PUSH_VAPID_PRIVATE_KEY":"private-key",
+            "ASADA_EVENT_SERVICE_KEY":"event-secret",
+        }, clear=False):
+            config = routes.push_config("asada_demo", f"Bearer {plumber['access_token']}")
+            self.assertTrue(config["enabled"])
+            routes.subscribe_push("asada_demo", subscription, f"Bearer {plumber['access_token']}")
+            event = routes.AlertEvent(source_order_id=7, node_id="n1", sector="Norte",
+                pressure_psi=2.0, flow_lpm=13.0, timestamp="2026-10-09T10:00:00Z",
+                message="Anomalía crítica sostenida")
+            with patch.object(routes, "send_event", return_value={
+                "delivered":1,"failed":0,"configured":True,"subscriptions":1,
+            }) as sender:
+                first = routes.receive_event("asada_demo", event, "event-secret")
+                second = routes.receive_event("asada_demo", event, "event-secret")
+            self.assertTrue(first["accepted"])
+            self.assertTrue(second["duplicate"])
+            sender.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

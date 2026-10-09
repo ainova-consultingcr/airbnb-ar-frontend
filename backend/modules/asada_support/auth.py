@@ -45,6 +45,26 @@ def connect():
           user_id INTEGER NOT NULL REFERENCES avi_users(id) ON DELETE CASCADE,
           expires_at TEXT NOT NULL);
         CREATE INDEX IF NOT EXISTS avi_session_expiry ON avi_sessions(expires_at);
+        CREATE TABLE IF NOT EXISTS avi_push_subscriptions(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL REFERENCES avi_users(id) ON DELETE CASCADE,
+          endpoint TEXT NOT NULL UNIQUE,
+          p256dh TEXT NOT NULL,
+          auth TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL);
+        CREATE INDEX IF NOT EXISTS avi_push_user ON avi_push_subscriptions(user_id);
+        CREATE TABLE IF NOT EXISTS avi_alert_events(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          entity_id TEXT NOT NULL,
+          source_order_id INTEGER NOT NULL,
+          payload_json TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'PENDING',
+          delivered_count INTEGER NOT NULL DEFAULT 0,
+          failed_count INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          UNIQUE(entity_id,source_order_id));
         """)
         yield db
         db.commit()

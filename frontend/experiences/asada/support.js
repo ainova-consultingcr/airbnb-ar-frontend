@@ -13,6 +13,7 @@
   let setupRequired = false;
   let refreshTimer = null;
   let notificationRegistration = null;
+  let pushSubscribed = false;
   let contextInitialized = false;
   let activeCriticalNodes = new Set();
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
@@ -151,7 +152,10 @@
     const supported = "Notification" in window && "serviceWorker" in navigator;
     button.hidden = !supported || currentUser?.role !== "FONTANERO";
     if (!supported) return;
-    try { notificationRegistration = await navigator.serviceWorker.register("avi-sw.js"); }
+    try {
+      notificationRegistration = await navigator.serviceWorker.register("avi-sw.js");
+      pushSubscribed = Boolean(await notificationRegistration.pushManager.getSubscription());
+    }
     catch { notificationRegistration = null; }
     updateNotificationButton();
   }
@@ -159,12 +163,12 @@
   function updateNotificationButton() {
     const button = document.getElementById("aviAsadaNotifications");
     if (!button || !("Notification" in window)) return;
-    button.textContent = Notification.permission === "granted" ? "Avisos activados" : Notification.permission === "denied" ? "Avisos bloqueados" : "Activar avisos";
-    button.disabled = Notification.permission === "granted";
+    button.textContent = pushSubscribed ? "Push activado" : Notification.permission === "granted" ? "Completar activación" : Notification.permission === "denied" ? "Avisos bloqueados" : "Activar avisos";
+    button.disabled = pushSubscribed;
   }
 
   async function showBrowserNotification(alert) {
-    if (Notification.permission !== "granted") return;
+    if (pushSubscribed || Notification.permission !== "granted") return;
     const registration = notificationRegistration || await navigator.serviceWorker.ready.catch(() => null);
     if (!registration) return;
     await registration.showNotification(`AVI · ${alert.sector}`, {
@@ -203,9 +207,33 @@
   document.getElementById("aviAsadaNotifications").addEventListener("click", async () => {
     if (!("Notification" in window)) return;
     const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      try {
+        const config = await request("/push/config");
+        if (!config.enabled) throw new Error("El servidor todavía no tiene configuradas las claves push.");
+        notificationRegistration ||= await navigator.serviceWorker.ready;
+        let subscription = await notificationRegistration.pushManager.getSubscription();
+        if (!subscription) subscription = await notificationRegistration.pushManager.subscribe({
+          userVisibleOnly:true,
+          applicationServerKey:urlBase64ToUint8Array(config.public_key)
+        });
+        await request("/push/subscriptions", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(subscription.toJSON())});
+        pushSubscribed = true;
+        message.textContent = "Notificaciones push activadas para este celular.";
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    } else {
+      message.textContent = "El navegador no autorizó los avisos. Las alertas seguirán visibles dentro de AVI.";
+    }
     updateNotificationButton();
-    message.textContent = permission === "granted" ? "Avisos del navegador activados para nuevos episodios críticos." : "El navegador no autorizó los avisos. Las alertas seguirán visibles dentro de AVI.";
   });
+
+  function urlBase64ToUint8Array(value) {
+    const padding = "=".repeat((4 - value.length % 4) % 4);
+    const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+    return Uint8Array.from(atob(base64), character => character.charCodeAt(0));
+  }
   logoutButton.addEventListener("click", () => logout("Sesión de AVI cerrada."));
   request("/status").then(state => state.user ? (showSession(state.user), loadContext()) : showLogin(state.setup_required)).catch(error => showLogin(false, error.message));
 })();
