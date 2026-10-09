@@ -13,6 +13,11 @@
   let setupRequired = false;
   let refreshTimer = null;
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
+  const formatDateTime = value => {
+    if (!value) return "Hora no disponible";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "Hora no disponible" : date.toLocaleString([], {dateStyle:"short", timeStyle:"medium"});
+  };
 
   async function request(path, options = {}) {
     const headers = new Headers(options.headers || {});
@@ -61,7 +66,7 @@
     document.getElementById("aviAsadaSummary").hidden = !user.permissions.includes("summary");
     document.getElementById("aviAsadaUsers").hidden = !user.permissions.includes("users");
     clearInterval(refreshTimer);
-    refreshTimer = setInterval(loadContext, Math.max(10, Number(PROPERTY_CONFIG?.asada?.refresh_seconds || 15)) * 1000);
+    refreshTimer = setInterval(loadContext, Math.max(3, Number(PROPERTY_CONFIG?.asada?.refresh_seconds || 3)) * 1000);
   }
 
   function logout(text = "") {
@@ -74,7 +79,7 @@
     try {
       const context = await request("/context");
       document.getElementById("aviAsadaAnomalies").innerHTML = context.anomalies.length ? context.anomalies.map(item =>
-        `<article class="asada-node"><strong>${escapeHtml(item.sector)} · ${escapeHtml(item.node_id)}</strong><span>Presión: ${item.pressure_psi ?? "—"} psi · Caudal: ${item.flow_lpm ?? "—"} L/min</span><span class="asada-state ${escapeHtml(String(item.severity).toLowerCase())}">${escapeHtml(item.severity)}</span><p>${escapeHtml(item.explanation)}</p></article>`
+        `<article class="asada-node"><div class="asada-node-heading"><strong>${escapeHtml(item.sector)} · ${escapeHtml(item.node_id)}</strong><time datetime="${escapeHtml(item.timestamp || "")}">${escapeHtml(formatDateTime(item.timestamp))}</time></div><span>Presión: ${item.pressure_psi ?? "—"} psi · Caudal: ${item.flow_lpm ?? "—"} L/min</span><span class="asada-state ${escapeHtml(String(item.severity).toLowerCase())}">${escapeHtml(item.severity)}</span><p>${escapeHtml(item.explanation)}</p></article>`
       ).join("") : '<article class="asada-node"><strong>Sin anomalías activas</strong><p>AVI no encontró condiciones fuera de rango en los datos disponibles.</p></article>';
       if (currentUser.permissions.includes("summary")) {
         const summary = await request("/summary?period_days=30");

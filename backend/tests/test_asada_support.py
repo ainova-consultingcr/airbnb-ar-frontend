@@ -68,6 +68,21 @@ class AsadaSupportTests(unittest.TestCase):
         self.assertIn("fuga", context["anomalies"][0]["explanation"].lower())
         self.assertEqual(context["orders"], [{"id":1,"assignee":"font1"}])
 
+    def test_anomalies_and_orders_are_sorted_newest_first(self):
+        user = {"username":"font1","full_name":"Fontanero Uno","role":"FONTANERO"}
+        nodes = [
+            {"node_id":"old","severity":"OFFLINE","timestamp":"2026-10-09T10:00:00Z"},
+            {"node_id":"new","severity":"CRITICA","timestamp":"2026-10-09T10:00:03Z"},
+        ]
+        orders = [
+            {"id":1,"assignee":"font1","created_at":"2026-10-09T09:00:00Z"},
+            {"id":2,"assignee":"font1","created_at":"2026-10-09T09:05:00Z"},
+        ]
+        context = anomaly_context(nodes, orders, user)
+        self.assertEqual([item["node_id"] for item in context["anomalies"]], ["new", "old"])
+        self.assertEqual(context["anomalies"][0]["timestamp"], "2026-10-09T10:00:03Z")
+        self.assertEqual([item["id"] for item in context["orders"]], [2, 1])
+
     def test_admin_summary_finds_top_sector_and_cause(self):
         nodes = [{"node_id":"n1","sector_name":"Norte"},{"node_id":"n2","sector_name":"Sur"}]
         orders = [

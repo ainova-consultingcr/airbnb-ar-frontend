@@ -57,12 +57,29 @@ def anomaly_context(nodes, orders, user):
                 "pressure_psi": node.get("pressure_psi"),
                 "flow_lpm": node.get("flow_lpm"),
                 "severity": severity,
+                "timestamp": node.get("timestamp"),
                 "explanation": _explanation(node, severity),
             })
+    anomalies.sort(key=lambda item: _timestamp_sort_key(item.get("timestamp")), reverse=True)
     visible_orders = orders
     if user["role"] == "FONTANERO":
         visible_orders = [item for item in orders if item.get("assignee") == user["username"]]
+    visible_orders = sorted(
+        visible_orders,
+        key=lambda item: _timestamp_sort_key(item.get("created_at") or item.get("updated_at")),
+        reverse=True,
+    )
     return {"user": user, "anomalies": anomalies, "orders": visible_orders}
+
+
+def _timestamp_sort_key(value):
+    try:
+        parsed = datetime.fromisoformat(str(value or "").replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.timestamp()
+    except (TypeError, ValueError, OverflowError):
+        return float("-inf")
 
 
 def _explanation(node, severity):

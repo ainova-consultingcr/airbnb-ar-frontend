@@ -21,7 +21,7 @@
     "api_base_url": "https://asada-monitor-api.onrender.com",
     "api_base_url_env": "ASADA_DEMO_API_BASE_URL",
     "service_key_env": "ASADA_DEMO_SERVICE_KEY",
-    "refresh_seconds": 15
+    "refresh_seconds": 3
   },
   "contact": {
     "host_name": "Administración ASADA",
