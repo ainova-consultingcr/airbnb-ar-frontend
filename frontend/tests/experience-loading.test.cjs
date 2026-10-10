@@ -165,6 +165,7 @@ test("ASADA carga únicamente su panel, estilos y cliente de monitoreo", async (
   );
   assert.match(asadaScript, /handleCriticalAlerts/);
   assert.match(asadaScript, /\/work-orders\/\$\{button\.dataset\.orderId\}\/claim/);
+  assert.match(asadaScript, /orderInteractionUntil/);
   assert.match(asadaPanel, /aviAsadaOrderList/);
   assert.match(asadaScript, /serviceWorker\.register\("avi-sw\.js\?v=\d+-\d+", \{updateViaCache:"none"\}\)/);
   assert.ok(fs.existsSync(path.join(projectRoot, "avi-sw.js")));

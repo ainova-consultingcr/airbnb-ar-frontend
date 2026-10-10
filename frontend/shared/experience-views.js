@@ -1,5 +1,5 @@
 // Loads only the HTML and JavaScript required by the active AVI entity.
-const EXPERIENCE_ASSET_VERSION = "20261009-6";
+const EXPERIENCE_ASSET_VERSION = "20261009-7";
 const EXPERIENCE_CONFIG = {
   auto_parts_store: {
     panel: "frontend/experiences/auto-parts/panel.html",

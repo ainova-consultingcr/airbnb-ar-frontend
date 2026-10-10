@@ -17,6 +17,7 @@
   let contextInitialized = false;
   let activeCriticalNodes = new Set();
   let requestedOrderId = new URLSearchParams(location.search).get("order");
+  let orderInteractionUntil = 0;
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
   const formatDateTime = value => {
     if (!value) return "Hora no disponible";
@@ -91,7 +92,7 @@
       document.getElementById("aviAsadaAnomalies").innerHTML = context.anomalies.length ? context.anomalies.map(item =>
         `<article class="asada-node"><div class="asada-node-heading"><strong>${escapeHtml(item.sector)} · ${escapeHtml(item.node_id)}</strong><time datetime="${escapeHtml(item.timestamp || "")}">${escapeHtml(formatDateTime(item.timestamp))}</time></div><span>Presión: ${item.pressure_psi ?? "—"} psi · Caudal: ${item.flow_lpm ?? "—"} L/min</span><span class="asada-state ${escapeHtml(String(item.severity).toLowerCase())}">${escapeHtml(item.severity)}</span><p>${escapeHtml(item.explanation)}</p></article>`
       ).join("") : '<article class="asada-node"><strong>Sin anomalías activas</strong><p>AVI no encontró condiciones fuera de rango en los datos disponibles.</p></article>';
-      renderOrders(context.orders || []);
+      if (Date.now() >= orderInteractionUntil) renderOrders(context.orders || []);
       if (currentUser.permissions.includes("summary")) {
         const summary = await request("/summary?period_days=30");
         document.getElementById("aviAsadaSummary").innerHTML = `<strong>Resumen de los últimos ${summary.period_days} días</strong><span>${summary.total_failures} averías registradas</span><span>Sector con más averías: ${escapeHtml(summary.top_sector || "Sin datos")} (${summary.top_sector_failures})</span><span>Causa principal: ${escapeHtml(summary.main_cause || "Sin diagnósticos")}</span>`;
@@ -246,6 +247,7 @@
     button.disabled = true;
     try {
       await request(`/work-orders/${button.dataset.orderId}/claim`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expected_updated_at:button.dataset.updatedAt})});
+      orderInteractionUntil = 0;
       message.textContent = "Orden tomada. Ya puedes registrar la atención.";
       await loadContext();
     } catch (error) { message.textContent = error.message; }
@@ -259,11 +261,17 @@
     try {
       const values = Object.fromEntries(new FormData(form));
       await request(`/work-orders/${form.dataset.orderId}/updates`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...values,expected_updated_at:form.dataset.updatedAt})});
+      orderInteractionUntil = 0;
       message.textContent = values.status === "RESUELTA" ? "Orden resuelta y registrada en ASADA Monitor." : "Seguimiento guardado en ASADA Monitor.";
       await loadContext();
     } catch (error) { message.textContent = error.message; }
     finally { button.disabled = false; }
   });
+  for (const eventName of ["focusin", "pointerdown", "input", "change"]) {
+    document.getElementById("aviAsadaOrderList").addEventListener(eventName, () => {
+      orderInteractionUntil = Date.now() + 30000;
+    });
+  }
   document.getElementById("aviAsadaRefresh").addEventListener("click", loadContext);
   document.getElementById("aviAsadaNotifications").addEventListener("click", async () => {
     if (!("Notification" in window)) return;
