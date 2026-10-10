@@ -16,6 +16,7 @@
   let pushSubscribed = false;
   let contextInitialized = false;
   let activeCriticalNodes = new Set();
+  let requestedOrderId = new URLSearchParams(location.search).get("order");
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
   const formatDateTime = value => {
     if (!value) return "Hora no disponible";
@@ -90,6 +91,7 @@
       document.getElementById("aviAsadaAnomalies").innerHTML = context.anomalies.length ? context.anomalies.map(item =>
         `<article class="asada-node"><div class="asada-node-heading"><strong>${escapeHtml(item.sector)} · ${escapeHtml(item.node_id)}</strong><time datetime="${escapeHtml(item.timestamp || "")}">${escapeHtml(formatDateTime(item.timestamp))}</time></div><span>Presión: ${item.pressure_psi ?? "—"} psi · Caudal: ${item.flow_lpm ?? "—"} L/min</span><span class="asada-state ${escapeHtml(String(item.severity).toLowerCase())}">${escapeHtml(item.severity)}</span><p>${escapeHtml(item.explanation)}</p></article>`
       ).join("") : '<article class="asada-node"><strong>Sin anomalías activas</strong><p>AVI no encontró condiciones fuera de rango en los datos disponibles.</p></article>';
+      renderOrders(context.orders || []);
       if (currentUser.permissions.includes("summary")) {
         const summary = await request("/summary?period_days=30");
         document.getElementById("aviAsadaSummary").innerHTML = `<strong>Resumen de los últimos ${summary.period_days} días</strong><span>${summary.total_failures} averías registradas</span><span>Sector con más averías: ${escapeHtml(summary.top_sector || "Sin datos")} (${summary.top_sector_failures})</span><span>Causa principal: ${escapeHtml(summary.main_cause || "Sin diagnósticos")}</span>`;
@@ -105,6 +107,36 @@
   async function loadUsers() {
     const users = await request("/users");
     document.getElementById("aviAsadaUserList").innerHTML = users.map(user => `<span>${escapeHtml(user.full_name)} · ${escapeHtml(user.role)} · ${escapeHtml(user.username)}</span>`).join("");
+  }
+
+  function renderOrders(orders) {
+    const host = document.getElementById("aviAsadaOrderList");
+    host.innerHTML = orders.length ? orders.map(order => {
+      const assignedToMe = String(order.assignee || "").toLowerCase() === String(currentUser?.username || "").toLowerCase();
+      const open = !["RESUELTA", "DESCARTADA"].includes(order.status);
+      const actions = currentUser?.role !== "FONTANERO" || !open ? "" : !order.assignee
+        ? `<button class="asada-order-claim" type="button" data-order-id="${order.id}" data-updated-at="${escapeHtml(order.updated_at)}">Tomar orden</button>`
+        : assignedToMe ? `<form class="asada-order-form" data-order-id="${order.id}" data-updated-at="${escapeHtml(order.updated_at)}">
+            <select name="status" aria-label="Estado"><option value="EN ATENCION">En atención</option><option value="RESUELTA">Resuelta</option></select>
+            <select name="diagnosis" aria-label="Diagnóstico"><option value="SIN CONFIRMAR">Sin confirmar</option><option value="FUGA CONFIRMADA">Fuga confirmada</option><option value="CONEXION NO AUTORIZADA CONFIRMADA">Conexión no autorizada</option><option value="OTRA CAUSA">Otra causa</option></select>
+            <textarea name="note" placeholder="Nota de la inspección" required minlength="3"></textarea>
+            <button type="submit">Guardar atención</button>
+          </form>` : "";
+      return `<article class="asada-order" id="avi-order-${order.id}">
+        <div class="asada-order-title"><strong>OT-${String(order.id).padStart(5,"0")} · ${escapeHtml(order.node_id)}</strong><span class="asada-order-status">${escapeHtml(order.status)}</span></div>
+        <time>${escapeHtml(formatDateTime(order.created_at))}</time>
+        <span>Presión: ${order.pressure_psi ?? "—"} psi · Caudal: ${order.flow_lpm ?? "—"} L/min</span>
+        <span>Responsable: ${escapeHtml(order.assignee || "Sin asignar")}</span>
+        <span>Diagnóstico: ${escapeHtml(order.diagnosis || "SIN CONFIRMAR")}</span>${actions}</article>`;
+    }).join("") : "<p>No hay órdenes visibles para tu perfil.</p>";
+    if (requestedOrderId) {
+      const target = document.getElementById(`avi-order-${requestedOrderId}`);
+      if (target) {
+        target.classList.add("asada-order-target");
+        target.scrollIntoView({behavior:"smooth", block:"center"});
+        requestedOrderId = null;
+      }
+    }
   }
 
   function alertStorageKey() {
@@ -207,6 +239,30 @@
     try { await request("/users", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.fromEntries(new FormData(event.target)))}); event.target.reset(); await loadUsers(); message.textContent="Usuario de AVI creado."; }
     catch(error) { message.textContent=error.message; }
     finally { button.disabled=false; }
+  });
+  document.getElementById("aviAsadaOrderList").addEventListener("click", async event => {
+    const button = event.target.closest(".asada-order-claim");
+    if (!button) return;
+    button.disabled = true;
+    try {
+      await request(`/work-orders/${button.dataset.orderId}/claim`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expected_updated_at:button.dataset.updatedAt})});
+      message.textContent = "Orden tomada. Ya puedes registrar la atención.";
+      await loadContext();
+    } catch (error) { message.textContent = error.message; }
+    finally { button.disabled = false; }
+  });
+  document.getElementById("aviAsadaOrderList").addEventListener("submit", async event => {
+    const form = event.target.closest(".asada-order-form");
+    if (!form) return;
+    event.preventDefault();
+    const button = form.querySelector("button"); button.disabled = true;
+    try {
+      const values = Object.fromEntries(new FormData(form));
+      await request(`/work-orders/${form.dataset.orderId}/updates`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...values,expected_updated_at:form.dataset.updatedAt})});
+      message.textContent = values.status === "RESUELTA" ? "Orden resuelta y registrada en ASADA Monitor." : "Seguimiento guardado en ASADA Monitor.";
+      await loadContext();
+    } catch (error) { message.textContent = error.message; }
+    finally { button.disabled = false; }
   });
   document.getElementById("aviAsadaRefresh").addEventListener("click", loadContext);
   document.getElementById("aviAsadaNotifications").addEventListener("click", async () => {

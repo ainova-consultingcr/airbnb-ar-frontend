@@ -55,3 +55,14 @@ class AlertEvent(BaseModel):
     flow_lpm: float
     timestamp: str = Field(min_length=10, max_length=80)
     message: str = Field(min_length=3, max_length=1000)
+
+
+class WorkOrderClaim(BaseModel):
+    expected_updated_at: str = Field(min_length=10, max_length=80)
+
+
+class WorkOrderUpdate(BaseModel):
+    status: Literal["EN ATENCION", "RESUELTA"]
+    diagnosis: Literal["SIN CONFIRMAR", "FUGA CONFIRMADA", "CONEXION NO AUTORIZADA CONFIRMADA", "OTRA CAUSA"] = "SIN CONFIRMAR"
+    note: str = Field(min_length=3, max_length=2000)
+    expected_updated_at: str = Field(min_length=10, max_length=80)

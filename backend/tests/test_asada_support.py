@@ -58,15 +58,36 @@ class AsadaSupportTests(unittest.TestCase):
             ), f"Bearer {plumber['access_token']}")
         self.assertEqual(error.exception.status_code, 403)
 
-    def test_fontanero_receives_anomalies_and_only_assigned_orders(self):
+    def test_fontanero_receives_unassigned_and_own_orders(self):
         user = {"username":"font1","full_name":"Fontanero Uno","role":"FONTANERO"}
         nodes = [{"node_id":"n1","sector_name":"Norte","pressure_psi":2.1,
                   "flow_lpm":13.4,"severity":"CRITICA"}]
-        orders = [{"id":1,"assignee":"font1"},{"id":2,"assignee":"font2"}]
+        orders = [{"id":1,"assignee":"font1"},{"id":2,"assignee":"font2"},
+                  {"id":3,"assignee":""}]
         context = anomaly_context(nodes, orders, user)
         self.assertEqual(len(context["anomalies"]), 1)
         self.assertIn("fuga", context["anomalies"][0]["explanation"].lower())
-        self.assertEqual(context["orders"], [{"id":1,"assignee":"font1"}])
+        self.assertEqual(context["orders"], [{"id":1,"assignee":"font1"},
+                                              {"id":3,"assignee":""}])
+
+    def test_fontanero_can_claim_and_update_order_through_avi(self):
+        admin = self.create_admin()
+        routes.create_user("asada_demo", UserCreate(
+            username="font1", full_name="Fontanero Uno",
+            password="Clave-font-2026", role="FONTANERO",
+        ), f"Bearer {admin['access_token']}")
+        plumber = routes.login("asada_demo", Login(username="font1", password="Clave-font-2026"))
+        authorization = f"Bearer {plumber['access_token']}"
+        with patch.object(routes, "post_monitor", return_value={"id":7,"status":"EN ATENCION"}) as sender:
+            claimed = routes.claim_order("asada_demo", 7, routes.WorkOrderClaim(
+                expected_updated_at="2026-10-09T20:00:00Z"), authorization)
+            updated = routes.update_order("asada_demo", 7, routes.WorkOrderUpdate(
+                status="RESUELTA", diagnosis="FUGA CONFIRMADA", note="Reparada",
+                expected_updated_at="2026-10-09T20:05:00Z"), authorization)
+        self.assertEqual(claimed["status"], "EN ATENCION")
+        self.assertEqual(updated["status"], "EN ATENCION")
+        self.assertEqual(sender.call_count, 2)
+        self.assertEqual(sender.call_args_list[0].args[2]["username"], "font1")
 
     def test_anomalies_and_orders_are_sorted_newest_first(self):
         user = {"username":"font1","full_name":"Fontanero Uno","role":"FONTANERO"}

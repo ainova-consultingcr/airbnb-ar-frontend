@@ -14,7 +14,7 @@ ROLES = ("ADMIN", "OPERADOR", "FONTANERO")
 PERMISSIONS = {
     "ADMIN": ("summary", "anomalies", "users"),
     "OPERADOR": ("summary", "anomalies"),
-    "FONTANERO": ("anomalies",),
+    "FONTANERO": ("anomalies", "orders"),
 }
 PBKDF2_ITERATIONS = 600_000
 DATABASE_PATH = Path(os.getenv(

@@ -46,6 +46,31 @@ def fetch_monitor(entity: dict, path: str, query=None):
         raise HTTPException(502, "ASADA Monitor no está disponible temporalmente")
 
 
+def post_monitor(entity: dict, path: str, payload: dict):
+    base_url, service_key = monitor_config(entity)
+    suffix = path if path.startswith("/") else f"/{path}"
+    headers = {"Accept": "application/json", "Content-Type": "application/json"}
+    if service_key:
+        headers["X-Service-Key"] = service_key
+    request = Request(f"{base_url}{suffix}", headers=headers,
+                      data=json.dumps(payload).encode("utf-8"), method="POST")
+    try:
+        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        try:
+            detail = json.loads(error.read().decode("utf-8")).get("detail")
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            detail = None
+        if error.code in {401, 403}:
+            raise HTTPException(502, "La integración de datos con ASADA Monitor no está autorizada")
+        if error.code in {404, 409, 422}:
+            raise HTTPException(error.code, detail or "ASADA Monitor rechazó la operación")
+        raise HTTPException(502, detail or "ASADA Monitor rechazó la operación")
+    except (URLError, TimeoutError, OSError, json.JSONDecodeError):
+        raise HTTPException(502, "ASADA Monitor no está disponible temporalmente")
+
+
 def anomaly_context(nodes, orders, user):
     anomalies = []
     for node in nodes:
@@ -63,7 +88,8 @@ def anomaly_context(nodes, orders, user):
     anomalies.sort(key=lambda item: _timestamp_sort_key(item.get("timestamp")), reverse=True)
     visible_orders = orders
     if user["role"] == "FONTANERO":
-        visible_orders = [item for item in orders if item.get("assignee") == user["username"]]
+        visible_orders = [item for item in orders if not item.get("assignee")
+                          or str(item.get("assignee")).lower() == user["username"].lower()]
     visible_orders = sorted(
         visible_orders,
         key=lambda item: _timestamp_sort_key(item.get("created_at") or item.get("updated_at")),

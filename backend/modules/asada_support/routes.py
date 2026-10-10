@@ -9,9 +9,9 @@ from fastapi import APIRouter, Header, HTTPException
 from core.http import require_entity_module
 from .auth import (connect, create_session, hash_password, now, public_user,
                    require_role, require_user, verify_password)
-from .monitor import admin_summary, anomaly_context, answer_question, fetch_monitor
+from .monitor import admin_summary, anomaly_context, answer_question, fetch_monitor, post_monitor
 from .schemas import Login, Setup, SupportQuestion, UserCreate
-from .schemas import AlertEvent, PushSubscription
+from .schemas import AlertEvent, PushSubscription, WorkOrderClaim, WorkOrderUpdate
 from .push import public_config, remove_subscription, save_subscription, send_event
 
 
@@ -169,6 +169,31 @@ def context(entity_id: str, authorization: str | None = Header(default=None)):
     entity = enabled_entity(entity_id)
     nodes, orders = monitor_data(entity, user)
     return anomaly_context(nodes, orders, user)
+
+
+@router.post("/work-orders/{order_id}/claim")
+def claim_order(entity_id: str, order_id: int, payload: WorkOrderClaim,
+                authorization: str | None = Header(default=None)):
+    user = require_user(entity_id, authorization)
+    require_role(user, "FONTANERO")
+    entity = enabled_entity(entity_id)
+    return post_monitor(entity, f"/api/integrations/avi/work-orders/{order_id}/claim", {
+        "username": user["username"],
+        "expected_updated_at": payload.expected_updated_at,
+        "note": "Orden aceptada por el fontanero desde AVI.",
+    })
+
+
+@router.post("/work-orders/{order_id}/updates")
+def update_order(entity_id: str, order_id: int, payload: WorkOrderUpdate,
+                 authorization: str | None = Header(default=None)):
+    user = require_user(entity_id, authorization)
+    require_role(user, "FONTANERO")
+    entity = enabled_entity(entity_id)
+    return post_monitor(entity, f"/api/integrations/avi/work-orders/{order_id}/updates", {
+        "username": user["username"],
+        **payload.model_dump(),
+    })
 
 
 @router.get("/summary")

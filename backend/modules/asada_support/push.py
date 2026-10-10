@@ -51,7 +51,7 @@ def send_event(entity_id: str, event: dict):
         "title": f"AVI · {event.get('sector') or event['node_id']}",
         "body": event["message"],
         "tag": f"avi-order-{entity_id}-{event['source_order_id']}",
-        "url": f"./?property={entity_id}",
+        "url": f"./?property={entity_id}&order={event['source_order_id']}",
         "event": event,
     }, ensure_ascii=False)
     delivered = failed = 0

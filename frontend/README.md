@@ -165,6 +165,12 @@ Las suscripciones se guardan actualmente en SQLite. En Render gratuito se
 pueden perder al reiniciar o desplegar el servicio; para producción se requiere
 un disco persistente o la futura migración de esta tabla a PostgreSQL.
 
+La notificación incluye el identificador de la orden. Al abrirla, AVI muestra
+la OT al fontanero, incluso si todavía no tiene responsable. **Tomar orden** la
+asigna de forma atómica al usuario autenticado y la pasa a **En atención**; el
+mismo panel permite guardar notas y marcarla resuelta con un diagnóstico. AVI
+actúa como cliente y ASADA Monitor conserva el historial operativo.
+
 ## Reglas de mantenimiento
 
 - Mantener `index.html` limitado a estructura y dependencias compartidas.
