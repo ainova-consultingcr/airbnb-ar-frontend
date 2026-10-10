@@ -164,7 +164,7 @@ test("ASADA carga únicamente su panel, estilos y cliente de monitoreo", async (
     "utf8"
   );
   assert.match(asadaScript, /handleCriticalAlerts/);
-  assert.match(asadaScript, /serviceWorker\.register\("avi-sw\.js"\)/);
+  assert.match(asadaScript, /serviceWorker\.register\("avi-sw\.js\?v=\d+-\d+", \{updateViaCache:"none"\}\)/);
   assert.ok(fs.existsSync(path.join(projectRoot, "avi-sw.js")));
 });
 
