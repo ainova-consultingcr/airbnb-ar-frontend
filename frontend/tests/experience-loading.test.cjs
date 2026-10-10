@@ -153,8 +153,8 @@ test("ASADA carga únicamente su panel, estilos y cliente de monitoreo", async (
     "utf8"
   );
   assert.match(asadaStyles, /\.asada-support-panel \[hidden\]\{display:none!important\}/);
-  assert.match(asadaStyles, /\.asada-support-panel\{font-size:15px;line-height:1\.5\}/);
-  assert.match(asadaStyles, /\.asada-panel-header strong\{font-size:17px\}/);
+  assert.match(asadaStyles, /\.asada-support-panel\{font-size:17px;line-height:1\.55\}/);
+  assert.match(asadaStyles, /\.asada-panel-header strong\{font-size:20px\}/);
   const asadaPanel = fs.readFileSync(
     path.join(projectRoot, "frontend", "experiences", "asada", "support-panel.html"),
     "utf8"
