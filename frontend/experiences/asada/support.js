@@ -153,7 +153,8 @@
     button.hidden = !supported || currentUser?.role !== "FONTANERO";
     if (!supported) return;
     try {
-      notificationRegistration = await navigator.serviceWorker.register("avi-sw.js");
+      notificationRegistration = await navigator.serviceWorker.register("avi-sw.js?v=20261009-5", {updateViaCache:"none"});
+      await notificationRegistration.update();
       const existing = await notificationRegistration.pushManager.getSubscription();
       if (existing) {
         await request("/push/subscriptions", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(existing.toJSON())});

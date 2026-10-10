@@ -1,3 +1,11 @@
+self.addEventListener("install", event => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", event => {
   let payload = {title:"AVI · Alerta ASADA", body:"Se detectó una nueva anomalía crítica.", tag:"avi-asada-alert", url:"./?property=asada_demo"};
   try { payload = {...payload, ...event.data.json()}; } catch {}
