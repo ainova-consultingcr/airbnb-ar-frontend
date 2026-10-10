@@ -51,6 +51,10 @@ function isVoiceEnabled() {
 
   const langKey = CURRENT_LANG.startsWith("en") ? "en" : "es";
   showARAnswer(config.welcome[langKey], playAudio);
+  document.getElementById("responseCard")?.classList.toggle(
+    "asada-welcome",
+    config.type === "asada"
+  );
   if (typeof setupGuidedPartsSearch === "function") setupGuidedPartsSearch();
   if (typeof setupGuidedHardwareSearch === "function") setupGuidedHardwareSearch();
   if (typeof setupGuidedWellnessSearch === "function") setupGuidedWellnessSearch();
@@ -178,6 +182,7 @@ function showARAnswer(text, speakAudio = true) {
   responseText.scrollTop = 0;
   responseLoading?.classList.remove("visible");
   responseText.style.display = "block";
+  responseCard.classList.remove("asada-welcome");
   responseCard.classList.add("visible");
   if (responseLabel) {
     responseLabel.textContent = CURRENT_LANG.startsWith("en")
@@ -227,6 +232,7 @@ function showLoader() {
   const responseLabel = document.getElementById("responseLabel");
   const status = document.getElementById("assistantStatus");
 
+  responseCard?.classList.remove("asada-welcome");
   responseCard?.classList.add("visible");
   responseLoading?.classList.add("visible");
   if (responseText) responseText.style.display = "none";
