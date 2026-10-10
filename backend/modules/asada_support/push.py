@@ -22,21 +22,24 @@ def public_config():
             "public_key": current["public_key"]}
 
 
-def save_subscription(user_id: int, subscription):
+def save_subscription(entity_id: str, username: str, subscription):
     stamp = now().isoformat()
     with connect() as db:
-        db.execute("""INSERT INTO avi_push_subscriptions(user_id,endpoint,p256dh,auth,created_at,updated_at)
-                      VALUES(?,?,?,?,?,?)
-                      ON CONFLICT(endpoint) DO UPDATE SET user_id=excluded.user_id,
-                      p256dh=excluded.p256dh,auth=excluded.auth,updated_at=excluded.updated_at""",
-                   (user_id, subscription.endpoint, subscription.keys.p256dh,
+        db.execute("""INSERT INTO avi_asada_push_subscriptions(
+                      entity_id,username,endpoint,p256dh,auth,created_at,updated_at)
+                      VALUES(?,?,?,?,?,?,?)
+                      ON CONFLICT(endpoint) DO UPDATE SET entity_id=excluded.entity_id,
+                      username=excluded.username,p256dh=excluded.p256dh,
+                      auth=excluded.auth,updated_at=excluded.updated_at""",
+                   (entity_id, username, subscription.endpoint, subscription.keys.p256dh,
                     subscription.keys.auth, stamp, stamp))
 
 
-def remove_subscription(user_id: int, endpoint: str):
+def remove_subscription(entity_id: str, username: str, endpoint: str):
     with connect() as db:
-        db.execute("DELETE FROM avi_push_subscriptions WHERE user_id=? AND endpoint=?",
-                   (user_id, endpoint))
+        db.execute("""DELETE FROM avi_asada_push_subscriptions
+                      WHERE entity_id=? AND username=? AND endpoint=?""",
+                   (entity_id, username, endpoint))
 
 
 def send_event(entity_id: str, event: dict):
@@ -44,9 +47,8 @@ def send_event(entity_id: str, event: dict):
     if not current["public_key"] or not current["private_key"]:
         return {"delivered": 0, "failed": 0, "configured": False}
     with connect() as db:
-        subscriptions = db.execute("""SELECT s.* FROM avi_push_subscriptions s
-          JOIN avi_users u ON u.id=s.user_id
-          WHERE u.entity_id=? AND u.role='FONTANERO' AND u.active=1""", (entity_id,)).fetchall()
+        subscriptions = db.execute("""SELECT * FROM avi_asada_push_subscriptions
+          WHERE entity_id=?""", (entity_id,)).fetchall()
     payload = json.dumps({
         "title": f"AVI · {event.get('sector') or event['node_id']}",
         "body": event["message"],
@@ -75,7 +77,7 @@ def send_event(entity_id: str, event: dict):
                 expired.append(row["endpoint"])
     if expired:
         with connect() as db:
-            db.executemany("DELETE FROM avi_push_subscriptions WHERE endpoint=?",
+            db.executemany("DELETE FROM avi_asada_push_subscriptions WHERE endpoint=?",
                            [(endpoint,) for endpoint in expired])
     return {"delivered": delivered, "failed": failed, "configured": True,
             "subscriptions": len(subscriptions)}

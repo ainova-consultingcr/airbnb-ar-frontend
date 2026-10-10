@@ -11,6 +11,12 @@ from fastapi import HTTPException
 
 
 TIMEOUT_SECONDS = max(5, min(60, int(os.getenv("ASADA_MONITOR_TIMEOUT_SECONDS", "60"))))
+ROLE_PERMISSIONS = {
+    "ADMIN": ["summary", "anomalies", "orders"],
+    "OPERADOR": ["summary", "anomalies", "orders"],
+    "FONTANERO": ["anomalies", "orders"],
+    "LECTOR": [],
+}
 
 
 def monitor_config(entity: dict):
@@ -69,6 +75,68 @@ def post_monitor(entity: dict, path: str, payload: dict):
         raise HTTPException(502, detail or "ASADA Monitor rechazó la operación")
     except (URLError, TimeoutError, OSError, json.JSONDecodeError):
         raise HTTPException(502, "ASADA Monitor no está disponible temporalmente")
+
+
+def auth_monitor(entity: dict, path: str, method="GET", payload=None, authorization=None):
+    base_url, _ = monitor_config(entity)
+    headers = {"Accept": "application/json"}
+    data = None
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+        data = json.dumps(payload).encode("utf-8")
+    if authorization:
+        headers["Authorization"] = authorization
+    request = Request(f"{base_url}{path}", headers=headers, data=data, method=method)
+    try:
+        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            body = response.read()
+            return json.loads(body.decode("utf-8")) if body else None
+    except HTTPError as error:
+        try:
+            detail = json.loads(error.read().decode("utf-8")).get("detail")
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            detail = None
+        if error.code in {401, 403}:
+            raise HTTPException(error.code, detail or "Usuario o contraseña de ASADA incorrectos")
+        raise HTTPException(502, detail or "ASADA Monitor rechazó la autenticación")
+    except (URLError, TimeoutError, OSError, json.JSONDecodeError):
+        raise HTTPException(502, "ASADA Monitor no está disponible temporalmente")
+
+
+def avi_user(remote_user: dict, entity_id: str):
+    role = str(remote_user.get("role") or "").upper()
+    if role not in ROLE_PERMISSIONS or not remote_user.get("active", True):
+        raise HTTPException(403, "La cuenta de ASADA no tiene acceso activo")
+    return {
+        "id": remote_user.get("id"),
+        "entity_id": entity_id,
+        "username": remote_user.get("username"),
+        "full_name": remote_user.get("full_name"),
+        "role": role,
+        "active": True,
+        "permissions": ROLE_PERMISSIONS[role],
+    }
+
+
+def login_monitor(entity: dict, entity_id: str, username: str, password: str):
+    result = auth_monitor(entity, "/api/auth/login", method="POST", payload={
+        "username": username, "password": password,
+    })
+    return {**avi_user(result, entity_id), "access_token": result["access_token"],
+            "token_type": "bearer"}
+
+
+def require_monitor_user(entity: dict, entity_id: str, authorization: str | None):
+    scheme, separator, token = (authorization or "").partition(" ")
+    if not separator or scheme.lower() != "bearer" or not token:
+        raise HTTPException(401, "Inicia sesión con tu cuenta de ASADA para continuar")
+    remote = auth_monitor(entity, "/api/auth/me", authorization=f"Bearer {token}")
+    return avi_user(remote, entity_id)
+
+
+def logout_monitor(entity: dict, authorization: str | None):
+    if authorization:
+        auth_monitor(entity, "/api/auth/logout", method="POST", authorization=authorization)
 
 
 def anomaly_context(nodes, orders, user):

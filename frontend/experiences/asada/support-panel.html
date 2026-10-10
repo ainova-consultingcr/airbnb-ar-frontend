@@ -4,15 +4,13 @@
     <button id="aviAsadaLogout" type="button" hidden>Salir</button>
   </div>
   <form id="aviAsadaLogin" class="asada-login">
-    <input name="full_name" autocomplete="name" placeholder="Nombre completo" hidden>
-    <input name="setup_key" type="password" autocomplete="off" placeholder="Clave inicial de AVI" hidden>
-    <input name="username" autocomplete="username" placeholder="Usuario AVI" required minlength="3">
+    <input name="username" autocomplete="username" placeholder="Usuario de ASADA Monitor" required minlength="3">
     <input name="password" type="password" autocomplete="current-password" placeholder="Contraseña" required minlength="8">
-    <button type="submit">Ingresar</button>
+    <button type="submit">Ingresar con ASADA</button>
   </form>
   <div id="aviAsadaSession" hidden>
     <div class="asada-session-bar"><span id="aviAsadaUser"></span><button id="aviAsadaRefresh" type="button">Actualizar información</button></div>
-    <section class="asada-alert-center" aria-labelledby="aviAsadaAlertTitle">
+    <section id="aviAsadaAlertCenter" class="asada-alert-center" aria-labelledby="aviAsadaAlertTitle">
       <div class="asada-alert-heading"><div><strong id="aviAsadaAlertTitle">Alertas de AVI</strong><span>AVI avisa una vez por cada nuevo episodio crítico.</span></div><button id="aviAsadaNotifications" type="button">Activar avisos</button></div>
       <div id="aviAsadaAlertHistory" class="asada-alert-history"><p>Sin alertas nuevas registradas en este dispositivo.</p></div>
     </section>
@@ -21,17 +19,6 @@
     <section id="aviAsadaOrders" class="asada-orders" aria-labelledby="aviAsadaOrdersTitle">
       <div class="asada-orders-heading"><strong id="aviAsadaOrdersTitle">Órdenes de trabajo</strong><span>Toma una orden pendiente y registra su atención desde AVI.</span></div>
       <div id="aviAsadaOrderList" class="asada-order-list"><p>No hay órdenes visibles para tu perfil.</p></div>
-    </section>
-    <section id="aviAsadaUsers" class="asada-users" hidden>
-      <strong>Usuarios de AVI</strong>
-      <form id="aviAsadaUserForm">
-        <input name="full_name" placeholder="Nombre completo" required>
-        <input name="username" placeholder="Usuario" required minlength="3">
-        <select name="role"><option value="OPERADOR">Operador</option><option value="FONTANERO">Fontanero</option><option value="ADMIN">Administrador</option></select>
-        <input name="password" type="password" placeholder="Contraseña temporal" required minlength="8">
-        <button type="submit">Crear usuario</button>
-      </form>
-      <div id="aviAsadaUserList"></div>
     </section>
   </div>
   <p id="aviAsadaMessage" class="asada-message" role="status"></p>

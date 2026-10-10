@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 from fastapi import HTTPException
 
-from modules.asada_support import auth, routes
+from modules.asada_support import auth, monitor, routes
 from modules.asada_support.monitor import admin_summary, anomaly_context, answer_question
-from modules.asada_support.schemas import Login, Setup, UserCreate
+from modules.asada_support.schemas import Login
 
 
 class AsadaSupportTests(unittest.TestCase):
@@ -15,48 +15,47 @@ class AsadaSupportTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.original_database = auth.DATABASE_PATH
         auth.DATABASE_PATH = Path(self.temp.name) / "avi-access.sqlite3"
-        self.setup_key = patch.dict("os.environ", {"AVI_SETUP_KEY": "avi-initial-secret"})
-        self.setup_key.start()
 
     def tearDown(self):
-        self.setup_key.stop()
         auth.DATABASE_PATH = self.original_database
         self.temp.cleanup()
 
-    def create_admin(self):
-        return routes.setup("asada_demo", Setup(
-            username="admin", full_name="Administración",
-            password="Clave-AVI-2026", role="ADMIN",
-        ), "avi-initial-secret")
+    def remote_user(self, role="FONTANERO"):
+        permissions = {"ADMIN":["summary","anomalies","orders"],
+                       "OPERADOR":["summary","anomalies","orders"],
+                       "FONTANERO":["anomalies","orders"], "LECTOR":[]}
+        return {"id":4,"entity_id":"asada_demo","username":"font1",
+                "full_name":"Fontanero Uno","role":role,"active":True,
+                "permissions":permissions[role]}
 
-    def test_avi_setup_login_and_roles_are_scoped_to_entity(self):
-        admin = self.create_admin()
-        self.assertEqual(admin["role"], "ADMIN")
-        token = admin["access_token"]
-        plumber = routes.create_user("asada_demo", UserCreate(
-            username="font1", full_name="Fontanero Uno",
-            password="Clave-font-2026", role="FONTANERO",
-        ), f"Bearer {token}")
-        self.assertEqual(plumber["role"], "FONTANERO")
-        session = routes.login("asada_demo", Login(username="font1", password="Clave-font-2026"))
-        self.assertEqual(session["entity_id"], "asada_demo")
-        with self.assertRaises(HTTPException) as error:
-            auth.require_user("otra_asada", f"Bearer {session['access_token']}")
-        self.assertEqual(error.exception.status_code, 401)
+    def test_login_and_status_are_delegated_to_asada_monitor(self):
+        session = {**self.remote_user(), "access_token":"asada-token", "token_type":"bearer"}
+        with patch.object(routes, "enabled_entity", return_value={"id":"asada_demo"}), \
+             patch.object(routes, "login_monitor", return_value=session) as login, \
+             patch.object(routes, "require_monitor_user", return_value=self.remote_user()) as validate:
+            result = routes.login("asada_demo", Login(username="font1", password="Clave-ASADA-2026"))
+            state = routes.status("asada_demo", "Bearer asada-token")
+        self.assertEqual(result["access_token"], "asada-token")
+        self.assertEqual(state["user"]["role"], "FONTANERO")
+        login.assert_called_once()
+        validate.assert_called_once()
+        self.assertFalse(hasattr(routes, "setup"))
+        self.assertFalse(hasattr(routes, "create_user"))
 
-    def test_only_admin_can_create_users(self):
-        admin = self.create_admin()
-        routes.create_user("asada_demo", UserCreate(
-            username="font1", full_name="Fontanero Uno",
-            password="Clave-font-2026", role="FONTANERO",
-        ), f"Bearer {admin['access_token']}")
-        plumber = routes.login("asada_demo", Login(username="font1", password="Clave-font-2026"))
-        with self.assertRaises(HTTPException) as error:
-            routes.create_user("asada_demo", UserCreate(
-                username="otro", full_name="Otro Usuario",
-                password="Clave-otro-2026", role="OPERADOR",
-            ), f"Bearer {plumber['access_token']}")
-        self.assertEqual(error.exception.status_code, 403)
+    def test_asada_roles_are_mapped_to_avi_permissions(self):
+        remote = {"id":9,"username":"operador1","full_name":"Operación",
+                  "role":"OPERADOR","active":True,"access_token":"asada-token"}
+        with patch.object(monitor, "auth_monitor", return_value=remote) as authenticate:
+            session = monitor.login_monitor({"id":"asada_demo"}, "asada_demo",
+                                            "operador1", "Clave-ASADA-2026")
+        self.assertEqual(session["permissions"], ["summary", "anomalies", "orders"])
+        self.assertEqual(session["access_token"], "asada-token")
+        authenticate.assert_called_once_with(
+            {"id":"asada_demo"}, "/api/auth/login", method="POST",
+            payload={"username":"operador1", "password":"Clave-ASADA-2026"})
+        reader = monitor.avi_user({"id":10,"username":"lector1","full_name":"Lectura",
+                                   "role":"LECTOR","active":True}, "asada_demo")
+        self.assertEqual(reader["permissions"], [])
 
     def test_fontanero_receives_unassigned_and_own_orders(self):
         user = {"username":"font1","full_name":"Fontanero Uno","role":"FONTANERO"}
@@ -71,14 +70,9 @@ class AsadaSupportTests(unittest.TestCase):
                                               {"id":3,"assignee":""}])
 
     def test_fontanero_can_claim_and_update_order_through_avi(self):
-        admin = self.create_admin()
-        routes.create_user("asada_demo", UserCreate(
-            username="font1", full_name="Fontanero Uno",
-            password="Clave-font-2026", role="FONTANERO",
-        ), f"Bearer {admin['access_token']}")
-        plumber = routes.login("asada_demo", Login(username="font1", password="Clave-font-2026"))
-        authorization = f"Bearer {plumber['access_token']}"
-        with patch.object(routes, "post_monitor", return_value={"id":7,"status":"EN ATENCION"}) as sender:
+        authorization = "Bearer asada-token"
+        with patch.object(routes, "authenticated_user", return_value=({"id":"asada_demo"}, self.remote_user())), \
+             patch.object(routes, "post_monitor", return_value={"id":7,"status":"EN ATENCION"}) as sender:
             claimed = routes.claim_order("asada_demo", 7, routes.WorkOrderClaim(
                 expected_updated_at="2026-10-09T20:00:00Z"), authorization)
             updated = routes.update_order("asada_demo", 7, routes.WorkOrderUpdate(
@@ -144,12 +138,6 @@ class AsadaSupportTests(unittest.TestCase):
         self.assertIn("3 nodo", answers[3])
 
     def test_fontanero_registers_push_and_event_is_idempotent(self):
-        admin = self.create_admin()
-        routes.create_user("asada_demo", UserCreate(
-            username="font1", full_name="Fontanero Uno",
-            password="Clave-font-2026", role="FONTANERO",
-        ), f"Bearer {admin['access_token']}")
-        plumber = routes.login("asada_demo", Login(username="font1", password="Clave-font-2026"))
         subscription = routes.PushSubscription(endpoint="https://push.example/device-1", keys={
             "p256dh":"a" * 64, "auth":"b" * 16,
         })
@@ -158,13 +146,15 @@ class AsadaSupportTests(unittest.TestCase):
             "AVI_PUSH_VAPID_PRIVATE_KEY":"private-key",
             "ASADA_EVENT_SERVICE_KEY":"event-secret",
         }, clear=False):
-            config = routes.push_config("asada_demo", f"Bearer {plumber['access_token']}")
-            self.assertTrue(config["enabled"])
-            routes.subscribe_push("asada_demo", subscription, f"Bearer {plumber['access_token']}")
+            with patch.object(routes, "authenticated_user", return_value=({"id":"asada_demo"}, self.remote_user())):
+                config = routes.push_config("asada_demo", "Bearer asada-token")
+                self.assertTrue(config["enabled"])
+                routes.subscribe_push("asada_demo", subscription, "Bearer asada-token")
             event = routes.AlertEvent(source_order_id=7, node_id="n1", sector="Norte",
                 pressure_psi=2.0, flow_lpm=13.0, timestamp="2026-10-09T10:00:00Z",
                 message="Anomalía crítica sostenida")
-            with patch.object(routes, "send_event", return_value={
+            with patch.object(routes, "enabled_entity", return_value={"id":"asada_demo"}), \
+                 patch.object(routes, "send_event", return_value={
                 "delivered":1,"failed":0,"configured":True,"subscriptions":1,
             }) as sender:
                 first = routes.receive_event("asada_demo", event, "event-secret")

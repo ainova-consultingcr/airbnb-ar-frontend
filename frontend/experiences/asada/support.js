@@ -10,7 +10,6 @@
   const logoutButton = document.getElementById("aviAsadaLogout");
   let token = sessionStorage.getItem(tokenKey) || "";
   let currentUser = null;
-  let setupRequired = false;
   let refreshTimer = null;
   let notificationRegistration = null;
   let pushSubscribed = false;
@@ -50,16 +49,11 @@
     }
   });
 
-  function showLogin(setup = false, text = "") {
-    setupRequired = setup;
+  function showLogin(text = "") {
     panel.classList.add("asada-login-gate");
     document.body.classList.add("asada-auth-required");
     loginForm.hidden = false; session.hidden = true; logoutButton.hidden = true;
-    for (const name of ["full_name", "setup_key"]) {
-      loginForm.elements[name].hidden = !setup;
-      loginForm.elements[name].required = setup;
-    }
-    loginForm.querySelector("button").textContent = setup ? "Crear administrador AVI" : "Ingresar";
+    loginForm.querySelector("button").textContent = "Ingresar con ASADA";
     message.textContent = text;
   }
 
@@ -70,21 +64,29 @@
     loginForm.hidden = true; session.hidden = false; logoutButton.hidden = false;
     document.getElementById("aviAsadaUser").textContent = `${user.full_name} · ${user.role}`;
     document.getElementById("aviAsadaSummary").hidden = !user.permissions.includes("summary");
-    document.getElementById("aviAsadaUsers").hidden = !user.permissions.includes("users");
+    document.getElementById("aviAsadaAnomalies").hidden = !user.permissions.includes("anomalies");
+    document.getElementById("aviAsadaOrders").hidden = !user.permissions.includes("orders");
+    document.getElementById("aviAsadaAlertCenter").hidden = user.role !== "FONTANERO";
     contextInitialized = false;
     activeCriticalNodes = new Set();
     renderAlertHistory();
     prepareNotifications();
     clearInterval(refreshTimer);
-    refreshTimer = setInterval(loadContext, Math.max(3, Number(PROPERTY_CONFIG?.asada?.refresh_seconds || 3)) * 1000);
+    if (user.permissions.some(permission => ["summary", "anomalies", "orders"].includes(permission))) {
+      refreshTimer = setInterval(loadContext, Math.max(3, Number(PROPERTY_CONFIG?.asada?.refresh_seconds || 3)) * 1000);
+    }
   }
 
   function logout(text = "") {
     token = ""; currentUser = null; contextInitialized = false; activeCriticalNodes = new Set(); clearInterval(refreshTimer); refreshTimer = null;
-    sessionStorage.removeItem(tokenKey); showLogin(false, text);
+    sessionStorage.removeItem(tokenKey); showLogin(text);
   }
 
   async function loadContext() {
+    if (!currentUser?.permissions.some(permission => ["summary", "anomalies", "orders"].includes(permission))) {
+      message.textContent = "Tu perfil de ASADA no tiene funciones operativas disponibles en AVI.";
+      return;
+    }
     message.textContent = "AVI está consultando la operación de la ASADA…";
     try {
       const context = await request("/context");
@@ -97,17 +99,11 @@
         const summary = await request("/summary?period_days=30");
         document.getElementById("aviAsadaSummary").innerHTML = `<strong>Resumen de los últimos ${summary.period_days} días</strong><span>${summary.total_failures} averías registradas</span><span>Sector con más averías: ${escapeHtml(summary.top_sector || "Sin datos")} (${summary.top_sector_failures})</span><span>Causa principal: ${escapeHtml(summary.main_cause || "Sin diagnósticos")}</span>`;
       }
-      if (currentUser.permissions.includes("users")) await loadUsers();
       message.textContent = "Información actualizada con datos de la API de la ASADA.";
     } catch (error) {
       if (/sesión|session|login/i.test(error.message)) logout(error.message);
       else message.textContent = error.message;
     }
-  }
-
-  async function loadUsers() {
-    const users = await request("/users");
-    document.getElementById("aviAsadaUserList").innerHTML = users.map(user => `<span>${escapeHtml(user.full_name)} · ${escapeHtml(user.role)} · ${escapeHtml(user.username)}</span>`).join("");
   }
 
   function renderOrders(orders) {
@@ -224,24 +220,15 @@
     const button = loginForm.querySelector("button"); button.disabled = true;
     try {
       const headers = {"Content-Type":"application/json"};
-      if (setupRequired) headers["X-Setup-Key"] = String(values.setup_key || "").trim();
-      const body = setupRequired ? {username:values.username,password:values.password,full_name:values.full_name,role:"ADMIN"} : {username:values.username,password:values.password};
-      const user = await request(setupRequired ? "/setup" : "/login", {method:"POST",headers,body:JSON.stringify(body)});
+      const body = {username:values.username,password:values.password};
+      const user = await request("/login", {method:"POST",headers,body:JSON.stringify(body)});
       token = user.access_token; sessionStorage.setItem(tokenKey, token); loginForm.reset(); showSession(user); await loadContext();
     } catch (error) {
-      message.textContent = setupRequired && /configuración|clave/i.test(error.message)
-        ? "La clave inicial no coincide. Cópiala exactamente, sin espacios antes ni después."
-        : error.message;
+      message.textContent = error.message;
     }
     finally { button.disabled = false; }
   });
 
-  document.getElementById("aviAsadaUserForm").addEventListener("submit", async event => {
-    event.preventDefault(); const button = event.target.querySelector("button"); button.disabled = true;
-    try { await request("/users", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.fromEntries(new FormData(event.target)))}); event.target.reset(); await loadUsers(); message.textContent="Usuario de AVI creado."; }
-    catch(error) { message.textContent=error.message; }
-    finally { button.disabled=false; }
-  });
   document.getElementById("aviAsadaOrderList").addEventListener("click", async event => {
     const button = event.target.closest(".asada-order-claim");
     if (!button) return;
@@ -315,6 +302,9 @@
     const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
     return Uint8Array.from(atob(base64), character => character.charCodeAt(0));
   }
-  logoutButton.addEventListener("click", () => logout("Sesión de AVI cerrada."));
-  request("/status").then(state => state.user ? (showSession(state.user), loadContext()) : showLogin(state.setup_required)).catch(error => showLogin(false, error.message));
+  logoutButton.addEventListener("click", async () => {
+    try { await request("/logout", {method:"POST"}); } catch {}
+    logout("Sesión de ASADA cerrada en AVI.");
+  });
+  request("/status").then(state => state.user ? (showSession(state.user), loadContext()) : showLogin()).catch(error => showLogin(error.message));
 })();

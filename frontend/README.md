@@ -64,7 +64,7 @@ frontend/
 | `auto_parts_store` | Panel de repuestos, búsqueda guiada y demo de taller |
 | `hardware_store` | Panel y búsqueda guiada de ferretería |
 | `wellness_sales_assistant` | Panel y recomendación guiada de Farmasi |
-| `asada` | Soporte operativo con usuarios propios de AVI y datos consultados desde la API de ASADA Monitor |
+| `asada` | Soporte operativo autenticado por la API de ASADA Monitor; AVI aplica la interfaz según el rol recibido |
 | `hotel` | Turismo y servicios cercanos |
 | `airbnb` | Turismo y servicios cercanos |
 | `lodging` | Turismo y servicios cercanos |
@@ -149,6 +149,19 @@ La suite frontend verifica la selección de recursos de todas las entidades y
 confirma que los módulos opcionales no regresen a `index.html`.
 
 ## Alertas push de ASADA
+
+### Identidad y roles
+
+AVI no administra cuentas para la entidad ASADA. El formulario de acceso se
+envía al backend de AVI y este llama `POST /api/auth/login` de ASADA Monitor.
+El token emitido por ASADA se valida con `GET /api/auth/me` en cada operación y
+se revoca con `POST /api/auth/logout`. AVI no guarda la contraseña.
+
+Los perfiles ADMIN y OPERADOR reciben resumen, anomalías y órdenes; FONTANERO
+recibe anomalías, órdenes y acciones de atención; LECTOR puede autenticarse,
+pero no recibe módulos operativos porque la lectura de abonados todavía no está
+integrada en AVI. La creación, desactivación y recuperación de usuarios se hace
+exclusivamente en ASADA Monitor.
 
 El fontanero debe iniciar sesión una vez desde cada celular y pulsar **Activar
 avisos**. El navegador registra una suscripción Web Push asociada a su cuenta.
