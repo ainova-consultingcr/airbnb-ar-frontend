@@ -172,6 +172,24 @@ test("ASADA carga únicamente su panel, estilos y cliente de monitoreo", async (
   assert.doesNotMatch(asadaPanel, /aviAsadaUserForm|Clave inicial de AVI/);
   assert.match(asadaScript, /serviceWorker\.register\("avi-sw\.js\?v=\d+-\d+", \{updateViaCache:"none"\}\)/);
   assert.ok(fs.existsSync(path.join(projectRoot, "avi-sw.js")));
+
+  const entityConfig = JSON.parse(fs.readFileSync(
+    path.join(projectRoot, "backend", "data", "entities", "asada_demo", "entity.json"),
+    "utf8"
+  ));
+  assert.equal(entityConfig.voice_enabled, false);
+
+  const chatUi = fs.readFileSync(
+    path.join(projectRoot, "frontend", "shared", "chat-ui.js"),
+    "utf8"
+  );
+  const assistantClient = fs.readFileSync(
+    path.join(projectRoot, "frontend", "shared", "assistant-client.js"),
+    "utf8"
+  );
+  assert.match(chatUi, /PROPERTY_CONFIG\?\.voice_enabled !== false/);
+  assert.match(chatUi, /if \(!text \|\| !isVoiceEnabled\(\)\) return/);
+  assert.match(assistantClient, /if \(isVoiceEnabled\(\)\) unlockAudio\(\)/);
 });
 
 test("Una entidad desconocida conserva solo las acciones compartidas", async () => {

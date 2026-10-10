@@ -3,6 +3,7 @@
   "name": "ASADA Demo",
   "type": "asada",
   "status": "active",
+  "voice_enabled": false,
   "enabled_modules": ["faqs", "asada_support"],
   "location": {
     "country": "Costa Rica",

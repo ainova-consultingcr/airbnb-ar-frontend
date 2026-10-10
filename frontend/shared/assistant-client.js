@@ -6,7 +6,7 @@ async function askAI() {
   if (!input || !input.value.trim()) return;
 
   showThinking();
-  unlockAudio();
+  if (isVoiceEnabled()) unlockAudio();
   clearCTAs();
   hideSuggestions();
   const question = input.value.trim();

@@ -2,7 +2,12 @@
 let hideTimer = null;
 let audioUnlocked = false;
 
+function isVoiceEnabled() {
+  return PROPERTY_CONFIG?.voice_enabled !== false;
+}
+
    function unlockAudio() {
+    if (!isVoiceEnabled()) return;
     if (audioUnlocked) return;
     speechSynthesis.getVoices();
     const silent = new SpeechSynthesisUtterance("");
@@ -126,7 +131,7 @@ function normalizeLang(lang) {
 
 
 function speak(text) {
-  if (!text) return;
+  if (!text || !isVoiceEnabled()) return;
 
   // Cancelar lo anterior
   speechSynthesis.cancel();
@@ -182,13 +187,13 @@ function showARAnswer(text, speakAudio = true) {
   hideSuggestions();
 
   // audio
-  if (speakAudio) {
+  if (speakAudio && isVoiceEnabled()) {
     speak(text);
   }
 
   if (hideTimer) clearTimeout(hideTimer);
 
-  if (!speakAudio) {
+  if (!speakAudio || !isVoiceEnabled()) {
     clearCTAs();
     closePanel(6000);
   }
