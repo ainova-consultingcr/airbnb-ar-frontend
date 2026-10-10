@@ -108,6 +108,7 @@ class MainTests(unittest.TestCase):
 
         self.assertEqual(response["id"], "asada_demo")
         self.assertEqual(response["type"], "asada")
+        self.assertFalse(response["voice_enabled"])
         self.assertTrue(response["asada"]["support_enabled"])
         self.assertNotIn("api_base_url", response["asada"])
         self.assertNotIn("app_url", response["asada"])

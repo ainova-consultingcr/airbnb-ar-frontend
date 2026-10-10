@@ -187,6 +187,7 @@ test("ASADA carga únicamente su panel, estilos y cliente de monitoreo", async (
     path.join(projectRoot, "frontend", "shared", "assistant-client.js"),
     "utf8"
   );
+  assert.match(chatUi, /PROPERTY_CONFIG\?\.type !== "asada"/);
   assert.match(chatUi, /PROPERTY_CONFIG\?\.voice_enabled !== false/);
   assert.match(chatUi, /if \(!text \|\| !isVoiceEnabled\(\)\) return/);
   assert.match(assistantClient, /if \(isVoiceEnabled\(\)\) unlockAudio\(\)/);

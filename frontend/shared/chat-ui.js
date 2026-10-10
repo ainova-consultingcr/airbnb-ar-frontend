@@ -3,7 +3,7 @@ let hideTimer = null;
 let audioUnlocked = false;
 
 function isVoiceEnabled() {
-  return PROPERTY_CONFIG?.voice_enabled !== false;
+  return PROPERTY_CONFIG?.type !== "asada" && PROPERTY_CONFIG?.voice_enabled !== false;
 }
 
    function unlockAudio() {

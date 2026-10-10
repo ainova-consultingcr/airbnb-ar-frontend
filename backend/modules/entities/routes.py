@@ -16,6 +16,7 @@ def get_property(property_id: str = "hotel_demo"):
             "id": data["id"],
             "name": data["name"],
             "type": data.get("type"),
+            "voice_enabled": data.get("voice_enabled", True),
             "color": data["branding"]["primary_color"],
             "welcome": data["branding"]["welcome"],
             "suggestions": data.get("ui", {}).get(
