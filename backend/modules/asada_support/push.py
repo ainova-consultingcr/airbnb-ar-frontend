@@ -2,6 +2,7 @@ import json
 import os
 
 from pywebpush import WebPushException, webpush
+from py_vapid import VapidException
 
 from .auth import connect, now
 
@@ -16,7 +17,8 @@ def config():
 
 def public_config():
     current = config()
-    return {"enabled": bool(current["public_key"] and current["private_key"]),
+    return {"enabled": bool(current["public_key"] and current["private_key"]
+                            and current["subject"].startswith("mailto:")),
             "public_key": current["public_key"]}
 
 
@@ -66,7 +68,7 @@ def send_event(entity_id: str, event: dict):
                 timeout=10,
             )
             delivered += 1
-        except WebPushException as error:
+        except (WebPushException, VapidException, ValueError) as error:
             failed += 1
             status = getattr(getattr(error, "response", None), "status_code", None)
             if status in {404, 410}:

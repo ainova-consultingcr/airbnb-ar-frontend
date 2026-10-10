@@ -154,7 +154,11 @@
     if (!supported) return;
     try {
       notificationRegistration = await navigator.serviceWorker.register("avi-sw.js");
-      pushSubscribed = Boolean(await notificationRegistration.pushManager.getSubscription());
+      const existing = await notificationRegistration.pushManager.getSubscription();
+      if (existing) {
+        await request("/push/subscriptions", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(existing.toJSON())});
+        pushSubscribed = true;
+      }
     }
     catch { notificationRegistration = null; }
     updateNotificationButton();
