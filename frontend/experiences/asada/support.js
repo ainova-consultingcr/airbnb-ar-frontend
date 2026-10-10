@@ -122,6 +122,7 @@
             <select name="diagnosis" aria-label="Diagnóstico"><option value="SIN CONFIRMAR">Sin confirmar</option><option value="FUGA CONFIRMADA">Fuga confirmada</option><option value="CONEXION NO AUTORIZADA CONFIRMADA">Conexión no autorizada</option><option value="OTRA CAUSA">Otra causa</option></select>
             <textarea name="note" placeholder="Nota de la inspección" required minlength="3"></textarea>
             <button type="submit">Guardar atención</button>
+            <p class="asada-order-feedback" role="status" aria-live="polite"></p>
           </form>` : "";
       return `<article class="asada-order" id="avi-order-${order.id}">
         <div class="asada-order-title"><strong>OT-${String(order.id).padStart(5,"0")} · ${escapeHtml(order.node_id)}</strong><span class="asada-order-status">${escapeHtml(order.status)}</span></div>
@@ -248,8 +249,8 @@
     try {
       await request(`/work-orders/${button.dataset.orderId}/claim`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expected_updated_at:button.dataset.updatedAt})});
       orderInteractionUntil = 0;
-      message.textContent = "Orden tomada. Ya puedes registrar la atención.";
       await loadContext();
+      message.textContent = "Orden tomada. Ya puedes registrar la atención.";
     } catch (error) { message.textContent = error.message; }
     finally { button.disabled = false; }
   });
@@ -257,15 +258,26 @@
     const form = event.target.closest(".asada-order-form");
     if (!form) return;
     event.preventDefault();
-    const button = form.querySelector("button"); button.disabled = true;
+    const values = Object.fromEntries(new FormData(form));
+    const feedback = form.querySelector(".asada-order-feedback");
+    if (values.status === "RESUELTA" && values.diagnosis === "SIN CONFIRMAR") {
+      feedback.textContent = "Selecciona el diagnóstico antes de marcar la orden como resuelta.";
+      return;
+    }
+    const button = form.querySelector("button");
+    const originalLabel = button.textContent;
+    button.disabled = true; button.textContent = "Guardando…";
+    feedback.textContent = "Guardando la atención en ASADA Monitor…";
     try {
-      const values = Object.fromEntries(new FormData(form));
       await request(`/work-orders/${form.dataset.orderId}/updates`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...values,expected_updated_at:form.dataset.updatedAt})});
       orderInteractionUntil = 0;
-      message.textContent = values.status === "RESUELTA" ? "Orden resuelta y registrada en ASADA Monitor." : "Seguimiento guardado en ASADA Monitor.";
       await loadContext();
-    } catch (error) { message.textContent = error.message; }
-    finally { button.disabled = false; }
+      message.textContent = values.status === "RESUELTA" ? "Orden resuelta y registrada en ASADA Monitor." : "Seguimiento guardado en ASADA Monitor.";
+    } catch (error) {
+      feedback.textContent = error.message;
+      message.textContent = error.message;
+    }
+    finally { button.disabled = false; button.textContent = originalLabel; }
   });
   for (const eventName of ["focusin", "pointerdown", "input", "change"]) {
     document.getElementById("aviAsadaOrderList").addEventListener(eventName, () => {
