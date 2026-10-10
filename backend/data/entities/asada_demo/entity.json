@@ -14,8 +14,8 @@
   "branding": {
     "primary_color": "#147d72",
     "welcome": {
-      "es": "Bienvenido a AVI para ASADA.",
-      "en": "Welcome to AVI for ASADA."
+      "es": "Bienvenido a ASADA Demo\n\nSoy AVI, el asistente para consultar el estado de la red de agua. Inicia sesión en el panel de monitoreo para revisar presión, caudal y alertas.",
+      "en": "Welcome to ASADA Demo\n\nI am AVI, the assistant for checking the water network. Sign in to the monitoring panel to review pressure, flow and alerts."
     }
   },
   "asada_support": {

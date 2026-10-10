@@ -19,9 +19,3 @@
 .asada-node span,.asada-node p,.asada-alert-history>p,.asada-order-list>p,.asada-order span,.asada-order time{font-size:15px}
 .asada-node-heading time,.asada-alert-heading span,.asada-orders-heading span,.asada-alert-history article time,.asada-alert-history article span,.asada-order-feedback{font-size:14px}
 .asada-alert-history article strong{font-size:16px}
-
-/* Bienvenida breve; una respuesta posterior recupera el panel completo. */
-#responseCard.asada-welcome{align-items:center;gap:9px;max-height:none;padding:9px 13px;border-radius:16px}
-#responseCard.asada-welcome .response-avatar{width:30px;height:30px;flex-basis:30px;border-radius:10px;font-size:13px}
-#responseCard.asada-welcome #responseLabel{display:none}
-#responseCard.asada-welcome #responseText{max-height:none;padding:0;overflow:hidden;font-size:14px;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
