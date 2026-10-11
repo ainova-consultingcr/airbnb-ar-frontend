@@ -18,6 +18,70 @@ ROLE_PERMISSIONS = {
     "LECTOR": [],
 }
 
+OUT_OF_SCOPE_ANSWER = (
+    "Esta consulta está fuera del ámbito operativo de ASADA. Puedo ayudarte con presión, "
+    "caudal, nivel de tanque, nodos, sectores, anomalías, posibles fugas, órdenes de trabajo, "
+    "diagnósticos y notificaciones."
+)
+
+STATIC_ANSWERS = {
+    "greeting": "Hola. Puedo ayudarte a consultar la operación de la ASADA y sus alertas.",
+    "flow": ("El caudal se muestra en litros por minuto. Un aumento fuera del rango del sector, "
+             "especialmente junto con presión baja, puede indicar una fuga y debe revisarse."),
+    "tank": ("El nivel del tanque indica el porcentaje de agua disponible. Debe analizarse junto "
+             "con la demanda, el caudal de entrada y las alertas configuradas."),
+    "work_order_help": ("Una orden de trabajo registra la atención de una anomalía. El fontanero "
+                        "puede tomarla, actualizar el estado, seleccionar el diagnóstico, agregar "
+                        "una nota y guardarla como atendida o resuelta."),
+    "notifications": ("AVI muestra alertas de ASADA y puede enviar notificaciones push al celular "
+                      "del fontanero cuando existe una orden crítica y el dispositivo está suscrito."),
+    "access": ("AVI usa la misma cuenta y el mismo rol de ASADA Monitor. Los permisos se aplican "
+               "según el perfil administrador, operador, fontanero o lector."),
+}
+
+
+def normalize_question(question: str):
+    return "".join(
+        character for character in unicodedata.normalize("NFKD", question.casefold())
+        if not unicodedata.combining(character)
+    )
+
+
+def classify_question(question: str, user: dict | None = None):
+    normalized = normalize_question(question)
+    words = set(normalized.replace("¿", " ").replace("?", " ").replace(",", " ").split())
+    if words & {"hola", "buenas", "gracias", "hello", "thanks"} and len(words) <= 6:
+        return "greeting"
+    if any(term in normalized for term in ("notificacion", "notification", "push", "aviso al celular")):
+        return "notifications"
+    if any(term in normalized for term in ("usuario", "user", "iniciar sesion", "login", "permiso", "permission", "perfil", "rol", "role")):
+        return "access"
+    if any(term in normalized for term in ("orden de trabajo", "ordenes de trabajo", "work order", "tomar la orden", "atender la orden", "cerrar la orden", "guardar atencion")):
+        if any(term in normalized for term in ("cuantas", "pendiente", "asignada", "estado", "actual")):
+            return "work_orders"
+        return "work_order_help"
+    if "diagnostico" in normalized or "nota de atencion" in normalized:
+        return "work_order_help"
+    if any(term in normalized for term in ("nivel del tanque", "nivel de tanque", "tanque", "tank level")):
+        return "tank"
+    if "fuga" in normalized or "leak" in normalized:
+        return "leak"
+    if "caudal" in normalized or "flow" in normalized or "litros por minuto" in normalized or "lpm" in words:
+        return "flow"
+    if "presion" in normalized or "pressure" in normalized or "psi" in words:
+        return "pressure"
+    if any(term in normalized for term in ("offline", "fuera de linea", "sin conexion")):
+        return "offline"
+    if user and user.get("role") in {"ADMIN", "OPERADOR"} and any(
+        term in normalized for term in ("mas averias", "causa principal", "este mes", "ultimos dias", "resumen")
+    ):
+        return "admin_summary"
+    if any(term in normalized for term in ("anomalia", "anomaly", "alerta", "alert", "critica", "critical", "lectura", "reading")):
+        return "anomalies"
+    if any(term in normalized for term in ("estado de la red", "network status", "estado actual", "current status", "monitoreo", "monitoring", "nodo", "node", "sector", "red de agua", "water network")):
+        return "network_status"
+    return "out_of_scope"
+
 
 def monitor_config(entity: dict):
     config = entity.get("asada_support") or {}
@@ -223,11 +287,12 @@ def admin_summary(nodes, orders, period_days=30):
 
 
 def answer_question(question, user, nodes, orders, period_days=30):
-    normalized = "".join(
-        character for character in unicodedata.normalize("NFKD", question.casefold())
-        if not unicodedata.combining(character)
-    )
-    if user["role"] == "ADMIN" and any(term in normalized for term in ("sector", "avería", "averia", "causa", "mes")):
+    intent = classify_question(question, user)
+    if intent == "out_of_scope":
+        return {"answer": OUT_OF_SCOPE_ANSWER, "scope": "out_of_scope", "ai_used": False}
+    if intent in STATIC_ANSWERS:
+        return {"answer": STATIC_ANSWERS[intent], "scope": "asada", "ai_used": False}
+    if intent == "admin_summary":
         summary = admin_summary(nodes, orders, period_days)
         if not summary["total_failures"]:
             answer = f"No hay averías registradas en los últimos {period_days} días."
@@ -235,9 +300,9 @@ def answer_question(question, user, nodes, orders, period_days=30):
             answer = (f"En los últimos {period_days} días, {summary['top_sector']} fue el sector con más averías "
                       f"({summary['top_sector_failures']}). La causa principal fue {summary['main_cause']} "
                       f"({summary['main_cause_count']} casos).")
-        return {"answer": answer, "summary": summary}
+        return {"answer": answer, "summary": summary, "scope": "asada", "ai_used": False}
     context = anomaly_context(nodes, orders, user)
-    if "presion" in normalized:
+    if intent == "pressure":
         measured = [item for item in nodes if item.get("pressure_psi") is not None]
         if measured:
             lowest = min(measured, key=lambda item: item["pressure_psi"])
@@ -246,25 +311,30 @@ def answer_question(question, user, nodes, orders, period_days=30):
                       f"La lectura más baja disponible es {lowest['pressure_psi']} psi en {sector}, nodo {lowest.get('node_id')}.")
         else:
             answer = "La presión se muestra en psi. Debe compararse con el límite del sector y con el caudal; todavía no hay lecturas disponibles."
-        return {"answer": answer, "anomalies": context["anomalies"]}
-    if "fuga" in normalized:
+        return {"answer": answer, "anomalies": context["anomalies"], "scope": "asada", "ai_used": False}
+    if intent == "leak":
         possible_leaks = [item for item in context["anomalies"] if item["severity"] in {"CRITICA", "POSSIBLE_LEAK", "POSIBLE FUGA"}]
         answer = ("Una posible fuga es una alerta inicial cuando coinciden presión baja y caudal alto; requiere inspección para confirmarla. "
                   f"En este momento hay {len(possible_leaks)} alerta(s) de posible fuga visible(s) para tu perfil.")
-        return {"answer": answer, "anomalies": possible_leaks}
-    if "offline" in normalized or "fuera de linea" in normalized or "sin conexion" in normalized:
+        return {"answer": answer, "anomalies": possible_leaks, "scope": "asada", "ai_used": False}
+    if intent == "offline":
         offline = [item for item in context["anomalies"] if item["severity"] == "OFFLINE"]
         answer = ("Un nodo aparece offline cuando no reporta dentro del tiempo configurado. "
                   f"Actualmente hay {len(offline)} nodo(s) offline visible(s) para tu perfil; revisa alimentación, enlace y gateway.")
-        return {"answer": answer, "anomalies": offline}
-    if any(term in normalized for term in ("estado", "red", "monitoreo")):
+        return {"answer": answer, "anomalies": offline, "scope": "asada", "ai_used": False}
+    if intent == "work_orders":
+        return {"answer": f"Tienes {len(context['orders'])} orden(es) de trabajo visible(s) para tu perfil.",
+                "orders": context["orders"], "scope": "asada", "ai_used": False}
+    if intent == "network_status":
         normal_count = sum(1 for item in nodes if str(item.get("severity") or item.get("status")).upper() == "NORMAL")
         answer = (f"Estado actual: {len(nodes)} nodo(s), {normal_count} normal(es), "
                   f"{len(context['anomalies'])} con anomalía u offline y {len(context['orders'])} orden(es) visible(s) para tu perfil.")
-        return {"answer": answer, "anomalies": context["anomalies"], "orders": context["orders"]}
+        return {"answer": answer, "anomalies": context["anomalies"], "orders": context["orders"],
+                "scope": "asada", "ai_used": False}
     if context["anomalies"]:
         first = context["anomalies"][0]
         answer = f"Hay {len(context['anomalies'])} anomalías activas. En {first['sector']}, nodo {first['node_id']}: {first['explanation']}"
     else:
         answer = "No hay anomalías activas en los datos disponibles de la ASADA."
-    return {"answer": answer, "anomalies": context["anomalies"], "orders": context["orders"]}
+    return {"answer": answer, "anomalies": context["anomalies"], "orders": context["orders"],
+            "scope": "asada", "ai_used": False}

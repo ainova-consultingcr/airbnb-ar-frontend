@@ -49,15 +49,19 @@
     "suggestions": {
       "es": [
         "¿Cómo interpreto la presión?",
+        "¿Cómo interpreto el caudal?",
         "¿Qué significa posible fuga?",
         "¿Cuándo aparece un nodo offline?",
-        "¿Cuál es el estado actual de la red?"
+        "¿Cuál es el estado actual de la red?",
+        "¿Cómo atiendo una orden de trabajo?"
       ],
       "en": [
         "How do I interpret pressure?",
+        "How do I interpret flow?",
         "What does possible leak mean?",
         "When does a node appear offline?",
-        "What is the current network status?"
+        "What is the current network status?",
+        "How do I handle a work order?"
       ]
     }
   }

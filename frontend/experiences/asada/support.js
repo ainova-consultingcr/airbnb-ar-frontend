@@ -35,7 +35,7 @@
 
   window.AVIExperienceExtensions?.register("assistant:ask", "asada-support", async ({question}) => {
     if (!token || !currentUser) {
-      return {handled:true, answer:"Inicia sesión con tu usuario de AVI para consultar la operación de esta ASADA."};
+      return {handled:true, answer:"Inicia sesión con tu usuario de ASADA para consultar la operación."};
     }
     try {
       const result = await request("/ask", {

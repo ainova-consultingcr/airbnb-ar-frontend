@@ -11,7 +11,7 @@ class Login(BaseModel):
 
 class SupportQuestion(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
-    question: str = Field(min_length=3, max_length=500)
+    question: str = Field(min_length=3, max_length=240)
     period_days: int = Field(default=30, ge=1, le=365)
 
 

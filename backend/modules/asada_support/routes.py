@@ -6,7 +6,7 @@ from fastapi import APIRouter, Header, HTTPException
 
 from core.http import require_entity_module
 from .auth import connect, now, require_role
-from .monitor import (admin_summary, anomaly_context, answer_question, fetch_monitor,
+from .monitor import (admin_summary, anomaly_context, answer_question, classify_question, fetch_monitor,
                       login_monitor, logout_monitor, post_monitor, require_monitor_user)
 from .schemas import Login, SupportQuestion
 from .schemas import AlertEvent, PushSubscription, WorkOrderClaim, WorkOrderUpdate
@@ -159,5 +159,8 @@ def summary(entity_id: str, period_days: int = 30, authorization: str | None = H
 def ask(entity_id: str, payload: SupportQuestion, authorization: str | None = Header(default=None)):
     entity, user = authenticated_user(entity_id, authorization)
     require_role(user, "ADMIN", "OPERADOR", "FONTANERO")
+    intent = classify_question(payload.question, user)
+    if intent in {"greeting", "flow", "tank", "work_order_help", "notifications", "access", "out_of_scope"}:
+        return answer_question(payload.question, user, [], [], payload.period_days)
     nodes, orders = monitor_data(entity, user)
     return answer_question(payload.question, user, nodes, orders, payload.period_days)

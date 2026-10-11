@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from modules.asada_support import auth, monitor, routes
 from modules.asada_support.monitor import admin_summary, anomaly_context, answer_question
-from modules.asada_support.schemas import Login
+from modules.asada_support.schemas import Login, SupportQuestion
 
 
 class AsadaSupportTests(unittest.TestCase):
@@ -136,6 +136,32 @@ class AsadaSupportTests(unittest.TestCase):
         self.assertIn("1 alerta", answers[1])
         self.assertIn("1 nodo", answers[2])
         self.assertIn("3 nodo", answers[3])
+
+    def test_common_and_out_of_scope_questions_never_use_ai(self):
+        user = self.remote_user()
+        common = answer_question("¿Cómo interpreto el caudal?", user, [], [])
+        rejected = answer_question("¿Quién ganó el partido de fútbol?", user, [], [])
+        self.assertFalse(common["ai_used"])
+        self.assertEqual(common["scope"], "asada")
+        self.assertIn("litros por minuto", common["answer"])
+        self.assertFalse(rejected["ai_used"])
+        self.assertEqual(rejected["scope"], "out_of_scope")
+        self.assertIn("fuera del ámbito operativo", rejected["answer"])
+        english = answer_question("How do I interpret pressure?", user, [], [])
+        self.assertEqual(english["scope"], "asada")
+        self.assertFalse(english["ai_used"])
+
+    def test_out_of_scope_question_does_not_fetch_monitor_data(self):
+        with patch.object(routes, "authenticated_user", return_value=({"id":"asada_demo"}, self.remote_user())), \
+             patch.object(routes, "monitor_data") as monitor_data:
+            result = routes.ask("asada_demo", SupportQuestion(
+                question="¿Puedes recomendarme una película?"), "Bearer asada-token")
+        monitor_data.assert_not_called()
+        self.assertEqual(result["scope"], "out_of_scope")
+
+    def test_support_question_length_is_strictly_limited(self):
+        with self.assertRaises(ValueError):
+            SupportQuestion(question="a" * 241)
 
     def test_fontanero_registers_push_and_event_is_idempotent(self):
         subscription = routes.PushSubscription(endpoint="https://push.example/device-1", keys={
